@@ -1,5 +1,5 @@
 const app = {
-    // Data structures
+    // Hardcoded for now, but should come from API eventually
     services: [
         { id: 1, name: 'Corte de Cabelo', price: 50, duration: '40 min' },
         { id: 2, name: 'Barba Completa', price: 30, duration: '20 min' },
@@ -8,20 +8,19 @@ const app = {
     ],
     availableTimes: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
     
-    // State
+    // Default barber ID for the demo (demo@pentfino.com)
+    barberId: 1,
+
     booking: {
         service: null,
         time: null,
         client: { name: '', phone: '' }
     },
-    history: [], // Completed appointments
-    pending: [], // Active bookings
 
     init() {
         this.renderServices();
         this.renderTimes();
         this.bindEvents();
-        this.updateStats();
         this.simulateRetentionInsight();
     },
 
@@ -48,10 +47,7 @@ const app = {
     },
 
     bindEvents() {
-        // Booking Next Button
         document.getElementById('btn-next-step').onclick = () => this.showStep('details');
-
-        // Confirm Booking
         document.getElementById('btn-confirm-booking').onclick = () => this.confirmBooking();
     },
 
@@ -75,7 +71,7 @@ const app = {
         document.getElementById(`step-${stepId}`).classList.remove('hidden');
     },
 
-    confirmBooking() {
+    async confirmBooking() {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
 
@@ -84,55 +80,47 @@ const app = {
             return;
         }
 
-        this.booking.client = { name, phone };
-        
-        // Add to pending (for Admin View)
-        const appointment = {
-            id: Date.now(),
-            ...this.booking,
-            status: 'pending'
-        };
-        this.pending.push(appointment);
+        try {
+            const res = await fetch('/api/appointments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    barberId: this.barberId,
+                    serviceId: this.booking.service.id,
+                    clientName: name,
+                    clientPhone: phone,
+                    time: this.booking.time
+                })
+            });
 
-        // Render Summary
-        document.getElementById('summary-content').innerHTML = `
-            <p><strong>Serviço:</strong> ${this.booking.service.name}</p>
-            <p><strong>Horário:</strong> Hoje às ${this.booking.time}</p>
-            <p><strong>Total:</strong> R$ ${this.booking.service.price}</p>
-        `;
-
-        this.renderAppointments();
-        this.showStep('success');
-    },
-
-    showToast(msg) {
-        const toast = document.getElementById('toast');
-        document.getElementById('toast-msg').innerText = msg;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 4000);
+            if (res.ok) {
+                document.getElementById('summary-content').innerHTML = `
+                    <p><strong>Serviço:</strong> ${this.booking.service.name}</p>
+                    <p><strong>Horário:</strong> Hoje às ${this.booking.time}</p>
+                    <p><strong>Total:</strong> R$ ${this.booking.service.price}</p>
+                `;
+                this.showStep('success');
+            } else {
+                alert('Erro ao confirmar agendamento');
+            }
+        } catch (err) { alert('Erro de conexão'); }
     },
 
     simulateRetentionInsight() {
         const tips = [
-            "O cliente 'João Silva' não volta há 22 dias. Enviar lembrete?",
-            "Sugestão: 15% de desconto em Barba para quem cortar esta manhã.",
-            "60% dos seus clientes preferem o horário das 17:00.",
-            "O estoque de Pomada Efeito Matte está no fim (2 unid)."
+            "Faltam apenas 3 horários para hoje!",
+            "Promoção: Corte + Barba com 10% de desconto seg-qua.",
+            "Mais de 500 agendamentos realizados este mês.",
         ];
         
         setInterval(() => {
-            const randomTip = tips[Math.floor(Math.random() * tips.length)];
             const tipEl = document.getElementById('retention-tip');
             if(tipEl) {
-                tipEl.style.opacity = 0;
-                setTimeout(() => {
-                    tipEl.innerText = randomTip;
-                    tipEl.style.opacity = 1;
-                }, 500);
+                const randomTip = tips[Math.floor(Math.random() * tips.length)];
+                tipEl.innerText = randomTip;
             }
         }, 8000);
     }
 };
 
-// Start App
 window.onload = () => app.init();

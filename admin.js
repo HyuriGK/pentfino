@@ -1,58 +1,100 @@
 const auth = {
-    user: null,
+    user: JSON.parse(localStorage.getItem('pentfino_user')) || null,
+
+    init() {
+        if (this.user) this.showDashboard();
+    },
 
     toggleForm(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
     },
 
-    login() {
+    async login() {
         const email = document.getElementById('email').value;
-        if (!email) return alert('Insira seu email');
+        const password = document.getElementById('password').value;
         
-        this.user = { email, shop: 'Kaza do Barbeiro' };
-        this.showDashboard();
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.user = data.user;
+                localStorage.setItem('pentfino_user', JSON.stringify(this.user));
+                this.showDashboard();
+            } else {
+                alert(data.message);
+            }
+        } catch (err) { alert('Erro ao conectar ao servidor'); }
     },
 
-    register() {
+    async register() {
         const shop = document.getElementById('reg-shop').value;
         const email = document.getElementById('reg-email').value;
-        if (!shop || !email) return alert('Preencha os campos');
+        const password = document.getElementById('reg-password').value;
         
-        this.user = { email, shop };
-        this.showDashboard();
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, shop })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.user = data.user;
+                localStorage.setItem('pentfino_user', JSON.stringify(this.user));
+                this.showDashboard();
+            } else {
+                alert(data.message);
+            }
+        } catch (err) { alert('Erro ao registrar'); }
     },
 
     showDashboard() {
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('admin-view').classList.remove('hidden');
-        document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop}`;
+        document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop_name || this.user.shop}`;
         admin.init();
     },
 
     logout() {
+        localStorage.removeItem('pentfino_user');
         location.reload();
     }
 };
 
 const admin = {
-    pending: [
-        { id: 1, client: { name: 'Gustavo Lima' }, service: { name: 'Corte + Barba', price: 70 }, time: '14:30' },
-        { id: 2, client: { name: 'Felipe Rossi' }, service: { name: 'Corte Social', price: 40 }, time: '15:15' }
-    ],
+    pending: [],
     history: [],
 
-    init() {
+    async init() {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
-        this.renderAppointments();
-        this.updateStats();
+        await this.loadData();
         this.startInsights();
     },
 
+    async loadData() {
+        try {
+            const [aptRes, statRes] = await Promise.all([
+                fetch(`/api/appointments/${auth.user.id}`),
+                fetch(`/api/stats/${auth.user.id}`)
+            ]);
+            
+            this.pending = await aptRes.json();
+            const stats = await statRes.json();
+            
+            this.renderAppointments();
+            this.updateStats(stats);
+        } catch (err) { console.error('Erro ao carregar dados'); }
+    },
+
     showTab(tab) {
-        // Simplified for MVP - only visual feedback
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        const target = [...document.querySelectorAll('.nav-item')].find(el => el.innerText.toLowerCase().includes(tab.toLowerCase()));
+        if(target) target.classList.add('active');
         
         if (tab !== 'home') alert(`Módulo de ${tab} será liberado na versão 2.0!`);
     },
@@ -67,9 +109,9 @@ const admin = {
         container.innerHTML = this.pending.map(a => `
             <div class="appointment-item glass" style="background: #050505; border: 1px solid var(--border);">
                 <div class="client-info">
-                    <h4 style="font-size: 1.25rem; letter-spacing: -0.5px;">${a.client.name}</h4>
+                    <h4 style="font-size: 1.25rem; letter-spacing: -0.5px;">${a.client_name}</h4>
                     <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted);">
-                        ${a.service.name} <span style="margin: 0 8px; opacity: 0.3;">•</span> <span style="color: var(--primary);">${a.time}</span>
+                        ${a.service_name} <span style="margin: 0 8px; opacity: 0.3;">•</span> <span style="color: var(--primary);">${a.appointment_time}</span>
                     </p>
                 </div>
                 <div class="action-btns">
@@ -80,35 +122,42 @@ const admin = {
         `).join('');
     },
 
-    completeService(id) {
-        const index = this.pending.findIndex(a => a.id === id);
-        if (index > -1) {
-            const completed = this.pending.splice(index, 1)[0];
-            this.history.push(completed);
-            this.updateStats();
-            this.renderAppointments();
-        }
+    async completeService(id) {
+        try {
+            await fetch(`/api/appointments/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'completed' })
+            });
+            this.loadData();
+        } catch (err) { alert('Erro ao finalizar serviço'); }
     },
 
-    cancelService(id) {
+    async cancelService(id) {
         if (confirm('Deseja cancelar este agendamento?')) {
-            this.pending = this.pending.filter(a => a.id !== id);
-            this.renderAppointments();
+            try {
+                await fetch(`/api/appointments/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'canceled' })
+                });
+                this.loadData();
+            } catch (err) { alert('Erro ao cancelar serviço'); }
         }
     },
 
-    updateStats() {
-        const revenue = this.history.reduce((acc, curr) => acc + curr.service.price, 0);
+    updateStats(stats) {
+        const revenue = parseFloat(stats.revenue || 0);
         document.getElementById('stat-revenue').innerText = `R$ ${revenue.toLocaleString('pt-BR')}`;
-        document.getElementById('stat-count').innerText = this.history.length;
+        document.getElementById('stat-count').innerText = stats.count || 0;
     },
 
     startInsights() {
         const tips = [
             "Aumento de 20% na procura por serviços esta semana.",
             "Insight Pentfino: Ofereça um café aos clientes que chegarem 10min antes.",
-            "Lembrete: O cliente 'Felipe Rossi' é recorrente. Ofereça o plano VIP.",
-            "Atenção: Seu estoque de lâminas precisa ser renovado em 3 dias."
+            "Lembrete: Foque em retenção este mês para dobrar o lucro.",
+            "Atenção: Seu faturamento cresceu 15% em relação ao mês anterior."
         ];
         
         let i = 0;
@@ -121,3 +170,5 @@ const admin = {
         }, 10000);
     }
 };
+
+window.onload = () => auth.init();
