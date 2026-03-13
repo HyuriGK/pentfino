@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pentfino Admin | Dashboard Geral</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+    <!-- FullCalendar CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales-all.global.min.js"></script>
+</head>
+<body>
+    
+    <!-- AUTH SCREEN -->
+    <div id="auth-view" class="auth-wrapper">
+        <div class="auth-visual-side">
+            <div class="auth-visual-content">
+                <div class="logo logo-large">
+                    <img src="image.png" alt="Pentfino" class="logo-img logo-img-large">
+                    Pentfino
+                </div>
+                <h1 class="auth-hero-text">A nova era da<br>gestão profissional.</h1>
+                <p class="auth-subtext">Simplifique seu fluxo, encante seus clientes e escale seu negócio com Pentfino.</p>
+            </div>
+            <div class="auth-visual-overlay"></div>
+        </div>
+        
+        <div class="auth-form-side">
+            <div class="auth-form-container">
+                <div id="login-form" class="auth-card-new">
+                    <span class="badge">Acesso Restrito</span>
+                    <h2 class="auth-title">Bem-vindo de volta</h2>
+                    <p class="auth-description">Insira suas credenciais para gerenciar sua barbearia hoje.</p>
+                    
+                    <div class="input-group-new">
+                        <label>E-mail Corporativo</label>
+                        <input type="email" id="email" placeholder="nome@suabarbearia.com">
+                    </div>
+                    <div class="input-group-new">
+                        <label>Senha</label>
+                        <input type="password" id="password" placeholder="••••••••">
+                    </div>
+                    
+                    <button class="btn btn-primary btn-full" onclick="auth.login()">Entrar no Dashboard</button>
+                    
+                    <div class="auth-footer">
+                        Não possui uma licença? <a href="#" onclick="auth.toggleForm('register')">Criar conta gratuita</a>
+                    </div>
+                </div>
+
+                <div id="register-form" class="auth-card-new hidden">
+                    <span class="badge">Novo Parceiro</span>
+                    <h2 class="auth-title">Comece Agora</h2>
+                    <p class="auth-description">Junte-se à elite dos barbeiros e transforme seu atendimento.</p>
+                    
+                    <div class="input-group-new">
+                        <label>Nome da Unidade</label>
+                        <input type="text" id="reg-shop" placeholder="Ex: Pentfino Matriz">
+                    </div>
+                    <div class="input-group-new">
+                        <label>E-mail Principal</label>
+                        <input type="email" id="reg-email" placeholder="admin@exemplo.com">
+                    </div>
+                    <div class="input-group-new">
+                        <label>Senha de Acesso</label>
+                        <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
+                    </div>
+                    
+                    <button class="btn btn-primary btn-full" onclick="auth.register()">Finalizar Cadastro</button>
+                    
+                    <div class="auth-footer">
+                        Já faz parte do time? <a href="#" onclick="auth.toggleForm('login')">Fazer Login</a>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+    <!-- MAIN DASHBOARD -->
+    <div id="admin-view" class="dashboard-wrapper hidden">
+        <aside id="sidebar" class="sidebar glass">
+            <div class="sidebar-header" style="padding: 0;">
+                <div class="logo" onclick="ui.toggleSidebar()" style="cursor: pointer;">
+                    <img src="image.png" alt="Pentfino" class="logo-img">
+                    <span class="logo-text">Pentfino</span>
+                </div>
+            </div>
+            <nav>
+                <div class="nav-item active" onclick="admin.showTab('home')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span class="nav-text">Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('agenda')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span class="nav-text">Agenda</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('clientes')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span class="nav-text">Clientes</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('estoque')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span class="nav-text">Estoque</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('profissionais')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                    <span class="nav-text">Profissionais</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('comissoes')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span class="nav-text">Comissões</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('servicos')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                    <span class="nav-text">Serviços</span>
+                </div>
+                <div class="nav-item" style="color: var(--success); margin-top: 10px;" onclick="admin.openShareModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                    <span class="nav-text">Compartilhar</span>
+                </div>
+                <div class="nav-item" style="color: var(--danger); margin-top: auto;" onclick="admin.confirmLogout()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span class="nav-text">Sair</span>
+                </div>
+
+
+            </nav>
+        </aside>
+
+        <main class="dashboard-content">
+            <header style="margin-bottom: 3.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1 id="shop-name-title" style="font-size: 2.5rem; letter-spacing: -2px; margin-bottom: 4px;">Bem-vindo</h1>
+                    <p style="color: var(--text-muted); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">
+                        Gestão de hoje <span style="margin: 0 10px; opacity: 0.3;">/</span> <span id="current-date" style="color: var(--primary);">--</span>
+                    </p>
+                </div>
+            </header>
+
+            <div id="tab-home">
+                <div class="stat-grid">
+                    <div class="stat-card glass" style="border-left: 1px solid var(--border-bright);">
+                        <div class="stat-label">Receita Hoje</div>
+                        <div class="stat-value" id="stat-revenue" style="color: var(--success);">R$ 0</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Concluídos</div>
+                        <div class="stat-value" id="stat-count">0</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Agendados</div>
+                        <div class="stat-value" id="stat-scheduled-count">--</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Novos Clientes</div>
+                        <div class="stat-value">--</div>
+                    </div>
+                </div>
+
+                <div class="list-header" style="margin-top: 4rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Fila de Atendimento</h2>
+                    <div style="width: 40px; height: 1px; background: var(--border-bright);"></div>
+                </div>
+
+                <div id="appointments-list">
+                    <!-- Dynamic List -->
+                </div>
+
+                <!-- Enhanced Retention Insight Section -->
+                <div class="glass" style="margin-top: 10rem; padding: 2.5rem; border: none; background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; font-size: 8rem; opacity: 0.03; pointer-events: none;">AI</div>
+                    <div style="display: flex; align-items: flex-start; gap: 24px;">
+                        <div style="background: var(--primary); color: #000; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;">AI</div>
+                        <div>
+                            <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px;">Inteligência Pentfino AI</h4>
+                            <p id="retention-tip" style="font-size: 1.1rem; font-weight: 500; color: #fff;">Iniciando análise de comportamento dos clientes...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-agenda" class="hidden">
+                 <div class="list-header" style="margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Calendário de Atendimento</h2>
+                    <select id="agenda-barber-filter" onchange="agenda.filterByProfessional(this.value)" style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-bright); padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; min-width: 200px;">
+                        <option value="all">Todos os Barbeiros</option>
+                    </select>
+                </div>
+                <div id="calendar" class="glass" style="padding: 2rem; background: var(--bg-card);"></div>
+            </div>
+
+            <!-- TAB CLIENTES -->
+            <div id="tab-clientes" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Relação de Clientes</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('client')">+ Novo Cliente</button>
+                </div>
+                <div class="input-group-new" style="margin-bottom: 2rem; max-width: 400px;">
+                    <input type="text" id="client-search" placeholder="🔍 Buscar por nome ou WhatsApp..." onkeyup="admin.filterClients()">
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>WhatsApp</th>
+                                <th>Último Corte</th>
+                                <th>Total atendimentos</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB ESTOQUE -->
+            <div id="tab-estoque" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Controle de Estoque</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('inventory')">+ Adicionar Item</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item / Produto</th>
+                                <th>Quantidade</th>
+                                <th>Preço Unit.</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB PROFISSIONAIS -->
+            <div id="tab-profissionais" class="hidden">
+                <div class="list-header">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Equipe Profissional</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Gerencie sua equipe e os serviços que cada um realiza.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="admin.openModal('professional')">+ Novo Profissional</button>
+                </div>
+                
+                <div id="professionals-grid" class="professional-grid" style="margin-top: 2.5rem;">
+                    <!-- Card Grid Injected by JS -->
+                </div>
+            </div>
+
+            <!-- TAB COMISSOES -->
+            <div id="tab-comissoes" class="hidden">
+                <div class="list-header" style="flex-direction: column; align-items: flex-start; gap: 20px;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Dashboard de Comissões</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Acompanhe o faturamento e comissões devidas a cada profissional.</p>
+                    </div>
+                </div>
+
+                <div class="stat-grid" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
+                    <div class="stat-card glass">
+                        <div class="stat-label">Total Gerado</div>
+                        <div class="stat-value" id="comm-total-revenue" style="color: var(--primary);">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Comissão Loja (Total)</div>
+                        <div class="stat-value" id="comm-total-due" style="color: var(--danger);">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Repasse Profissionais (Total)</div>
+                        <div class="stat-value" id="comm-total-prof" style="color: var(--success);">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <!-- Month Selector -->
+                <div id="commissions-month-selector" class="glass" style="display: flex; gap: 8px; padding: 8px; border-radius: 12px; overflow-x: auto; width: 100%; border: 1px solid var(--border-bright); margin-bottom: 2rem;">
+                    <button class="btn btn-ghost month-btn active" onclick="admin.setCommMonth(0)">Jan</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(1)">Fev</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(2)">Mar</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(3)">Abr</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(4)">Mai</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(5)">Jun</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(6)">Jul</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(7)">Ago</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(8)">Set</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(9)">Out</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(10)">Nov</button>
+                    <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(11)">Dez</button>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Profissional</th>
+                                <th>Taxa (%)</th>
+                                <th>Total Gerado</th>
+                                <th>Loja (Due)</th>
+                                <th>A Receber (Profissional)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commissions-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB SERVICOS -->
+            <div id="tab-servicos" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Tabela de Serviços</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('service')">+ Novo Serviço</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Serviço</th>
+                                <th>Duração</th>
+                                <th>Preço</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL NEW CLIENT -->
+    <div id="modal-client" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Novo Cliente</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('client')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome Completo</label>
+                <input type="text" id="modal-client-name" placeholder="Ex: João Silva">
+            </div>
+            <div class="input-group-new">
+                <label>WhatsApp</label>
+                <input type="tel" id="modal-client-phone" placeholder="Ex: (11) 99999-9999">
+            </div>
+            <div class="input-group-new">
+                <label>Notas/Observações</label>
+                <input type="text" id="modal-client-notes" placeholder="Preferências, alergias, etc.">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveClient()">Cadastrar Cliente</button>
+        </div>
+    </div>
+
+    <!-- MODAL NEW INVENTORY ITEM -->
+    <div id="modal-inventory" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Novo Item</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('inventory')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome do Produto</label>
+                <input type="text" id="modal-inv-name" placeholder="Ex: Pomada Efeito Matte">
+            </div>
+            <div class="input-group-new">
+                <label>Quantidade Inicial</label>
+                <input type="number" id="modal-inv-qty" placeholder="0">
+            </div>
+            <div class="input-group-new">
+                <label>Unidade</label>
+                <input type="text" id="modal-inv-unit" placeholder="Ex: un, ml, kg">
+            </div>
+            <div class="input-group-new">
+                <label>Mínimo em Estoque (Alerta)</label>
+                <input type="number" id="modal-inv-min" placeholder="5">
+            </div>
+            <div class="input-group-new">
+                <label>Preço Unitário (Custo)</label>
+                <input type="number" id="modal-inv-price" placeholder="R$ 0,00" step="0.01">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveInventory()">Adicionar ao Estoque</button>
+        </div>
+    </div>
+
+    <!-- MODAL NEW PROFESSIONAL -->
+    <div id="modal-professional" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Novo Profissional</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('professional')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome do Profissional</label>
+                <input type="text" id="modal-prof-name" placeholder="Ex: Rodrigo Barbeiro">
+            </div>
+            <div class="input-group-new">
+                <label>WhatsApp</label>
+                <input type="tel" id="modal-prof-phone" placeholder="Ex: (11) 99999-9999">
+            </div>
+            <div class="input-group-new">
+                <label>Imagem (URL)</label>
+                <input type="text" id="modal-prof-photo" placeholder="https://...">
+            </div>
+            <div class="input-group-new">
+                <label>Comissão (%)</label>
+                <input type="number" id="modal-prof-commission" placeholder="Ex: 20">
+            </div>
+            <div class="input-group-new">
+                <label>Serviços Realizados</label>
+                <div id="modal-prof-services-list" class="checkbox-grid glass" style="padding: 15px; max-height: 150px; overflow-y: auto;">
+                    <!-- Checkboxes injected by JS -->
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveProfessional()">Cadastrar Profissional</button>
+        </div>
+    </div>
+
+    <!-- MODAL NEW SERVICE -->
+    <div id="modal-service" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Novo Serviço</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('service')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome do Serviço</label>
+                <input type="text" id="modal-svc-name" placeholder="Ex: Barba Terapia">
+            </div>
+            <div class="input-group-new">
+                <label>Preço (R$)</label>
+                <input type="number" id="modal-svc-price" placeholder="R$ 0,00">
+            </div>
+            <div class="input-group-new">
+                <label>Duração Estimada</label>
+                <input type="text" id="modal-svc-duration" placeholder="Ex: 30 min">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveService()">Adicionar Serviço</button>
+        </div>
+    </div>
+
+    <!-- CUSTOM COMPLETION MODAL -->
+    <div id="modal-confirm-service" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align: center; max-width: 400px;">
+            <div style="background: var(--success); color: #000; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2 class="modal-title" style="margin-bottom: 8px;">Finalizar Atendimento</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px;" id="confirm-service-text">Confirmar conclusão do serviço?</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-ghost btn-full" onclick="admin.closeModal('confirm-service')">Cancelar</button>
+                <button class="btn btn-primary btn-full" id="btn-do-complete-service">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM CANCELLATION MODAL -->
+    <div id="modal-cancel-service" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align: center; max-width: 400px;">
+            <div style="background: var(--danger); color: #fff; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <h2 class="modal-title" style="margin-bottom: 8px;">Cancelar Horário</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px;" id="cancel-service-text">Deseja cancelar o agendamento?</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-ghost btn-full" onclick="admin.closeModal('cancel-service')">Voltar</button>
+                <button class="btn btn-danger btn-full" id="btn-do-cancel-service" style="background: var(--danger); border: none;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VIEW APPOINTMENT (AGENDA) -->
+    <div id="modal-view-appointment" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 class="modal-title">Detalhes do Agendamento</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('view-appointment')">×</button>
+            </header>
+            <div class="glass" style="padding: 24px; border-radius: 16px; margin-bottom: 24px;">
+                <div style="margin-bottom: 16px;">
+                    <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Cliente</label>
+                    <div id="view-app-name" style="font-size: 1.2rem; font-weight: 700;">--</div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Serviço</label>
+                    <div id="view-app-service" style="font-size: 1rem; color: var(--primary);">--</div>
+                </div>
+                <div style="display: flex; gap: 24px;">
+                    <div>
+                        <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Horário</label>
+                        <div id="view-app-time" style="font-weight: 600;">--</div>
+                    </div>
+                    <div>
+                        <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Status</label>
+                        <div id="view-app-status">--</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.closeModal('view-appointment')">Fechar</button>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+    <!-- Client Details Modal (Full Screen) -->
+    <div id="modal-client-details" class="modal-overlay modal-full hidden">
+        <div class="modal-content glass" style="max-width: 1000px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <div>
+                    <h2 id="detail-client-name" style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 4px;">--</h2>
+                    <p id="detail-client-phone" style="color: var(--text-muted); font-size: 0.9rem;">--</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('client-details')">×</button>
+            </div>
+            
+            <div class="modal-body" style="overflow-y: auto; padding: 0 40px 40px 40px;">
+                <!-- KPI Cards -->
+                <div class="stat-grid" style="margin-bottom: 40px;">
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Faturamento Total</label>
+                        <h3 id="detail-total-spent" style="font-size: 2rem; color: var(--primary);">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Total de Visitas</label>
+                        <h3 id="detail-visit-count" style="font-size: 2rem; color: var(--primary);">0</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Ticket Médio</label>
+                        <h3 id="detail-avg-ticket" style="font-size: 2rem; color: var(--primary);">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Intervalo Médio</label>
+                        <h3 id="detail-avg-interval" style="font-size: 2rem; color: var(--primary);">--</h3>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 24px; font-size: 1.25rem; font-family: 'Outfit', sans-serif; letter-spacing: -0.5px; color: var(--primary);">Histórico de Atendimentos</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Serviço</th>
+                                <th>Barbeiro</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="client-history-table-body">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL SHARE LINK -->
+    <div id="modal-share" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 700px; text-align: center;">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 class="modal-title">Compartilhar Agendamento</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('share')">×</button>
+            </header>
+            <div class="glass" style="padding: 32px; border-radius: 20px; margin-bottom: 24px;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Este é o seu link exclusivo para clientes realizarem agendamentos diretos.</p>
+                <div class="input-group-new" style="margin-bottom: 0;">
+                    <input type="text" id="share-link-input" readonly style="text-align: center; background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.copyShareLink()">Copiar Link de Reserva</button>
+        </div>
+    </div>
+    <!-- MODAL PROFESSIONAL COMMISSIONS DETAILS -->
+    <div id="modal-prof-comm-details" class="modal-overlay modal-full hidden">
+        <div class="modal-content glass" style="max-width: 1000px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <div>
+                    <h2 id="prof-details-name" style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 4px;">--</h2>
+                    <p id="prof-details-period" style="color: var(--text-muted); font-size: 0.9rem;">Relatório de Comissões - <span id="prof-details-month">--</span></p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('prof-comm-details')">×</button>
+            </div>
+            
+            <div class="modal-body" style="overflow-y: auto; padding: 0 40px 40px 40px;">
+                <div class="stat-grid" style="margin-bottom: 40px;">
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Total Gerado</label>
+                        <h3 id="prof-details-total-gen" style="font-size: 2rem; color: var(--primary);">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Comissão Loja</label>
+                        <h3 id="prof-details-shop-share" style="font-size: 2rem; color: var(--danger);">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">A Receber</label>
+                        <h3 id="prof-details-prof-share" style="font-size: 2rem; color: var(--success);">R$ 0,00</h3>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 24px; font-size: 1.25rem; font-family: 'Outfit', sans-serif; letter-spacing: -0.5px; color: var(--primary);">Serviços Realizados no Período</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Serviço</th>
+                                <th>Valor</th>
+                                <th>Loja (Due)</th>
+                                <th>A Receber</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prof-comm-details-table-body">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LOGOUT CONFIRMATION -->
+    <div id="modal-logout" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="background: rgba(255, 68, 68, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--danger);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </div>
+            <h2 class="modal-title" style="margin-bottom: 12px;">Tem certeza que quer sair?</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px;">Sua sessão será encerrada com segurança.</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <button class="btn btn-ghost" onclick="admin.closeModal('logout')">Cancelar</button>
+                <button class="btn btn-primary" style="background: var(--danger); color: #fff;" onclick="auth.logout()">Sim, Sair</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
