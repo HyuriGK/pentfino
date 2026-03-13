@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BarberFlow | Agendamento Inteligente</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header style="margin-bottom: 3rem;">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                BarberFlow
+            </div>
+        </header>
+
+        <main id="view-customer" class="view-content">
+            <section id="step-services">
+                <h2 style="font-size: 2rem; letter-spacing: -1.5px; margin-bottom: 2rem; text-align: center;">O que vamos fazer hoje?</h2>
+                <div class="card-grid" id="services-list" style="margin-bottom: 3rem;">
+                    <!-- Services injected by JS -->
+                </div>
+                <button class="btn btn-primary" style="width: 100%; height: 60px;" id="btn-next-step" disabled>Continuar</button>
+            </section>
+
+            <section id="step-details" class="hidden">
+                <h2 style="font-size: 2rem; letter-spacing: -1.5px; margin-bottom: 2rem; text-align: center;">Escolha o horário</h2>
+                <div class="card-grid" id="times-list" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 3rem;">
+                    <!-- Times injected by JS -->
+                </div>
+                
+                <div style="margin-top: 3rem;">
+                    <h3 style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 1.5rem;">Seus Dados</h3>
+                    <div class="input-group">
+                        <input type="text" id="client-name" placeholder="NOME COMPLETO" style="border-radius: 0; border: none; border-bottom: 1px solid var(--border); padding: 20px 0; background: transparent;">
+                    </div>
+                    <div class="input-group">
+                        <input type="tel" id="client-phone" placeholder="WHATSAPP" style="border-radius: 0; border: none; border-bottom: 1px solid var(--border); padding: 20px 0; background: transparent;">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; height: 60px; margin-top: 3rem;" id="btn-confirm-booking">Confirmar Agendamento</button>
+                <button class="btn btn-ghost" style="width: 100%; border: none; margin-top: 1rem;" onclick="app.showStep('services')">Voltar</button>
+            </section>
+
+            <section id="step-success" class="hidden" style="text-align: center; padding: 5rem 1rem;">
+                <h1 style="font-size: 3rem; letter-spacing: -3px; margin-bottom: 1rem;">FEITO.</h1>
+                <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 4rem;">Tudo certo para seu atendimento. Te esperamos lá.</p>
+                
+                <div class="glass" style="padding: 2.5rem; text-align: left; margin-bottom: 4rem; background: #050505;">
+                    <div id="summary-content"></div>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%;" onclick="location.reload()">Novo Agendamento</button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast (Simulation) -->
+    <div id="toast" class="retention-toast hidden">
+        <div style="font-size: 1.2rem;">⚡</div>
+        <div>
+            <strong style="display: block; font-size: 0.85rem;">Novo Lembrete</strong>
+            <span id="toast-msg" style="font-size: 0.75rem; opacity: 0.9;"></span>
+        </div>
+    </div>
+
+    <script src="customer.js"></script>
+</body>
+</html>
