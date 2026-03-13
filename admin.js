@@ -185,7 +185,7 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'estoque', 'profissionais', 'servicos'];
+        const tabs = ['home', 'agenda', 'clientes', 'estoque', 'profissionais', 'servicos', 'comissoes'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -217,6 +217,59 @@ const admin = {
         if (tab === 'servicos') {
             this.loadServices();
         }
+
+        if (tab === 'comissoes') {
+            this.loadCommissions();
+        }
+    },
+
+    async loadCommissions() {
+        // Ensure we have latest data
+        await Promise.all([this.loadProfessionals(), admin.loadData()]);
+        
+        const container = document.getElementById('commissions-table-body');
+        if (!container) return;
+
+        let totalRevenue = 0;
+        let totalCommissions = 0;
+
+        const commData = this.professionals.map(p => {
+            const profApts = (this.allAppointments || []).filter(a => 
+                String(a.professional_id) === String(p.id) && a.status === 'completed'
+            );
+
+            const generated = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
+            const due = generated * (parseFloat(p.commission || 0) / 100);
+
+            totalRevenue += generated;
+            totalCommissions += due;
+
+            return {
+                name: p.name,
+                rate: p.commission || 0,
+                generated,
+                due
+            };
+        });
+
+        // Update KPIs
+        document.getElementById('comm-total-revenue').innerText = `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('comm-total-due').innerText = `R$ ${totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+        // Render Table
+        if (commData.length === 0) {
+            container.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum profissional cadastrado para calcular comissões.</td></tr>';
+            return;
+        }
+
+        container.innerHTML = commData.map(c => `
+            <tr>
+                <td><strong style="color:#fff">${c.name}</strong></td>
+                <td><span class="svc-tag" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">${c.rate}%</span></td>
+                <td style="font-weight: 600;">R$ ${c.generated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td style="color: var(--success); font-weight: 700;">R$ ${c.due.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            </tr>
+        `).join('');
     },
 
     renderAppointments() {

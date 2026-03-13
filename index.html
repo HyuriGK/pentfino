@@ -108,6 +108,10 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
                     <span class="nav-text">Profissionais</span>
                 </div>
+                <div class="nav-item" onclick="admin.showTab('comissoes')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span class="nav-text">Comissões</span>
+                </div>
                 <div class="nav-item" onclick="admin.showTab('servicos')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
                     <span class="nav-text">Serviços</span>
@@ -249,6 +253,43 @@
                 
                 <div id="professionals-grid" class="professional-grid" style="margin-top: 2.5rem;">
                     <!-- Card Grid Injected by JS -->
+                </div>
+            </div>
+
+            <!-- TAB COMISSOES -->
+            <div id="tab-comissoes" class="hidden">
+                <div class="list-header">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Dashboard de Comissões</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Acompanhe o faturamento e comissões devidas a cada profissional.</p>
+                    </div>
+                </div>
+
+                <div class="stat-grid" style="margin-top: 2.5rem;">
+                    <div class="stat-card glass">
+                        <div class="stat-label">Total Gerado</div>
+                        <div class="stat-value" id="comm-total-revenue" style="color: var(--primary);">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Total Comissões</div>
+                        <div class="stat-value" id="comm-total-due" style="color: var(--success);">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Profissional</th>
+                                <th>Taxa (%)</th>
+                                <th>Total Gerado</th>
+                                <th>Comissão Devida</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commissions-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
