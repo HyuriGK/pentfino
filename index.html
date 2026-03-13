@@ -14,49 +14,70 @@
 <body>
     
     <!-- AUTH SCREEN -->
-    <div id="auth-view" class="container">
-        <div class="auth-card glass">
-            <div class="logo" style="margin-bottom: 2rem;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><rect x="7" y="7" width="10" height="10" rx="2"></rect></svg>
-                Pentfino
-            </div>
-            
-            <div id="login-form">
-                <h2 style="margin-bottom: 1.5rem;">Login Administrativo</h2>
-                <div class="input-group">
-                    <label>E-mail</label>
-                    <input type="email" id="email" placeholder="barbeiro@exemplo.com">
+    <div id="auth-view" class="auth-wrapper">
+        <div class="auth-visual-side">
+            <div class="auth-visual-content">
+                <div class="logo logo-large">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><rect x="7" y="7" width="10" height="10" rx="2"></rect></svg>
+                    Pentfino
                 </div>
-                <div class="input-group">
-                    <label>Senha</label>
-                    <input type="password" id="password" placeholder="••••••••">
-                </div>
-                <button class="btn btn-primary" style="width: 100%;" onclick="auth.login()">Entrar no Sistema</button>
-                <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                    Não tem conta? <a href="#" style="color: var(--primary);" onclick="auth.toggleForm('register')">Registre-se</a>
-                </p>
+                <h1 class="auth-hero-text">A nova era da<br>gestão profissional.</h1>
+                <p class="auth-subtext">Simplifique seu fluxo, encante seus clientes e escale seu negócio com Pentfino.</p>
             </div>
+            <div class="auth-visual-overlay"></div>
+        </div>
+        
+        <div class="auth-form-side">
+            <div class="auth-form-container">
+                <div id="login-form" class="auth-card-new">
+                    <span class="badge">Acesso Restrito</span>
+                    <h2 class="auth-title">Bem-vindo de volta</h2>
+                    <p class="auth-description">Insira suas credenciais para gerenciar sua barbearia hoje.</p>
+                    
+                    <div class="input-group-new">
+                        <label>E-mail Corporativo</label>
+                        <input type="email" id="email" placeholder="nome@suabarbearia.com">
+                    </div>
+                    <div class="input-group-new">
+                        <label>Senha</label>
+                        <input type="password" id="password" placeholder="••••••••">
+                    </div>
+                    
+                    <button class="btn btn-primary btn-full" onclick="auth.login()">Entrar no Dashboard</button>
+                    
+                    <div class="auth-footer">
+                        Não possui uma licença? <a href="#" onclick="auth.toggleForm('register')">Criar conta gratuita</a>
+                    </div>
+                </div>
 
-            <div id="register-form" class="hidden">
-                <h2 style="margin-bottom: 1.5rem;">Criar Nova Conta</h2>
-                <div class="input-group">
-                    <label>Nome da Barbearia</label>
-                    <input type="text" id="reg-shop" placeholder="Minha Barbearia">
+                <div id="register-form" class="auth-card-new hidden">
+                    <span class="badge">Novo Parceiro</span>
+                    <h2 class="auth-title">Comece Agora</h2>
+                    <p class="auth-description">Junte-se à elite dos barbeiros e transforme seu atendimento.</p>
+                    
+                    <div class="input-group-new">
+                        <label>Nome da Unidade</label>
+                        <input type="text" id="reg-shop" placeholder="Ex: Pentfino Matriz">
+                    </div>
+                    <div class="input-group-new">
+                        <label>E-mail Principal</label>
+                        <input type="email" id="reg-email" placeholder="admin@exemplo.com">
+                    </div>
+                    <div class="input-group-new">
+                        <label>Senha de Acesso</label>
+                        <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
+                    </div>
+                    
+                    <button class="btn btn-primary btn-full" onclick="auth.register()">Finalizar Cadastro</button>
+                    
+                    <div class="auth-footer">
+                        Já faz parte do time? <a href="#" onclick="auth.toggleForm('login')">Fazer Login</a>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>E-mail</label>
-                    <input type="email" id="reg-email" placeholder="admin@exemplo.com">
-                </div>
-                <div class="input-group">
-                    <label>Senha</label>
-                    <input type="password" id="reg-password" placeholder="Crie uma senha">
-                </div>
-                <button class="btn btn-primary" style="width: 100%;" onclick="auth.register()">Criar Minha Conta</button>
-                <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                    Já tem conta? <a href="#" style="color: var(--primary);" onclick="auth.toggleForm('login')">Fazer Login</a>
-                </p>
             </div>
         </div>
+    </div>
+</div>
     </div>
 
     <!-- MAIN DASHBOARD -->
