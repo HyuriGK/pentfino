@@ -279,7 +279,7 @@
         <div class="modal-content">
             <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Cliente</h2>
-                <button class="btn-icon" onclick="admin.closeModal('client')">×</button>
+                <button class="btn-icon-close" onclick="admin.closeModal('client')">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome Completo</label>
@@ -302,7 +302,7 @@
         <div class="modal-content">
             <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Item</h2>
-                <button class="btn-icon" onclick="admin.closeModal('inventory')">×</button>
+                <button class="btn-icon-close" onclick="admin.closeModal('inventory')">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome do Produto</label>
@@ -327,9 +327,9 @@
     <!-- MODAL NEW PROFESSIONAL -->
     <div id="modal-professional" class="modal-overlay hidden">
         <div class="modal-content">
-            <header class="modal-header">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Profissional</h2>
-                <button class="btn-icon" onclick="admin.closeModal('professional')">×</button>
+                <button class="btn-icon-close" onclick="admin.closeModal('professional')">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome do Profissional</label>
@@ -356,9 +356,9 @@
     <!-- MODAL NEW SERVICE -->
     <div id="modal-service" class="modal-overlay hidden">
         <div class="modal-content">
-            <header class="modal-header">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Serviço</h2>
-                <button class="btn-icon" onclick="admin.closeModal('service')">×</button>
+                <button class="btn-icon-close" onclick="admin.closeModal('service')">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome do Serviço</label>
@@ -400,7 +400,7 @@
                     <h2 id="detail-client-name" style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 4px;">--</h2>
                     <p id="detail-client-phone" style="color: var(--text-muted); font-size: 0.9rem;">--</p>
                 </div>
-                <button class="btn btn-ghost" onclick="admin.closeModal('client-details')" style="font-size: 1.5rem;">×</button>
+                <button class="btn-icon-close" onclick="admin.closeModal('client-details')">×</button>
             </div>
             
             <div class="modal-body" style="overflow-y: auto; padding: 0 40px 40px 40px;">

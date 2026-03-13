@@ -812,3 +812,20 @@ window.onload = () => {
     ui.init();
     admin.startPolling();
 };
+// Global Modal Interactions
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const openModal = document.querySelector('.modal-overlay:not(.hidden)');
+        if (openModal) {
+            const type = openModal.id.replace('modal-', '');
+            admin.closeModal(type);
+        }
+    }
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+        const type = e.target.id.replace('modal-', '');
+        admin.closeModal(type);
+    }
+});

@@ -361,6 +361,29 @@ body {
     box-shadow: 0 0 0 4px rgba(255,255,255,0.03);
 }
 
+.btn-icon-close {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.btn-icon-close:hover {
+    background: rgba(255, 68, 68, 0.1);
+    color: var(--danger);
+    border-color: rgba(255, 68, 68, 0.2);
+    transform: rotate(90deg);
+}
+
 .btn-full {
     width: 100%;
     padding: 20px;
@@ -445,6 +468,17 @@ body {
     border-color: var(--border-bright);
     transform: translateX(5px);
     background: #0a0a0a;
+}
+
+/* Dash Action Buttons */
+.action-btns {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.action-btns .btn {
+    white-space: nowrap;
 }
 
 .client-info h4 { 
