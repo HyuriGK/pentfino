@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS clients (
     phone VARCHAR(20) NOT NULL,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (barber_id, phone)
+    UNIQUE (barber_id, name, phone)
 );
 
 CREATE TABLE IF NOT EXISTS inventory (

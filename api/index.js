@@ -82,18 +82,16 @@ app.post('/api/appointments', async (req, res) => {
             [barberId, serviceId, clientName, clientPhone, time, apptDate]
         );
 
-        // 2. Sync with CRM (clients table) - Always ensure client exists
+        // 2. Sync with CRM (clients table) - Always ensure client exists for this Name + Phone combo
         await pool.query(`
             INSERT INTO clients (barber_id, name, phone)
             VALUES ($1, $2, $3)
-            ON CONFLICT (barber_id, phone) DO UPDATE SET name = EXCLUDED.name
+            ON CONFLICT (barber_id, name, phone) DO NOTHING
         `, [barberId, clientName, clientPhone]).catch(async (err) => {
-            // If ON CONFLICT isn't supported or fails, do manual check/upsert
-            const check = await pool.query('SELECT id FROM clients WHERE barber_id = $1 AND phone = $2', [barberId, clientPhone]);
+            // Manual fallback if needed
+            const check = await pool.query('SELECT id FROM clients WHERE barber_id = $1 AND name = $2 AND phone = $3', [barberId, clientName, clientPhone]);
             if (check.rows.length === 0) {
                 await pool.query('INSERT INTO clients (barber_id, name, phone) VALUES ($1, $2, $3)', [barberId, clientName, clientPhone]);
-            } else {
-                await pool.query('UPDATE clients SET name = $1 WHERE barber_id = $2 AND phone = $3', [clientName, barberId, clientPhone]);
             }
         });
 
@@ -141,11 +139,11 @@ app.get('/api/clients/:barberId', async (req, res) => {
                    MAX(a.appointment_date) as last_service_date,
                    (SELECT a2.appointment_time 
                     FROM appointments a2 
-                    WHERE a2.client_phone = c.phone 
+                    WHERE a2.client_name = c.name AND a2.client_phone = c.phone 
                     ORDER BY a2.appointment_date DESC, a2.appointment_time DESC LIMIT 1) as scheduled_time,
                    COUNT(a.id) as total_appointments
             FROM clients c
-            LEFT JOIN appointments a ON c.phone = a.client_phone
+            LEFT JOIN appointments a ON c.name = a.client_name AND c.phone = a.client_phone
             WHERE c.barber_id = $1
             GROUP BY c.id
             ORDER BY last_service_date DESC, c.name ASC
@@ -169,16 +167,16 @@ app.get('/api/clients/:id/history', async (req, res) => {
             SELECT a.*, s.name as service_name, s.price as service_price 
             FROM appointments a
             JOIN services s ON a.service_id = s.id
-            WHERE a.client_phone = $1
-            ORDER BY a.created_at DESC
-        `, [client.phone]);
+            WHERE a.client_name = $1 AND a.client_phone = $2
+            ORDER BY a.appointment_date DESC, a.appointment_time DESC
+        `, [client.name, client.phone]);
 
         const statsResult = await pool.query(`
             SELECT SUM(s.price) as total_spent, COUNT(a.id) as service_count
             FROM appointments a
             JOIN services s ON a.service_id = s.id
-            WHERE a.client_phone = $1 AND a.status = 'completed'
-        `, [client.phone]);
+            WHERE a.client_name = $1 AND a.client_phone = $2 AND a.status = 'completed'
+        `, [client.name, client.phone]);
 
         res.json({
             client,
