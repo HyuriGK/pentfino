@@ -805,20 +805,56 @@ body {
     letter-spacing: -1px;
 }
 
-.btn-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
 
-.btn-icon:hover {
-    color: var(--primary);
+::-webkit-scrollbar-track {
+    background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Modal Full Screen */
+.modal-overlay.modal-full {
+    padding: 0;
+}
+
+.modal-overlay.modal-full .modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0;
+    border: none;
+    overflow-y: auto;
+}
+
+/* KPI Cards in Modal */
+.stats-grid .stat-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.stats-grid .stat-card:hover {
+    background: rgba(255,255,255,0.04);
     border-color: var(--primary);
+}
+
+.stats-grid .stat-card h3 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-top: 8px;
 }

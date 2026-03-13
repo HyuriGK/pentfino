@@ -288,14 +288,14 @@ const admin = {
             
             // Render History
             const historyContainer = document.getElementById('client-history-table-body');
-            historyContainer.innerHTML = history.map(h => `
-                <tr>
-                    <td>${new Date(h.created_at).toLocaleDateString('pt-BR')} ${h.appointment_time}</td>
-                    <td>${h.service_name}</td>
-                    <td>R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : '')}">${h.status}</span></td>
+            historyContainer.innerHTML = history.length > 0 ? history.map(h => `
+                <tr style="background: rgba(255,255,255,0.02)">
+                    <td style="padding: 15px;">${new Date(h.created_at).toLocaleDateString('pt-BR')} ${h.appointment_time}</td>
+                    <td style="padding: 15px;">${h.service_name}</td>
+                    <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${h.status}</span></td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="4" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
             
             this.openModal('client-details');
         } catch (err) {
@@ -411,15 +411,15 @@ const agenda = {
         if (!calendarEl || this.calendar) return;
 
         this.calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridDay', // Start with Day view as it's more actionable
+            initialView: 'timeGridDay',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             locale: 'pt-br',
-            slotMinTime: '06:00:00', // Business hours update
-            slotMaxTime: '24:00:00', // To midnight
+            slotMinTime: '06:00:00',
+            slotMaxTime: '24:00:00',
             allDaySlot: false,
             slotLabelFormat: {
                 hour: '2-digit',
@@ -431,7 +431,16 @@ const agenda = {
             height: 'auto',
             events: [],
             eventClick: (info) => {
-                alert(`Cliente: ${info.event.title}\nServiço: ${info.event.extendedProps.service}`);
+                const id = info.event.id;
+                const status = info.event.extendedProps.status;
+                
+                if (status === 'pending') {
+                    if (confirm(`Finalizar serviço para ${info.event.title}?`)) {
+                        admin.completeService(id);
+                    }
+                } else {
+                    alert(`Cliente: ${info.event.title}\nServiço: ${info.event.extendedProps.service}\nStatus: ${status}`);
+                }
             }
         });
 
@@ -443,16 +452,19 @@ const agenda = {
         if (!this.calendar) return;
 
         const events = appointments.map(a => {
-            // For MVP, we assume appointments are for "today" or use the created_at as date
-            // In a real system, appointment_time would be a full ISO string
-            const today = new Date().toISOString().split('T')[0];
+            // Get local date string YYYY-MM-DD
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const today = `${year}-${month}-${day}`;
             
             return {
                 id: a.id,
                 title: a.client_name,
                 start: `${today}T${a.appointment_time}:00`,
-                backgroundColor: a.status === 'completed' ? '#1a1a1a' : '#fff',
-                borderColor: a.status === 'completed' ? '#333' : '#fff',
+                backgroundColor: a.status === 'completed' ? '#1a1a1a' : (a.status === 'canceled' ? '#330000' : 'var(--primary)'),
+                borderColor: a.status === 'completed' ? '#333' : 'var(--primary)',
                 textColor: a.status === 'completed' ? '#555' : '#000',
                 extendedProps: {
                     service: a.service_name,
