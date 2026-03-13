@@ -105,8 +105,8 @@ const admin = {
 
     startInsights() {
         const tips = [
-            "Aumento de 20% na procura por 'Barba' esta semana.",
-            "Insight: Ofereça um café aos clientes que chegarem 10min antes.",
+            "Aumento de 20% na procura por serviços esta semana.",
+            "Insight Pentfino: Ofereça um café aos clientes que chegarem 10min antes.",
             "Lembrete: O cliente 'Felipe Rossi' é recorrente. Ofereça o plano VIP.",
             "Atenção: Seu estoque de lâminas precisa ser renovado em 3 dias."
         ];
