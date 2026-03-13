@@ -190,8 +190,8 @@ body {
 }
 
 .logo-img {
-    width: 42px;
-    height: 42px;
+    width: 150px;
+    height: 150px;
     object-fit: contain;
     border-radius: 8px;
     flex-shrink: 0;
