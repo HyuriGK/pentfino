@@ -171,4 +171,24 @@ const admin = {
     }
 };
 
-window.onload = () => auth.init();
+const ui = {
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+        
+        // Save state
+        localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
+    },
+
+    init() {
+        const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+        if (isCollapsed) {
+            document.getElementById('sidebar').classList.add('collapsed');
+        }
+    }
+};
+
+window.onload = () => {
+    auth.init();
+    ui.init();
+};
