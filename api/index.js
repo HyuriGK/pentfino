@@ -72,15 +72,15 @@ app.get('/api/appointments/:barberId', async (req, res) => {
 });
 
 app.post('/api/appointments', async (req, res) => {
-    const { barberId, serviceId, clientName, clientPhone, time, date } = req.body;
+    const { barberId, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
         // Use provided date or today if not provided
         const apptDate = date || new Date().toISOString().split('T')[0];
 
         // 1. Insert the appointment
         const result = await pool.query(
-            'INSERT INTO appointments (barber_id, service_id, client_name, client_phone, appointment_time, appointment_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [barberId, serviceId, clientName, clientPhone, time, apptDate]
+            'INSERT INTO appointments (barber_id, service_id, professional_id, client_name, client_phone, appointment_time, appointment_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [barberId, serviceId, professionalId, clientName, clientPhone, time, apptDate]
         );
 
         // 2. Sync with CRM (clients table) - Always ensure client exists for this Name + Phone combo

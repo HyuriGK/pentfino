@@ -204,10 +204,14 @@ const admin = {
                 <div class="client-info">
                     <h4>${a.client_name}</h4>
                     <p>${a.service_name} • ${a.appointment_time}</p>
+                    <div class="professional-badge" style="margin-top: 8px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        ${a.professional_name || 'Geral'}
+                    </div>
                 </div>
                 <div class="action-btns">
-                    <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
                     <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
+                    <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
                 </div>
             </div>
         `).join('');

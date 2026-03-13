@@ -545,9 +545,9 @@ body {
 }
 
 .btn-queue-cancel {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -556,7 +556,7 @@ body {
     color: var(--danger);
     cursor: pointer;
     transition: var(--transition);
-    font-size: 1.1rem;
+    font-size: 1.4rem;
 }
 
 .btn-queue-cancel:hover {
