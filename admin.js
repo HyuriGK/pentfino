@@ -142,6 +142,29 @@ const admin = {
         } catch (err) { console.error('Erro ao carregar dados'); }
     },
 
+    openShareModal() {
+        const link = `${window.location.origin}/reserva.html?barberId=${auth.user.id}`;
+        document.getElementById('share-link-input').value = link;
+        this.openModal('share');
+    },
+
+    async copyShareLink() {
+        const input = document.getElementById('share-link-input');
+        try {
+            await navigator.clipboard.writeText(input.value);
+            const btn = document.querySelector('#modal-share .btn-primary');
+            const originalText = btn.innerText;
+            btn.innerText = 'Copiado! ✓';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = '';
+            }, 2000);
+        } catch (err) {
+            alert('Não foi possível copiar o link.');
+        }
+    },
+
     startPolling() {
         // Refresh data every 30 seconds
         setInterval(() => {
