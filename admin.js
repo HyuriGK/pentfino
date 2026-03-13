@@ -533,10 +533,10 @@ const admin = {
                         <div class="prof-card-avatar" ${p.photo_url ? `style="background-image: url('${p.photo_url}'); color: transparent;"` : ''}>
                             ${p.photo_url ? '' : initials}
                         </div>
-                        <div class="prof-card-info">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <h3>${p.name}</h3>
-                                ${p.commission > 0 ? `<span class="svc-tag" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-bright);">${p.commission}%</span>` : ''}
+                        <div class="prof-card-info" style="flex: 1; min-width: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                                <h3 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.name}</h3>
+                                ${p.commission > 0 ? `<span class="svc-tag" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-bright); flex-shrink: 0;">${p.commission}%</span>` : ''}
                             </div>
                             <p>${p.phone || 'Sem contato'}</p>
                         </div>
@@ -738,6 +738,8 @@ const agenda = {
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
+            eventDisplay: 'block',
+            dayMaxEvents: 0, // This hides individual events in dayGridMonth view
             navLinks: true,
             navLinkDayClick: (date) => {
                 this.calendar.changeView('timeGridWeek', date);

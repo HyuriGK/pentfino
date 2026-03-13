@@ -1080,6 +1080,9 @@ aside nav {
     font-size: 1.25rem;
     letter-spacing: -0.5px;
     margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .prof-card-info p {
