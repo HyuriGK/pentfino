@@ -145,13 +145,18 @@ body {
 
 .sidebar.collapsed {
     width: 88px;
-    padding: 2.5rem 0.5rem;
+    padding: 2.5rem 0;
+    align-items: center;
 }
 
 .sidebar.collapsed .logo-img {
     width: 60px;
     height: 60px;
-    margin-left: -5px;
+}
+
+.sidebar.collapsed .logo {
+    justify-content: center;
+    width: 100%;
 }
 
 .sidebar-header {
@@ -248,45 +253,7 @@ body {
     transition: opacity 0.3s ease;
 }
 
-/* Sidebar Clock Styling (Minimalist) */
-.sidebar-clock-container {
-    padding: 0 20px;
-    margin-top: 16px;
-    margin-bottom: 10px;
-    text-align: center;
-    transition: var(--transition);
-}
 
-.sidebar.collapsed .sidebar-clock-container {
-    padding: 10px 0;
-}
-
-.sidebar-time {
-    font-family: 'Inter', sans-serif;
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--primary);
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px rgba(230, 185, 128, 0.2);
-}
-
-.sidebar-date-label {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-weight: 600;
-}
-
-.sidebar.collapsed .sidebar-time {
-    font-size: 0.7rem;
-    letter-spacing: 0;
-}
-
-.sidebar.collapsed .sidebar-date-label {
-    display: none;
-}
 
 .dashboard-content {
     flex: 1;

@@ -148,6 +148,10 @@ const admin = {
         this.openModal('share');
     },
 
+    confirmLogout() {
+        this.openModal('logout');
+    },
+
     async copyShareLink() {
         const input = document.getElementById('share-link-input');
         try {
@@ -896,23 +900,6 @@ const ui = {
         if (isCollapsed) {
             document.getElementById('sidebar').classList.add('collapsed');
         }
-        this.startClock();
-    },
-
-    startClock() {
-        const timeEl = document.getElementById('sidebar-time');
-        const dateEl = document.getElementById('sidebar-date-label');
-        if (!timeEl) return;
-
-        const update = () => {
-            const now = new Date();
-            timeEl.innerText = now.toLocaleTimeString('pt-BR', { hour12: false });
-            dateEl.innerText = now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })
-                .replace('.', ''); // Clean weekday dot
-        };
-
-        update();
-        setInterval(update, 1000);
     }
 };
 
