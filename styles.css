@@ -145,7 +145,13 @@ body {
 
 .sidebar.collapsed {
     width: 88px;
-    padding: 2.5rem 1rem;
+    padding: 2.5rem 0.5rem;
+}
+
+.sidebar.collapsed .logo-img {
+    width: 60px;
+    height: 60px;
+    margin-left: -5px;
 }
 
 .sidebar-header {
