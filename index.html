@@ -82,13 +82,10 @@
     <div id="admin-view" class="dashboard-wrapper hidden">
         <aside id="sidebar" class="sidebar glass">
             <div class="sidebar-header">
-                <div class="logo">
+                <div class="logo" onclick="ui.toggleSidebar()" style="cursor: pointer;">
                     <img src="image.png" alt="Pentfino" class="logo-img">
                     <span class="logo-text">Pentfino</span>
                 </div>
-                <button id="sidebar-toggle" class="toggle-btn" onclick="ui.toggleSidebar()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
             </div>
             <nav>
                 <div class="nav-item active" onclick="admin.showTab('home')">
