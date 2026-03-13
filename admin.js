@@ -395,7 +395,8 @@ const admin = {
         const notes = document.getElementById('modal-client-notes').value;
 
         if(!name || !phone) return alert('Nome e Telefone são obrigatórios');
-
+        
+        try {
             await fetch('/api/clients', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
