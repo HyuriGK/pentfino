@@ -340,3 +340,69 @@ body {
     padding: 12px 24px;
     font-weight: 700;
 }
+
+/* FullCalendar Premium Dark Theme Fixes */
+.fc {
+    --fc-border-color: #1a1a1a;
+    --fc-daygrid-event-dot-width: 8px;
+    --fc-page-bg-color: transparent;
+}
+
+.fc .fc-toolbar-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+}
+
+.fc .fc-button-primary {
+    background-color: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--text-main);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 8px 16px;
+    transition: var(--transition);
+}
+
+.fc .fc-button-primary:hover {
+    background-color: var(--primary);
+    color: #000;
+}
+
+.fc .fc-button-primary:disabled {
+    opacity: 0.3;
+}
+
+.fc .fc-button-active {
+    background-color: var(--primary) !important;
+    color: #000 !important;
+    border-color: var(--primary) !important;
+}
+
+.fc th {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    padding: 12px 0 !important;
+    letter-spacing: 0.1em;
+}
+
+.fc-day-today {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.fc-event {
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: var(--border) !important;
+}

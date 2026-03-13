@@ -83,11 +83,17 @@ const admin = {
                 fetch(`/api/stats/${auth.user.id}`)
             ]);
             
-            this.pending = await aptRes.json();
+            const allApts = await aptRes.json();
+            this.pending = allApts.filter(a => a.status === 'pending');
             const stats = await statRes.json();
             
             this.renderAppointments();
             this.updateStats(stats);
+            
+            // Sync with Calendar if initialized
+            if (agenda.calendar) {
+                agenda.renderEvents(allApts);
+            }
         } catch (err) { console.error('Erro ao carregar dados'); }
     },
 
@@ -96,7 +102,18 @@ const admin = {
         const target = [...document.querySelectorAll('.nav-item')].find(el => el.innerText.toLowerCase().includes(tab.toLowerCase()));
         if(target) target.classList.add('active');
         
-        if (tab !== 'home') alert(`Módulo de ${tab} será liberado na versão 2.0!`);
+        // Tab display logic
+        const tabs = ['home', 'agenda'];
+        tabs.forEach(t => {
+            const el = document.getElementById(`tab-${t}`);
+            if (el) el.classList.toggle('hidden', t !== tab);
+        });
+
+        if (tab === 'agenda') {
+            agenda.init();
+        }
+
+        if (!tabs.includes(tab)) alert(`Módulo de ${tab} será liberado na versão 2.0!`);
     },
 
     renderAppointments() {
@@ -129,7 +146,7 @@ const admin = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'completed' })
             });
-            this.loadData();
+            await this.loadData();
         } catch (err) { alert('Erro ao finalizar serviço'); }
     },
 
@@ -141,7 +158,7 @@ const admin = {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: 'canceled' })
                 });
-                this.loadData();
+                await this.loadData();
             } catch (err) { alert('Erro ao cancelar serviço'); }
         }
     },
@@ -150,6 +167,7 @@ const admin = {
         const revenue = parseFloat(stats.revenue || 0);
         document.getElementById('stat-revenue').innerText = `R$ ${revenue.toLocaleString('pt-BR')}`;
         document.getElementById('stat-count').innerText = stats.count || 0;
+        document.getElementById('stat-scheduled-count').innerText = this.pending.length;
     },
 
     startInsights() {
@@ -168,6 +186,60 @@ const admin = {
                 i++;
             }
         }, 10000);
+    }
+};
+
+const agenda = {
+    calendar: null,
+
+    init() {
+        const calendarEl = document.getElementById('calendar');
+        if (!calendarEl || this.calendar) return;
+
+        this.calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            locale: 'pt-br',
+            themeSystem: 'standard',
+            height: 'auto',
+            events: [],
+            eventClick: (info) => {
+                alert(`Cliente: ${info.event.title}\nServiço: ${info.event.extendedProps.service}`);
+            }
+        });
+
+        this.calendar.render();
+        admin.loadData(); // This will populate events
+    },
+
+    renderEvents(appointments) {
+        if (!this.calendar) return;
+
+        const events = appointments.map(a => {
+            // For MVP, we assume appointments are for "today" or use the created_at as date
+            // In a real system, appointment_time would be a full ISO string
+            const today = new Date().toISOString().split('T')[0];
+            
+            return {
+                id: a.id,
+                title: a.client_name,
+                start: `${today}T${a.appointment_time}:00`,
+                backgroundColor: a.status === 'completed' ? '#1a1a1a' : '#fff',
+                borderColor: a.status === 'completed' ? '#333' : '#fff',
+                textColor: a.status === 'completed' ? '#555' : '#000',
+                extendedProps: {
+                    service: a.service_name,
+                    status: a.status
+                }
+            };
+        });
+
+        this.calendar.removeAllEvents();
+        this.calendar.addEventSource(events);
     }
 };
 

@@ -55,11 +55,12 @@ app.post('/api/register', async (req, res) => {
 app.get('/api/appointments/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
+        // Fetch all appointments for the calendar (pending, completed, canceled)
         const result = await pool.query(`
             SELECT a.*, s.name as service_name, s.price as service_price 
             FROM appointments a
             JOIN services s ON a.service_id = s.id
-            WHERE a.barber_id = $1 AND a.status = 'pending'
+            WHERE a.barber_id = $1
             ORDER BY a.appointment_time ASC
         `, [barberId]);
         res.json(result.rows);

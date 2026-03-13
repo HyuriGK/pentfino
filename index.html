@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+    <!-- FullCalendar CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 </head>
 <body>
     
@@ -105,44 +107,54 @@
                 <button class="btn btn-primary" onclick="window.open('reserva.html')" style="padding: 16px 32px;">Link Público ↗</button>
             </header>
 
-            <div class="stat-grid">
-                <div class="stat-card glass" style="border-left: 1px solid var(--border-bright);">
-                    <div class="stat-label">Receita Hoje</div>
-                    <div class="stat-value" id="stat-revenue" style="color: var(--success);">R$ 0</div>
-                </div>
-                <div class="stat-card glass">
-                    <div class="stat-label">Concluídos</div>
-                    <div class="stat-value" id="stat-count">0</div>
-                </div>
-                <div class="stat-card glass">
-                    <div class="stat-label">Agendados</div>
-                    <div class="stat-value">14</div>
-                </div>
-                <div class="stat-card glass">
-                    <div class="stat-label">Novos Clientes</div>
-                    <div class="stat-value">3</div>
-                </div>
-            </div>
-
-            <div class="list-header" style="margin-top: 4rem;">
-                <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Fila de Atendimento</h2>
-                <div style="width: 40px; height: 1px; background: var(--border-bright);"></div>
-            </div>
-
-            <div id="appointments-list">
-                <!-- Dynamic List -->
-            </div>
-
-            <!-- Enhanced Retention Insight Section -->
-            <div class="glass" style="margin-top: 5rem; padding: 2.5rem; border: none; background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); position: relative; overflow: hidden;">
-                <div style="position: absolute; top: -20px; right: -20px; font-size: 8rem; opacity: 0.03; pointer-events: none;">AI</div>
-                <div style="display: flex; align-items: flex-start; gap: 24px;">
-                    <div style="background: var(--primary); color: #000; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;">AI</div>
-                    <div>
-                        <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px;">Inteligência Pentfino AI</h4>
-                        <p id="retention-tip" style="font-size: 1.1rem; font-weight: 500; color: #fff;">Iniciando análise de comportamento dos clientes...</p>
+            <div id="tab-home">
+                <div class="stat-grid">
+                    <div class="stat-card glass" style="border-left: 1px solid var(--border-bright);">
+                        <div class="stat-label">Receita Hoje</div>
+                        <div class="stat-value" id="stat-revenue" style="color: var(--success);">R$ 0</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Concluídos</div>
+                        <div class="stat-value" id="stat-count">0</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Agendados</div>
+                        <div class="stat-value" id="stat-scheduled-count">--</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Novos Clientes</div>
+                        <div class="stat-value">--</div>
                     </div>
                 </div>
+
+                <div class="list-header" style="margin-top: 4rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Fila de Atendimento</h2>
+                    <div style="width: 40px; height: 1px; background: var(--border-bright);"></div>
+                </div>
+
+                <div id="appointments-list">
+                    <!-- Dynamic List -->
+                </div>
+
+                <!-- Enhanced Retention Insight Section -->
+                <div class="glass" style="margin-top: 5rem; padding: 2.5rem; border: none; background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; font-size: 8rem; opacity: 0.03; pointer-events: none;">AI</div>
+                    <div style="display: flex; align-items: flex-start; gap: 24px;">
+                        <div style="background: var(--primary); color: #000; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;">AI</div>
+                        <div>
+                            <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px;">Inteligência Pentfino AI</h4>
+                            <p id="retention-tip" style="font-size: 1.1rem; font-weight: 500; color: #fff;">Iniciando análise de comportamento dos clientes...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-agenda" class="hidden">
+                 <div class="list-header" style="margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Calendário de Atendimento</h2>
+                    <div style="width: 40px; height: 1px; background: var(--border-bright);"></div>
+                </div>
+                <div id="calendar" class="glass" style="padding: 2rem; background: var(--bg-card);"></div>
             </div>
         </main>
     </div>
