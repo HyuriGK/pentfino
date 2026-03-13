@@ -190,17 +190,17 @@ body {
 }
 
 .logo-img {
-    width: 28px;
-    height: 28px;
+    width: 42px;
+    height: 42px;
     object-fit: contain;
-    border-radius: 6px;
+    border-radius: 8px;
     flex-shrink: 0;
 }
 
 .logo-img-large {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
 }
 
 .sidebar.collapsed .logo-text,
