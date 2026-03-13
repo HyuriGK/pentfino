@@ -1139,3 +1139,83 @@ aside nav {
     border-color: transparent;
     pointer-events: none;
 }
+
+/* Calendar Refinements */
+.fc-daygrid-day-top {
+    position: relative !important;
+    padding: 8px !important;
+}
+
+.fc-day-kpi {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--primary);
+    color: #000 !important;
+    font-size: 0.65rem;
+    font-weight: 800;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    z-index: 5;
+    pointer-events: none;
+}
+
+.fc-timegrid-event {
+    border-radius: 6px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin: 1px !important;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.2) !important;
+    transition: var(--transition);
+}
+
+.fc-timegrid-event:hover {
+    transform: scale(1.02);
+    z-index: 10 !important;
+}
+
+.fc-event-main {
+    padding: 2px 4px !important;
+}
+
+/* Status-specific event styles */
+.fc-event.event-pending {
+    border-left: 3px solid var(--primary) !important;
+}
+
+.fc-event.event-completed {
+    background: #111 !important;
+    border-color: #222 !important;
+    opacity: 0.7;
+}
+
+.fc-event.event-completed .fc-event-title,
+.fc-event.event-completed .fc-event-time {
+    color: #555 !important;
+}
+
+.fc-event.event-canceled {
+    background: #200 !important;
+    border-color: #400 !important;
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.fc-daygrid-day-number {
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    color: var(--text-muted) !important;
+    text-decoration: none !important;
+    padding: 4px !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+    color: var(--primary) !important;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+

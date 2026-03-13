@@ -731,6 +731,26 @@ const agenda = {
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
+            navLinks: true,
+            navLinkDayClick: (date) => {
+                this.calendar.changeView('timeGridWeek', date);
+            },
+            dayCellDidMount: (info) => {
+                const dateStr = info.date.toISOString().split('T')[0];
+                const count = this.allAppointments.filter(a => {
+                    const aDate = new Date(a.appointment_date).toISOString().split('T')[0];
+                    return aDate === dateStr && a.status !== 'canceled';
+                }).length;
+
+                if (count > 0 && info.view.type === 'dayGridMonth') {
+                    const kpi = document.createElement('span');
+                    kpi.className = 'fc-day-kpi';
+                    kpi.innerText = count;
+                    info.el.querySelector('.fc-daygrid-day-top').appendChild(kpi);
+                }
+            },
+            slotEventOverlap: false,
+            eventMaxStack: 3,
             locale: 'pt-br',
             slotMinTime: '06:00:00',
             slotMaxTime: '24:00:00',
@@ -818,6 +838,7 @@ const agenda = {
                 backgroundColor: a.status === 'completed' ? '#1a1a1a' : (a.status === 'canceled' ? '#330000' : 'var(--primary)'),
                 borderColor: a.status === 'completed' ? '#333' : 'var(--primary)',
                 textColor: a.status === 'completed' ? '#555' : '#000',
+                classNames: [`event-${a.status}`],
                 extendedProps: {
                     service: a.service_name,
                     status: a.status
@@ -827,6 +848,11 @@ const agenda = {
 
         this.calendar.removeAllEvents();
         this.calendar.addEventSource(events);
+        
+        // Re-render if in month view to update KPIs
+        if (this.calendar.view.type === 'dayGridMonth') {
+            this.calendar.render();
+        }
     }
 };
 
