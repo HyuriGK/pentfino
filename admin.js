@@ -199,17 +199,14 @@ const admin = {
         }
 
         container.innerHTML = this.pending.map(a => `
-            <div class="appointment-item glass">
+            <div class="appointment-item">
                 <div class="client-info">
-                    <h4 style="font-size: 1.25rem; letter-spacing: -0.5px;">${a.client_name}</h4>
-                    <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted);">
-                        ${a.service_name} <span style="margin: 0 8px; opacity: 0.3;">•</span> <span style="color: var(--primary);">${a.appointment_time}</span>
-                    </p>
-                    ${a.professional_name ? `<div class="professional-badge" style="margin-top: 8px;">Profissional: ${a.professional_name}</div>` : ''}
+                    <h4>${a.client_name}</h4>
+                    <p>${a.service_name} • ${a.appointment_time}</p>
                 </div>
                 <div class="action-btns">
-                    <button class="btn btn-primary" style="padding: 10px 20px; font-size: 0.8rem;" onclick="admin.confirmCompleteService(${a.id}, '${a.client_name}')">Finalizar</button>
-                    <button class="btn btn-ghost" style="padding: 10px; color: var(--danger); border-color: rgba(255,68,68,0.2);" onclick="admin.cancelService(${a.id})">×</button>
+                    <button class="btn btn-ghost" style="color:var(--danger)" onclick="admin.cancelService(${a.id}, '${a.client_name}')">Cancelar</button>
+                    <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
                 </div>
             </div>
         `).join('');
@@ -222,29 +219,59 @@ const admin = {
         this.openModal('confirm-service');
     },
 
-    async completeService(id) {
+    async completeService(id, clientName = null) {
+        if (clientName) {
+            document.getElementById('confirm-service-text').innerHTML = `Confirmar conclusão do serviço para <strong>${clientName}</strong>?`;
+            document.getElementById('btn-do-complete-service').onclick = () => this.executeCompletion(id);
+            this.openModal('confirm-service');
+            return;
+        }
+        
+        // Basic fallback if no name passed (legacy)
+        if (confirm('Finalizar atendimento?')) {
+            this.executeCompletion(id);
+        }
+    },
+
+    async executeCompletion(id) {
         try {
-            await fetch(`/api/appointments/${id}`, {
+            const res = await fetch(`/api/appointments/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'completed' })
             });
-            this.closeModal('confirm-service');
-            await this.loadData();
+            if (res.ok) {
+                this.closeModal('confirm-service');
+                this.loadData();
+            }
         } catch (err) { alert('Erro ao finalizar serviço'); }
     },
 
-    async cancelService(id) {
-        if (confirm('Deseja cancelar este agendamento?')) {
-            try {
-                await fetch(`/api/appointments/${id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'canceled' })
-                });
-                await this.loadData();
-            } catch (err) { alert('Erro ao cancelar serviço'); }
+    async cancelService(id, clientName = null) {
+        if (clientName) {
+            document.getElementById('cancel-service-text').innerHTML = `Deseja cancelar o agendamento de <strong>${clientName}</strong>?`;
+            document.getElementById('btn-do-cancel-service').onclick = () => this.executeCancellation(id);
+            this.openModal('cancel-service');
+            return;
         }
+
+        if (confirm('Deseja cancelar este agendamento?')) {
+            this.executeCancellation(id);
+        }
+    },
+
+    async executeCancellation(id) {
+        try {
+            const res = await fetch(`/api/appointments/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'canceled' })
+            });
+            if (res.ok) {
+                this.closeModal('cancel-service');
+                this.loadData();
+            }
+        } catch (err) { alert('Erro ao cancelar serviço'); }
     },
 
     updateStats(stats) {
@@ -687,13 +714,13 @@ const agenda = {
             eventClick: (info) => {
                 const id = info.event.id;
                 const status = info.event.extendedProps.status;
+                const name = info.event.title;
                 
                 if (status === 'pending') {
-                    if (confirm(`Finalizar serviço para ${info.event.title}?`)) {
-                        admin.completeService(id);
-                    }
+                    // Use the same refined function as dashboard
+                    admin.completeService(id, name);
                 } else {
-                    alert(`Cliente: ${info.event.title}\nServiço: ${info.event.extendedProps.service}\nStatus: ${status}`);
+                    alert(`Cliente: ${name}\nServiço: ${info.event.extendedProps.service}\nStatus: ${status}`);
                 }
             }
         });
@@ -805,6 +832,23 @@ const ui = {
         if (isCollapsed) {
             document.getElementById('sidebar').classList.add('collapsed');
         }
+        this.startClock();
+    },
+
+    startClock() {
+        const timeEl = document.getElementById('sidebar-time');
+        const dateEl = document.getElementById('sidebar-date-label');
+        if (!timeEl) return;
+
+        const update = () => {
+            const now = new Date();
+            timeEl.innerText = now.toLocaleTimeString('pt-BR', { hour12: false });
+            dateEl.innerText = now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })
+                .replace('.', ''); // Clean weekday dot
+        };
+
+        update();
+        setInterval(update, 1000);
     }
 };
 

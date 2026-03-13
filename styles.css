@@ -219,6 +219,50 @@ body {
     transition: opacity 0.3s ease;
 }
 
+/* Sidebar Clock Styling */
+.sidebar-clock-container {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin: 10px 0;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.sidebar.collapsed .sidebar-clock-container {
+    padding: 10px 0;
+    background: transparent;
+    border-color: transparent;
+}
+
+.sidebar-time {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--primary);
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(230, 185, 128, 0.2);
+}
+
+.sidebar-date-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.sidebar.collapsed .sidebar-time {
+    font-size: 0.7rem;
+    letter-spacing: 0;
+}
+
+.sidebar.collapsed .sidebar-date-label {
+    display: none;
+}
+
 .dashboard-content {
     flex: 1;
     padding: 3rem 5rem;
@@ -565,11 +609,16 @@ body {
 
 .booking-sidebar-content {
     position: relative;
-    z-index: 2;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+}
+
+aside nav {
     display: flex;
     flex-direction: column;
     height: 100%;
-    width: 100%;
 }
 
 .sidebar-hero-title {
