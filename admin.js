@@ -205,7 +205,7 @@ const admin = {
                     <p>${a.service_name} • ${a.appointment_time}</p>
                 </div>
                 <div class="action-btns">
-                    <button class="btn btn-ghost" style="color:var(--danger)" onclick="admin.cancelService(${a.id}, '${a.client_name}')">Cancelar</button>
+                    <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
                     <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
                 </div>
             </div>
@@ -720,13 +720,30 @@ const agenda = {
                     // Use the same refined function as dashboard
                     admin.completeService(id, name);
                 } else {
-                    alert(`Cliente: ${name}\nServiço: ${info.event.extendedProps.service}\nStatus: ${status}`);
+                    this.showAppointmentDetails(info.event);
                 }
             }
         });
 
         this.calendar.render();
         admin.loadData(); // This will populate events
+    },
+
+    showAppointmentDetails(event) {
+        const name = event.title;
+        const service = event.extendedProps.service;
+        const status = event.extendedProps.status;
+        const time = event.start.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        document.getElementById('view-app-name').innerText = name;
+        document.getElementById('view-app-service').innerText = service;
+        document.getElementById('view-app-time').innerText = time;
+        
+        const statusEl = document.getElementById('view-app-status');
+        statusEl.innerText = status.toUpperCase();
+        statusEl.className = status === 'completed' ? 'status-badge status-ok' : 'status-badge status-danger';
+
+        admin.openModal('view-appointment');
     },
 
     renderEvents(appointments) {

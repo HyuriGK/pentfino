@@ -219,21 +219,17 @@ body {
     transition: opacity 0.3s ease;
 }
 
-/* Sidebar Clock Styling */
+/* Sidebar Clock Styling (Minimalist) */
 .sidebar-clock-container {
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    margin: 10px 0;
+    padding: 0 20px;
+    margin-top: 16px;
+    margin-bottom: 10px;
     text-align: center;
     transition: var(--transition);
 }
 
 .sidebar.collapsed .sidebar-clock-container {
     padding: 10px 0;
-    background: transparent;
-    border-color: transparent;
 }
 
 .sidebar-time {
@@ -523,6 +519,27 @@ body {
 
 .action-btns .btn {
     white-space: nowrap;
+}
+
+.btn-queue-cancel {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 68, 68, 0.05);
+    border: 1px solid rgba(255, 68, 68, 0.1);
+    color: var(--danger);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1.1rem;
+}
+
+.btn-queue-cancel:hover {
+    background: var(--danger);
+    color: #fff;
+    transform: scale(1.1);
 }
 
 .client-info h4 { 
