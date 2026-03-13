@@ -1119,3 +1119,12 @@ aside nav {
     background: rgba(255, 68, 68, 0.1) !important;
     border-color: var(--danger) !important;
 }
+
+/* Booking Collisions */
+.time-card.booked {
+    text-decoration: line-through;
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: transparent;
+    pointer-events: none;
+}

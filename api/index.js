@@ -71,11 +71,36 @@ app.get('/api/appointments/:barberId', async (req, res) => {
     }
 });
 
+app.get('/api/appointments/booked/list', async (req, res) => {
+    const { barberId, professionalId, date } = req.query;
+    try {
+        const result = await pool.query(`
+            SELECT SUBSTRING(appointment_time::text, 1, 5) as time
+            FROM appointments
+            WHERE barber_id = $1 AND professional_id = $2 AND appointment_date = $3 AND status != 'canceled'
+        `, [barberId, professionalId, date]);
+        res.json(result.rows.map(r => r.time));
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 app.post('/api/appointments', async (req, res) => {
     const { barberId, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
         // Use provided date or today if not provided
         const apptDate = date || new Date().toISOString().split('T')[0];
+
+        // 0. Check for collision
+        const collision = await pool.query(`
+            SELECT id FROM appointments 
+            WHERE barber_id = $1 AND professional_id = $2 AND appointment_date = $3 AND appointment_time = $4 AND status != 'canceled'
+        `, [barberId, professionalId, apptDate, time]);
+
+        if (collision.rows.length > 0) {
+            return res.status(409).json({ success: false, message: 'Este horário já foi reservado para este profissional.' });
+        }
 
         // 1. Insert the appointment
         const result = await pool.query(

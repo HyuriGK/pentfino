@@ -12,6 +12,7 @@ const app = {
         time: null,
         client: { name: '', phone: '' }
     },
+    bookedTimes: [],
 
     async init() {
         await this.loadInitialData();
@@ -57,17 +58,30 @@ const app = {
 
     renderTimes() {
         const container = document.getElementById('times-list');
-        container.innerHTML = this.availableTimes.map(t => `
-            <div class="time-card glass" onclick="app.selectTime('${t}', this)">
-                ${t}
-            </div>
-        `).join('');
+        container.innerHTML = this.availableTimes.map(t => {
+            const isBooked = this.bookedTimes.includes(t);
+            return `
+                <div class="time-card glass ${isBooked ? 'booked' : ''}" 
+                     ${isBooked ? '' : `onclick="app.selectTime('${t}', this)"`}>
+                    ${t}
+                </div>
+            `;
+        }).join('');
     },
 
     bindEvents() {
         document.getElementById('btn-next-step').onclick = () => this.showStep('professionals');
         document.getElementById('btn-next-to-details').onclick = () => this.showStep('details');
         document.getElementById('id-confirm-booking-btn').onclick = () => this.confirmBooking();
+
+        const dateInput = document.getElementById('booking-date');
+        if (dateInput) {
+            dateInput.onchange = () => {
+                if (this.booking.professional) {
+                    this.loadBookedTimes();
+                }
+            };
+        }
     },
 
     selectService(id, el) {
@@ -102,6 +116,26 @@ const app = {
         this.booking.professional = this.professionals.find(p => p.id === id);
         document.getElementById('btn-next-to-details').disabled = false;
         document.getElementById('summary-prof-name').innerText = this.booking.professional.name;
+        
+        // Reset time when professional changes
+        this.booking.time = null;
+        document.getElementById('summary-time-val').innerText = '--';
+        
+        // Load booked times for this new professional
+        this.loadBookedTimes();
+    },
+
+    async loadBookedTimes() {
+        const date = document.getElementById('booking-date').value;
+        if (!this.booking.professional || !date) return;
+
+        try {
+            const res = await fetch(`/api/appointments/booked/list?barberId=${this.barberId}&professionalId=${this.booking.professional.id}&date=${date}`);
+            this.bookedTimes = await res.json();
+            this.renderTimes();
+        } catch (err) {
+            console.error('Erro ao carregar horários ocupados');
+        }
     },
 
     selectTime(time, el) {
@@ -153,7 +187,10 @@ const app = {
                 `;
                 this.showStep('success');
             } else {
-                alert('Erro ao confirmar agendamento');
+                const data = await res.json();
+                alert(data.message || 'Erro ao confirmar agendamento');
+                // Refresh booked times in case someone just booked it
+                this.loadBookedTimes();
             }
         } catch (err) { alert('Erro de conexão'); }
     },
