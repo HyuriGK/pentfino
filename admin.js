@@ -255,7 +255,7 @@ const admin = {
 
         container.innerHTML = sorted.map(c => `
             <tr>
-                <td><strong style="color:#fff">${c.name}</strong></td>
+                <td><strong style="color:var(--primary); cursor:pointer; text-decoration: underline;" onclick="admin.showClientDetails(${c.id})">${c.name}</strong></td>
                 <td>${c.phone}</td>
                 <td><span style="color:var(--primary)">${formatDate(c.last_service_date, c.scheduled_time)}</span></td>
                 <td style="text-align:center">${c.total_appointments || 0}</td>
@@ -264,6 +264,44 @@ const admin = {
                 </td>
             </tr>
         `).join('');
+    },
+
+    async showClientDetails(clientId) {
+        try {
+            const res = await fetch(`/api/clients/${clientId}/history`);
+            const data = await res.json();
+            
+            const { client, history, stats } = data;
+            
+            // Fill headers
+            document.getElementById('detail-client-name').innerText = client.name;
+            document.getElementById('detail-client-phone').innerText = client.phone;
+            
+            // Fill KPIs
+            const totalSpent = parseFloat(stats.total_spent || 0);
+            const visitCount = parseInt(stats.service_count || 0);
+            const avgTicket = visitCount > 0 ? totalSpent / visitCount : 0;
+            
+            document.getElementById('detail-total-spent').innerText = `R$ ${totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('detail-visit-count').innerText = visitCount;
+            document.getElementById('detail-avg-ticket').innerText = `R$ ${avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            
+            // Render History
+            const historyContainer = document.getElementById('client-history-table-body');
+            historyContainer.innerHTML = history.map(h => `
+                <tr>
+                    <td>${new Date(h.created_at).toLocaleDateString('pt-BR')} ${h.appointment_time}</td>
+                    <td>${h.service_name}</td>
+                    <td>R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : '')}">${h.status}</span></td>
+                </tr>
+            `).join('');
+            
+            this.openModal('client-details');
+        } catch (err) {
+            console.error('Erro ao buscar detalhes do cliente', err);
+            alert('Erro ao carregar histórico do cliente');
+        }
     },
 
     filterClients() {

@@ -153,6 +153,40 @@ app.get('/api/clients/:barberId', async (req, res) => {
     }
 });
 
+app.get('/api/clients/:id/history', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const clientResult = await pool.query('SELECT * FROM clients WHERE id = $1', [id]);
+        const client = clientResult.rows[0];
+
+        if (!client) return res.status(404).send('Client not found');
+
+        const appointmentsResult = await pool.query(`
+            SELECT a.*, s.name as service_name, s.price as service_price 
+            FROM appointments a
+            JOIN services s ON a.service_id = s.id
+            WHERE a.client_phone = $1
+            ORDER BY a.created_at DESC
+        `, [client.phone]);
+
+        const statsResult = await pool.query(`
+            SELECT SUM(s.price) as total_spent, COUNT(a.id) as service_count
+            FROM appointments a
+            JOIN services s ON a.service_id = s.id
+            WHERE a.client_phone = $1 AND a.status = 'completed'
+        `, [client.phone]);
+
+        res.json({
+            client,
+            history: appointmentsResult.rows,
+            stats: statsResult.rows[0]
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 app.post('/api/clients', async (req, res) => {
     const { barberId, name, phone, notes } = req.body;
     try {

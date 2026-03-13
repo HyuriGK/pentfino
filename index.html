@@ -284,5 +284,52 @@
     </div>
 
     <script src="admin.js"></script>
+    <!-- Client Details Modal (Full Screen) -->
+    <div id="modal-client-details" class="modal-overlay hidden">
+        <div class="modal-content glass" style="max-width: 1000px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <div>
+                    <h2 id="detail-client-name" style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 4px;">--</h2>
+                    <p id="detail-client-phone" style="color: var(--text-muted); font-size: 0.9rem;">--</p>
+                </div>
+                <button class="btn btn-ghost" onclick="admin.closeModal('client-details')" style="font-size: 1.5rem;">×</button>
+            </div>
+            
+            <div class="modal-body" style="overflow-y: auto; padding-right: 10px;">
+                <!-- KPI Cards -->
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;">
+                    <div class="stat-card glass">
+                        <label>Faturamento Total</label>
+                        <h3 id="detail-total-spent">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label>Total de Visitas</label>
+                        <h3 id="detail-visit-count">0</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label>Ticket Médio</label>
+                        <h3 id="detail-avg-ticket">R$ 0,00</h3>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 16px; font-size: 1.1rem; color: var(--primary);">Histórico de Atendimentos</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Serviço</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="client-history-table-body">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
