@@ -73,10 +73,26 @@ app.get('/api/appointments/:barberId', async (req, res) => {
 app.post('/api/appointments', async (req, res) => {
     const { barberId, serviceId, clientName, clientPhone, time } = req.body;
     try {
+        // 1. Insert the appointment
         const result = await pool.query(
             'INSERT INTO appointments (barber_id, service_id, client_name, client_phone, appointment_time) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [barberId, serviceId, clientName, clientPhone, time]
         );
+
+        // 2. Sync with CRM (clients table)
+        // Check if client exists for this barber
+        const clientCheck = await pool.query(
+            'SELECT id FROM clients WHERE barber_id = $1 AND phone = $2',
+            [barberId, clientPhone]
+        );
+
+        if (clientCheck.rows.length === 0) {
+            await pool.query(
+                'INSERT INTO clients (barber_id, name, phone) VALUES ($1, $2, $3)',
+                [barberId, clientName, clientPhone]
+            );
+        }
+
         res.json(result.rows[0]);
     } catch (err) {
         console.error(err);
@@ -112,13 +128,13 @@ app.get('/api/stats/:barberId', async (req, res) => {
     }
 });
 
-// Clients API
+// Clients API - Fixed last_service_date to use created_at for valid parsing
 app.get('/api/clients/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query(`
             SELECT c.*, 
-                   MAX(a.appointment_time) as last_service_date,
+                   MAX(a.created_at) as last_service_date,
                    COUNT(a.id) as total_appointments
             FROM clients c
             LEFT JOIN appointments a ON c.phone = a.client_phone
