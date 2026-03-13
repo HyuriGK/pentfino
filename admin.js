@@ -157,7 +157,7 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'estoque'];
+        const tabs = ['home', 'agenda', 'clientes', 'estoque', 'profissionais', 'servicos'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
