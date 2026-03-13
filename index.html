@@ -110,6 +110,14 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                     <span class="nav-text">Estoque</span>
                 </div>
+                <div class="nav-item" onclick="admin.showTab('profissionais')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                    <span class="nav-text">Profissionais</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('servicos')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                    <span class="nav-text">Serviços</span>
+                </div>
                 <div style="flex: 1;"></div>
                 <div class="nav-item" style="color: var(--danger);" onclick="auth.logout()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -228,6 +236,52 @@
                     </table>
                 </div>
             </div>
+
+            <!-- TAB PROFISSIONAIS -->
+            <div id="tab-profissionais" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Equipe</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('professional')">+ Novo Profissional</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Profissional</th>
+                                <th>WhatsApp</th>
+                                <th>Serviços Vinculados</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="professionals-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB SERVICOS -->
+            <div id="tab-servicos" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Tabela de Serviços</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('service')">+ Novo Serviço</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Serviço</th>
+                                <th>Duração</th>
+                                <th>Preço</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -277,10 +331,71 @@
                 <label>Mínimo em Estoque (Alerta)</label>
                 <input type="number" id="modal-inv-min" placeholder="5">
             </div>
-            <button class="btn btn-primary btn-full" onclick="admin.saveInventory()">Adicionar ao Estoque</button>
+    <!-- MODAL NEW PROFESSIONAL -->
+    <div id="modal-professional" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title">Novo Profissional</h2>
+                <button class="btn-icon" onclick="admin.closeModal('professional')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome do Profissional</label>
+                <input type="text" id="modal-prof-name" placeholder="Ex: Rodrigo Barbeiro">
+            </div>
+            <div class="input-group-new">
+                <label>WhatsApp</label>
+                <input type="tel" id="modal-prof-phone" placeholder="Ex: (11) 99999-9999">
+            </div>
+            <div class="input-group-new">
+                <label>Imagem (URL)</label>
+                <input type="text" id="modal-prof-photo" placeholder="https://...">
+            </div>
+            <div class="input-group-new">
+                <label>Serviços Realizados</label>
+                <div id="modal-prof-services-list" class="checkbox-grid glass" style="padding: 15px; max-height: 150px; overflow-y: auto;">
+                    <!-- Checkboxes injected by JS -->
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveProfessional()">Cadastrar Profissional</button>
         </div>
     </div>
-        </main>
+
+    <!-- MODAL NEW SERVICE -->
+    <div id="modal-service" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title">Novo Serviço</h2>
+                <button class="btn-icon" onclick="admin.closeModal('service')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome do Serviço</label>
+                <input type="text" id="modal-svc-name" placeholder="Ex: Barba Terapia">
+            </div>
+            <div class="input-group-new">
+                <label>Preço (R$)</label>
+                <input type="number" id="modal-svc-price" placeholder="R$ 0,00">
+            </div>
+            <div class="input-group-new">
+                <label>Duração Estimada</label>
+                <input type="text" id="modal-svc-duration" placeholder="Ex: 30 min">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveService()">Adicionar Serviço</button>
+        </div>
+    </div>
+
+    <!-- CUSTOM COMPLETION MODAL -->
+    <div id="modal-confirm-service" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align: center; max-width: 400px;">
+            <div style="background: var(--success); color: #000; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2 class="modal-title" style="margin-bottom: 8px;">Finalizar Atendimento</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px;" id="confirm-service-text">Confirmar conclusão do serviço?</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-ghost btn-full" onclick="admin.closeModal('confirm-service')">Cancelar</button>
+                <button class="btn btn-primary btn-full" id="btn-do-complete-service">Confirmar</button>
+            </div>
+        </div>
     </div>
 
     <script src="admin.js"></script>

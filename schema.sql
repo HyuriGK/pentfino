@@ -28,7 +28,23 @@ CREATE TABLE IF NOT EXISTS appointments (
     appointment_time TEXT NOT NULL,
     appointment_date DATE DEFAULT CURRENT_DATE,
     status VARCHAR(20) DEFAULT 'pending',
+    professional_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS professionals (
+    id SERIAL PRIMARY KEY,
+    barber_id INTEGER REFERENCES barbers(id),
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    photo_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS professional_services (
+    professional_id INTEGER REFERENCES professionals(id) ON DELETE CASCADE,
+    service_id INTEGER REFERENCES services(id) ON DELETE CASCADE,
+    PRIMARY KEY (professional_id, service_id)
 );
 
 CREATE TABLE IF NOT EXISTS clients (

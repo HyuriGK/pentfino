@@ -430,17 +430,80 @@ body {
 }
 
 .appointment-item {
-    margin-bottom: 1rem;
-    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #050505;
-    border-radius: 18px;
+    background: linear-gradient(to right, #080808, #000);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    transition: var(--transition);
 }
 
-.client-info h4 { font-size: 1.2rem; font-weight: 700; }
-.client-info p { font-size: 0.9rem; margin-top: 4px; }
+.appointment-item:hover {
+    border-color: var(--border-bright);
+    transform: translateX(5px);
+    background: #0a0a0a;
+}
+
+.client-info h4 { 
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.client-info p { 
+    font-size: 0.85rem; 
+    margin-top: 4px; 
+    color: var(--text-muted);
+}
+
+.professional-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.prof-avatar-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--border-bright);
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.checkbox-item input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
 
 /* Lateralized Booking Redesign */
 .booking-page-wrapper {

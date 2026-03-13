@@ -1,11 +1,6 @@
 const app = {
-    // Hardcoded for now, but should come from API eventually
-    services: [
-        { id: 1, name: 'Corte de Cabelo', price: 50, duration: '40 min' },
-        { id: 2, name: 'Barba Completa', price: 30, duration: '20 min' },
-        { id: 3, name: 'Combo (Corte + Barba)', price: 70, duration: '60 min' },
-        { id: 4, name: 'Pigmentação', price: 40, duration: '30 min' }
-    ],
+    services: [],
+    professionals: [],
     availableTimes: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
     
     // Dynamic Barber ID from URL
@@ -13,16 +8,29 @@ const app = {
 
     booking: {
         service: null,
+        professional: null,
         time: null,
         client: { name: '', phone: '' }
     },
 
-    init() {
+    async init() {
+        await this.loadInitialData();
         this.renderServices();
         this.renderTimes();
         this.bindEvents();
         this.setDefaultDate();
         this.simulateRetentionInsight();
+    },
+
+    async loadInitialData() {
+        try {
+            const [svcRes, profRes] = await Promise.all([
+                fetch(`/api/services/${this.barberId}`),
+                fetch(`/api/professionals/${this.barberId}`)
+            ]);
+            this.services = await svcRes.json();
+            this.professionals = await profRes.json();
+        } catch (err) { console.error('Erro ao carregar dados iniciais'); }
     },
 
     setDefaultDate() {
@@ -57,8 +65,9 @@ const app = {
     },
 
     bindEvents() {
-        document.getElementById('btn-next-step').onclick = () => this.showStep('details');
-        document.getElementById('btn-confirm-booking').onclick = () => this.confirmBooking();
+        document.getElementById('btn-next-step').onclick = () => this.showStep('professionals');
+        document.getElementById('btn-next-to-details').onclick = () => this.showStep('details');
+        document.getElementById('id-confirm-booking-btn').onclick = () => this.confirmBooking();
     },
 
     selectService(id, el) {
@@ -70,6 +79,29 @@ const app = {
         // Live summary
         document.getElementById('active-booking-summary').classList.remove('hidden');
         document.getElementById('summary-service-name').innerText = this.booking.service.name;
+
+        // Populate professionals for this service (filtering can be added later)
+        this.renderProfessionals();
+    },
+
+    renderProfessionals() {
+        const container = document.getElementById('professionals-list');
+        container.innerHTML = this.professionals.map(p => `
+            <div class="service-card glass" onclick="app.selectProfessional(${p.id}, this)">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="prof-avatar-mini" style="background-image: url('${p.photo_url || 'https://via.placeholder.com/40'}')"></div>
+                    <strong>${p.name}</strong>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    selectProfessional(id, el) {
+        document.querySelectorAll('#professionals-list .service-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        this.booking.professional = this.professionals.find(p => p.id === id);
+        document.getElementById('btn-next-to-details').disabled = false;
+        document.getElementById('summary-prof-name').innerText = this.booking.professional.name;
     },
 
     selectTime(time, el) {
@@ -80,7 +112,7 @@ const app = {
     },
 
     showStep(stepId) {
-        ['services', 'details', 'success'].forEach(s => {
+        ['services', 'professionals', 'details', 'success'].forEach(s => {
             const el = document.getElementById(`step-${s}`);
             if (el) el.classList.add('hidden');
         });
@@ -104,6 +136,7 @@ const app = {
                 body: JSON.stringify({
                     barberId: this.barberId,
                     serviceId: this.booking.service.id,
+                    professionalId: this.booking.professional?.id,
                     clientName: name,
                     clientPhone: phone,
                     time: this.booking.time,
@@ -115,6 +148,7 @@ const app = {
                 document.getElementById('summary-content').innerHTML = `
                     <p style="margin-bottom: 12px;"><strong style="color: var(--primary);">${this.booking.service.name}</strong></p>
                     <p style="font-size: 0.9rem; color: var(--text-muted);">${new Date(date).toLocaleDateString('pt-BR')} às ${this.booking.time}</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">Profissional: ${this.booking.professional?.name || 'Não selecionado'}</p>
                     <p style="font-size: 0.9rem; color: var(--text-muted);">Valor: R$ ${this.booking.service.price}</p>
                 `;
                 this.showStep('success');

@@ -75,12 +75,16 @@ const admin = {
     clients: [],
     allClients: [], // For filtering
     inventory: [],
+    professionals: [],
+    services: [],
 
     async init() {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         await this.loadData();
         await this.loadClients();
         await this.loadInventory();
+        await this.loadProfessionals();
+        await this.loadServices();
         this.startInsights();
     },
 
@@ -144,6 +148,14 @@ const admin = {
         if (tab === 'estoque') {
             this.loadInventory();
         }
+
+        if (tab === 'profissionais') {
+            this.loadProfessionals();
+        }
+
+        if (tab === 'servicos') {
+            this.loadServices();
+        }
     },
 
     renderAppointments() {
@@ -154,19 +166,27 @@ const admin = {
         }
 
         container.innerHTML = this.pending.map(a => `
-            <div class="appointment-item glass" style="background: #050505; border: 1px solid var(--border);">
+            <div class="appointment-item glass">
                 <div class="client-info">
                     <h4 style="font-size: 1.25rem; letter-spacing: -0.5px;">${a.client_name}</h4>
                     <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted);">
                         ${a.service_name} <span style="margin: 0 8px; opacity: 0.3;">•</span> <span style="color: var(--primary);">${a.appointment_time}</span>
                     </p>
+                    ${a.professional_name ? `<div class="professional-badge" style="margin-top: 8px;">Profissional: ${a.professional_name}</div>` : ''}
                 </div>
                 <div class="action-btns">
-                    <button class="btn btn-primary" style="padding: 10px 20px; font-size: 0.8rem;" onclick="admin.completeService(${a.id})">Finalizar</button>
+                    <button class="btn btn-primary" style="padding: 10px 20px; font-size: 0.8rem;" onclick="admin.confirmCompleteService(${a.id}, '${a.client_name}')">Finalizar</button>
                     <button class="btn btn-ghost" style="padding: 10px; color: var(--danger); border-color: rgba(255,68,68,0.2);" onclick="admin.cancelService(${a.id})">×</button>
                 </div>
             </div>
         `).join('');
+    },
+
+    confirmCompleteService(id, clientName) {
+        document.getElementById('confirm-service-text').innerText = `Confirmar conclusão do serviço para ${clientName}?`;
+        const confirmBtn = document.getElementById('btn-do-complete-service');
+        confirmBtn.onclick = () => this.completeService(id);
+        this.openModal('confirm-service');
     },
 
     async completeService(id) {
@@ -176,6 +196,7 @@ const admin = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'completed' })
             });
+            this.closeModal('confirm-service');
             await this.loadData();
         } catch (err) { alert('Erro ao finalizar serviço'); }
     },
@@ -375,7 +396,6 @@ const admin = {
 
         if(!name || !phone) return alert('Nome e Telefone são obrigatórios');
 
-        try {
             await fetch('/api/clients', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -386,23 +406,116 @@ const admin = {
         } catch (err) { alert('Erro ao salvar cliente'); }
     },
 
-    async saveInventory() {
-        const itemName = document.getElementById('modal-inv-name').value;
-        const quantity = parseInt(document.getElementById('modal-inv-qty').value) || 0;
-        const unit = document.getElementById('modal-inv-unit').value || 'un';
-        const minQuantity = parseInt(document.getElementById('modal-inv-min').value) || 5;
+    // Professionals Management
+    async loadProfessionals() {
+        try {
+            const res = await fetch(`/api/professionals/${auth.user.id}`);
+            this.professionals = await res.json();
+            this.renderProfessionals();
+        } catch (err) { console.error('Erro ao carregar profissionais'); }
+    },
 
-        if(!itemName) return alert('Nome do produto é obrigatório');
+    renderProfessionals() {
+        const container = document.getElementById('professionals-table-body');
+        if (!container) return;
+        container.innerHTML = this.professionals.map(p => `
+            <tr>
+                <td><strong>${p.name}</strong></td>
+                <td>${p.phone || '-'}</td>
+                <td><span class="status-badge status-warn">Configurar...</span></td>
+                <td>
+                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="admin.editProfessional(${p.id})">Editar</button>
+                </td>
+            </tr>
+        `).join('');
+    },
+
+    async saveProfessional() {
+        const name = document.getElementById('modal-prof-name').value;
+        const phone = document.getElementById('modal-prof-phone').value;
+        const photoUrl = document.getElementById('modal-prof-photo').value;
+        const selectedServices = Array.from(document.querySelectorAll('#modal-prof-services-list input:checked')).map(cb => cb.value);
+
+        if(!name) return alert('Nome é obrigatório');
 
         try {
-            await fetch('/api/inventory', {
+            const res = await fetch('/api/professionals', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ barberId: auth.user.id, itemName, quantity, unit, minQuantity })
+                body: JSON.stringify({ barberId: auth.user.id, name, phone, photoUrl })
             });
-            this.closeModal('inventory');
-            this.loadInventory();
-        } catch (err) { alert('Erro ao salvar item'); }
+            const prof = await res.json();
+            
+            // Link services
+            await fetch('/api/professional-services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profId: prof.id, serviceIds: selectedServices })
+            });
+
+            this.closeModal('professional');
+            this.loadProfessionals();
+        } catch (err) { alert('Erro ao salvar profissional'); }
+    },
+
+    // Services Management
+    async loadServices() {
+        try {
+            const res = await fetch(`/api/services/${auth.user.id}`);
+            this.services = await res.json();
+            this.renderServices();
+        } catch (err) { console.error('Erro ao carregar serviços'); }
+    },
+
+    renderServices() {
+        const container = document.getElementById('services-table-body');
+        if (!container) return;
+        container.innerHTML = this.services.map(s => `
+            <tr>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.duration || '-'}</td>
+                <td>R$ ${parseFloat(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td>
+                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="admin.editService(${s.id})">Editar</button>
+                </td>
+            </tr>
+        `).join('');
+    },
+
+    async saveService() {
+        const name = document.getElementById('modal-svc-name').value;
+        const price = document.getElementById('modal-svc-price').value;
+        const duration = document.getElementById('modal-svc-duration').value;
+
+        if(!name || !price) return alert('Nome e Preço são obrigatórios');
+
+        try {
+            await fetch('/api/services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barberId: auth.user.id, name, price, duration })
+            });
+            this.closeModal('service');
+            this.loadServices();
+        } catch (err) { alert('Erro ao salvar serviço'); }
+    },
+
+    // Modal Logic Overrides
+    openModal(type) {
+        if (type === 'professional') {
+            const list = document.getElementById('modal-prof-services-list');
+            list.innerHTML = this.services.map(s => `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${s.id}">
+                    <span>${s.name}</span>
+                </label>
+            `).join('');
+        }
+        document.getElementById(`modal-${type}`).classList.remove('hidden');
+    },
+
+    closeModal(type) {
+        document.getElementById(`modal-${type}`).classList.add('hidden');
     }
 };
 

@@ -57,9 +57,10 @@ app.get('/api/appointments/:barberId', async (req, res) => {
         const { barberId } = req.params;
         // Fetch all appointments for the calendar (pending, completed, canceled)
         const result = await pool.query(`
-            SELECT a.*, s.name as service_name, s.price as service_price 
+            SELECT a.*, s.name as service_name, s.price as service_price, p.name as professional_name
             FROM appointments a
             JOIN services s ON a.service_id = s.id
+            LEFT JOIN professionals p ON a.professional_id = p.id
             WHERE a.barber_id = $1
             ORDER BY a.appointment_date ASC, a.appointment_time ASC
         `, [barberId]);
@@ -183,6 +184,87 @@ app.get('/api/clients/:id/history', async (req, res) => {
             history: appointmentsResult.rows,
             stats: statsResult.rows[0]
         });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+// Services API
+app.get('/api/services/:barberId', async (req, res) => {
+    try {
+        const { barberId } = req.params;
+        const result = await pool.query('SELECT * FROM services WHERE barber_id = $1 ORDER BY name ASC', [barberId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.post('/api/services', async (req, res) => {
+    const { barberId, name, price, duration } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO services (barber_id, name, price, duration) VALUES ($1, $2, $3, $4) RETURNING *',
+            [barberId, name, price, duration]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Professionals API
+app.get('/api/professionals/:barberId', async (req, res) => {
+    try {
+        const { barberId } = req.params;
+        const result = await pool.query('SELECT * FROM professionals WHERE barber_id = $1 ORDER BY name ASC', [barberId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.post('/api/professionals', async (req, res) => {
+    const { barberId, name, phone, photoUrl } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO professionals (barber_id, name, phone, photo_url) VALUES ($1, $2, $3, $4) RETURNING *',
+            [barberId, name, phone, photoUrl]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.get('/api/professional-services/:profId', async (req, res) => {
+    try {
+        const { profId } = req.params;
+        const result = await pool.query(`
+            SELECT s.* FROM services s
+            JOIN professional_services ps ON s.id = ps.service_id
+            WHERE ps.professional_id = $1
+        `, [profId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.post('/api/professional-services', async (req, res) => {
+    const { profId, serviceIds } = req.body;
+    try {
+        await pool.query('DELETE FROM professional_services WHERE professional_id = $1', [profId]);
+        if (serviceIds && serviceIds.length > 0) {
+            const values = serviceIds.map(sid => `(${profId}, ${sid})`).join(',');
+            await pool.query(`INSERT INTO professional_services (professional_id, service_id) VALUES ${values}`);
+        }
+        res.send('Linked successfully');
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
