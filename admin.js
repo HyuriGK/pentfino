@@ -1,10 +1,21 @@
 const auth = {
-    user: JSON.parse(localStorage.getItem('pentfino_user')) || null,
+    user: (() => {
+        try {
+            return JSON.parse(localStorage.getItem('pentfino_user'));
+        } catch (e) {
+            console.error('Erro ao ler usuário do localStorage', e);
+            return null;
+        }
+    })(),
 
     init() {
-        if (this.user) {
-            sessionManager.init();
-            this.showDashboard();
+        if (this.user && typeof this.user === 'object' && this.user.id) {
+            try {
+                sessionManager.init();
+                this.showDashboard();
+            } catch (err) {
+                console.error('Erro durante inicialização do auth:', err);
+            }
         }
     },
 
@@ -17,21 +28,43 @@ const auth = {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         
+        if (!email || !password) {
+            return alert('Por favor, preencha todos os campos.');
+        }
+        
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
+
+            if (res.status === 401) {
+                return alert('E-mail ou senha incorretos.');
+            }
+
             const data = await res.json();
             if (data.success) {
                 this.user = data.user;
                 localStorage.setItem('pentfino_user', JSON.stringify(this.user));
                 this.showDashboard();
             } else {
-                alert(data.message);
+                alert(data.message || 'Erro ao realizar login');
             }
-        } catch (err) { alert('Erro ao conectar ao servidor'); }
+        } catch (err) { 
+            console.error('Login Error:', err);
+            if (err.name === 'AbortError') {
+                alert('O servidor demorou muito para responder. Verifique sua conexão.');
+            } else {
+                alert('Erro ao conectar ao servidor. Verifique se a API está online.');
+            }
+        }
     },
 
     async register() {
