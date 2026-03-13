@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS appointments (
     client_name VARCHAR(100) NOT NULL,
     client_phone VARCHAR(20) NOT NULL,
     appointment_time TEXT NOT NULL,
+    appointment_date DATE DEFAULT CURRENT_DATE,
     status VARCHAR(20) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,7 +37,8 @@ CREATE TABLE IF NOT EXISTS clients (
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (barber_id, phone)
 );
 
 CREATE TABLE IF NOT EXISTS inventory (

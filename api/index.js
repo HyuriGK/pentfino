@@ -61,7 +61,7 @@ app.get('/api/appointments/:barberId', async (req, res) => {
             FROM appointments a
             JOIN services s ON a.service_id = s.id
             WHERE a.barber_id = $1
-            ORDER BY a.appointment_time ASC
+            ORDER BY a.appointment_date ASC, a.appointment_time ASC
         `, [barberId]);
         res.json(result.rows);
     } catch (err) {
@@ -71,27 +71,31 @@ app.get('/api/appointments/:barberId', async (req, res) => {
 });
 
 app.post('/api/appointments', async (req, res) => {
-    const { barberId, serviceId, clientName, clientPhone, time } = req.body;
+    const { barberId, serviceId, clientName, clientPhone, time, date } = req.body;
     try {
+        // Use provided date or today if not provided
+        const apptDate = date || new Date().toISOString().split('T')[0];
+
         // 1. Insert the appointment
         const result = await pool.query(
-            'INSERT INTO appointments (barber_id, service_id, client_name, client_phone, appointment_time) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [barberId, serviceId, clientName, clientPhone, time]
+            'INSERT INTO appointments (barber_id, service_id, client_name, client_phone, appointment_time, appointment_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [barberId, serviceId, clientName, clientPhone, time, apptDate]
         );
 
-        // 2. Sync with CRM (clients table)
-        // Check if client exists for this barber
-        const clientCheck = await pool.query(
-            'SELECT id FROM clients WHERE barber_id = $1 AND phone = $2',
-            [barberId, clientPhone]
-        );
-
-        if (clientCheck.rows.length === 0) {
-            await pool.query(
-                'INSERT INTO clients (barber_id, name, phone) VALUES ($1, $2, $3)',
-                [barberId, clientName, clientPhone]
-            );
-        }
+        // 2. Sync with CRM (clients table) - Always ensure client exists
+        await pool.query(`
+            INSERT INTO clients (barber_id, name, phone)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (barber_id, phone) DO UPDATE SET name = EXCLUDED.name
+        `, [barberId, clientName, clientPhone]).catch(async (err) => {
+            // If ON CONFLICT isn't supported or fails, do manual check/upsert
+            const check = await pool.query('SELECT id FROM clients WHERE barber_id = $1 AND phone = $2', [barberId, clientPhone]);
+            if (check.rows.length === 0) {
+                await pool.query('INSERT INTO clients (barber_id, name, phone) VALUES ($1, $2, $3)', [barberId, clientName, clientPhone]);
+            } else {
+                await pool.query('UPDATE clients SET name = $1 WHERE barber_id = $2 AND phone = $3', [clientName, barberId, clientPhone]);
+            }
+        });
 
         res.json(result.rows[0]);
     } catch (err) {
@@ -128,23 +132,23 @@ app.get('/api/stats/:barberId', async (req, res) => {
     }
 });
 
-// Clients API - Fixed last_service_date to use created_at for valid parsing
+// Clients API - Fixed last_service_date to use appointment_date for business logic
 app.get('/api/clients/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query(`
             SELECT c.*, 
-                   MAX(a.created_at) as last_service_date,
+                   MAX(a.appointment_date) as last_service_date,
                    (SELECT a2.appointment_time 
                     FROM appointments a2 
                     WHERE a2.client_phone = c.phone 
-                    ORDER BY a2.created_at DESC LIMIT 1) as scheduled_time,
+                    ORDER BY a2.appointment_date DESC, a2.appointment_time DESC LIMIT 1) as scheduled_time,
                    COUNT(a.id) as total_appointments
             FROM clients c
             LEFT JOIN appointments a ON c.phone = a.client_phone
             WHERE c.barber_id = $1
             GROUP BY c.id
-            ORDER BY c.name ASC
+            ORDER BY last_service_date DESC, c.name ASC
         `, [barberId]);
         res.json(result.rows);
     } catch (err) {

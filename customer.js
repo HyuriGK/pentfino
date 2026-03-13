@@ -21,7 +21,17 @@ const app = {
         this.renderServices();
         this.renderTimes();
         this.bindEvents();
+        this.setDefaultDate();
         this.simulateRetentionInsight();
+    },
+
+    setDefaultDate() {
+        const dateInput = document.getElementById('booking-date');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            dateInput.min = today;
+        }
     },
 
     renderServices() {
@@ -80,8 +90,9 @@ const app = {
     async confirmBooking() {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
+        const date = document.getElementById('booking-date').value;
 
-        if (!this.booking.time || !name || !phone) {
+        if (!this.booking.time || !name || !phone || !date) {
             alert('Por favor, preencha todos os campos e escolha um horário.');
             return;
         }
@@ -95,14 +106,15 @@ const app = {
                     serviceId: this.booking.service.id,
                     clientName: name,
                     clientPhone: phone,
-                    time: this.booking.time
+                    time: this.booking.time,
+                    date: date
                 })
             });
 
             if (res.ok) {
                 document.getElementById('summary-content').innerHTML = `
                     <p style="margin-bottom: 12px;"><strong style="color: var(--primary);">${this.booking.service.name}</strong></p>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">Hoje às ${this.booking.time}</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">${new Date(date).toLocaleDateString('pt-BR')} às ${this.booking.time}</p>
                     <p style="font-size: 0.9rem; color: var(--text-muted);">Valor: R$ ${this.booking.service.price}</p>
                 `;
                 this.showStep('success');

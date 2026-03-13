@@ -452,17 +452,20 @@ const agenda = {
         if (!this.calendar) return;
 
         const events = appointments.map(a => {
-            // Get local date string YYYY-MM-DD
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const today = `${year}-${month}-${day}`;
-            
+            // Use the date from DB or fallback to today
+            let dateStr = a.appointment_date;
+            if (dateStr) {
+                // Handle different format possibilities (ISO or localized)
+                dateStr = new Date(dateStr).toISOString().split('T')[0];
+            } else {
+                const now = new Date();
+                dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            }
+
             return {
                 id: a.id,
                 title: a.client_name,
-                start: `${today}T${a.appointment_time}:00`,
+                start: `${dateStr}T${a.appointment_time}:00`,
                 backgroundColor: a.status === 'completed' ? '#1a1a1a' : (a.status === 'canceled' ? '#330000' : 'var(--primary)'),
                 borderColor: a.status === 'completed' ? '#333' : 'var(--primary)',
                 textColor: a.status === 'completed' ? '#555' : '#000',
