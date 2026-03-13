@@ -476,10 +476,16 @@ const admin = {
     // Modal Logic
     openModal(type) {
         document.getElementById(`modal-${type}`).classList.remove('hidden');
+        document.body.classList.add('modal-open');
     },
 
     closeModal(type) {
         document.getElementById(`modal-${type}`).classList.add('hidden');
+        // Check if any other modal is still visible
+        const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
+        if (!isOpen) {
+            document.body.classList.remove('modal-open');
+        }
     },
 
     async saveClient() {
@@ -693,7 +699,6 @@ const admin = {
         } catch (err) { alert('Erro ao salvar serviço'); }
     },
 
-    // Modal Logic Overrides
     openModal(type) {
         if (type === 'professional') {
             const list = document.getElementById('modal-prof-services-list');
@@ -705,6 +710,7 @@ const admin = {
             `).join('');
         }
         document.getElementById(`modal-${type}`).classList.remove('hidden');
+        document.body.classList.add('modal-open');
     },
 
     closeModal(type) {
@@ -720,6 +726,10 @@ const admin = {
             document.getElementById('modal-prof-commission').value = '';
         }
         document.getElementById(`modal-${type}`).classList.add('hidden');
+        const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
+        if (!isOpen) {
+            document.body.classList.remove('modal-open');
+        }
     }
 };
 
@@ -745,17 +755,30 @@ const agenda = {
                 this.calendar.changeView('timeGridWeek', date);
             },
             dayCellDidMount: (info) => {
-                const dateStr = info.date.toISOString().split('T')[0];
+                const dateStr = info.date.toLocaleDateString('en-CA'); // YYYY-MM-DD local
                 const count = this.allAppointments.filter(a => {
-                    const aDate = new Date(a.appointment_date).toISOString().split('T')[0];
+                    let aDate = a.appointment_date;
+                    if (aDate) {
+                        aDate = new Date(aDate).toLocaleDateString('en-CA');
+                    }
                     return aDate === dateStr && a.status !== 'canceled';
                 }).length;
 
-                if (count > 0 && info.view.type === 'dayGridMonth') {
-                    const kpi = document.createElement('span');
-                    kpi.className = 'fc-day-kpi';
-                    kpi.innerText = count;
-                    info.el.querySelector('.fc-daygrid-day-top').appendChild(kpi);
+                if (info.view.type === 'dayGridMonth') {
+                    // Remove existing KPIs if any
+                    const existing = info.el.querySelector('.fc-day-kpi');
+                    if (existing) existing.remove();
+
+                    if (count > 0) {
+                        const kpi = document.createElement('button');
+                        kpi.className = 'fc-day-kpi';
+                        kpi.innerText = count === 1 ? '1 Agendamento' : `${count} Agendamentos`;
+                        kpi.onclick = (e) => {
+                            e.stopPropagation();
+                            this.calendar.changeView('timeGridWeek', info.date);
+                        };
+                        info.el.querySelector('.fc-daygrid-day-top').appendChild(kpi);
+                    }
                 }
             },
             slotEventOverlap: false,
