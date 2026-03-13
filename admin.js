@@ -2,7 +2,10 @@ const auth = {
     user: JSON.parse(localStorage.getItem('pentfino_user')) || null,
 
     init() {
-        if (this.user) this.showDashboard();
+        if (this.user) {
+            sessionManager.init();
+            this.showDashboard();
+        }
     },
 
     toggleForm(type) {
@@ -258,6 +261,62 @@ const agenda = {
 
         this.calendar.removeAllEvents();
         this.calendar.addEventSource(events);
+    }
+};
+
+const sessionManager = {
+    TIMEOUT_MS: 3600000, // 1 hour
+    STORAGE_KEY: 'pentfino_last_activity',
+
+    init() {
+        if (!auth.user) return;
+        
+        this.setupListeners();
+        
+        // Immediate check on load/init
+        this.checkSession();
+        
+        // Start periodic background check
+        this.startChecking();
+    },
+
+    setupListeners() {
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+        events.forEach(evt => {
+            document.addEventListener(evt, () => this.updateActivity(), { passive: true });
+        });
+        
+        // Initial update to mark current time as start
+        this.updateActivity();
+    },
+
+    updateActivity() {
+        localStorage.setItem(this.STORAGE_KEY, Date.now());
+    },
+
+    checkSession() {
+        if (!auth.user) return;
+        
+        const lastActivity = parseInt(localStorage.getItem(this.STORAGE_KEY) || 0);
+        if (lastActivity === 0) {
+            this.updateActivity();
+            return;
+        }
+
+        const now = Date.now();
+        if (now - lastActivity > this.TIMEOUT_MS) {
+            console.warn('Sessão expirada por inatividade (Pentfino).');
+            auth.logout();
+        }
+    },
+
+    startChecking() {
+        // Check every 30 seconds for higher precision than 1 minute
+        setInterval(() => {
+            if (auth.user) {
+                this.checkSession();
+            }
+        }, 30000);
     }
 };
 
