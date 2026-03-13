@@ -126,6 +126,10 @@ const admin = {
             if (el) el.classList.toggle('hidden', t !== tab);
         });
 
+        // Toggle "Link Público" button - only show on home tab
+        const linkBtn = document.getElementById('public-link-btn');
+        if (linkBtn) linkBtn.classList.toggle('hidden', tab !== 'home');
+
         if (tab === 'agenda') {
             agenda.init();
         }
@@ -223,11 +227,36 @@ const admin = {
     renderClients(clientsList) {
         const container = document.getElementById('clients-table-body');
         if (!container) return;
-        container.innerHTML = clientsList.map(c => `
+
+        // Sort: Most recent first (descending)
+        const sorted = [...clientsList].sort((a, b) => {
+            if (!a.last_service_date) return 1;
+            if (!b.last_service_date) return -1;
+            return new Date(b.last_service_date) - new Date(a.last_service_date);
+        });
+
+        const formatDate = (dateStr) => {
+            if (!dateStr) return 'Nenhum';
+            const date = new Date(dateStr);
+            const today = new Date();
+            
+            const isToday = date.getDate() === today.getDate() &&
+                          date.getMonth() === today.getMonth() &&
+                          date.getFullYear() === today.getFullYear();
+            
+            if (isToday) {
+                return `Hoje às ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            }
+            
+            return date.toLocaleDateString('pt-BR') + ' ' + 
+                   date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        };
+
+        container.innerHTML = sorted.map(c => `
             <tr>
                 <td><strong style="color:#fff">${c.name}</strong></td>
                 <td>${c.phone}</td>
-                <td><span style="color:var(--primary)">${c.last_service_date || 'Nenhum'}</span></td>
+                <td><span style="color:var(--primary)">${formatDate(c.last_service_date)}</span></td>
                 <td style="text-align:center">${c.total_appointments || 0}</td>
                 <td>
                     <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
@@ -350,8 +379,8 @@ const agenda = {
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             locale: 'pt-br',
-            slotMinTime: '08:00:00', // Business hours start
-            slotMaxTime: '20:00:00', // Business hours end
+            slotMinTime: '06:00:00', // Business hours update
+            slotMaxTime: '24:00:00', // To midnight
             allDaySlot: false,
             slotLabelFormat: {
                 hour: '2-digit',
