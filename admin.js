@@ -128,7 +128,10 @@ const admin = {
 
         // Toggle "Link Público" button - only show on home tab
         const linkBtn = document.getElementById('public-link-btn');
-        if (linkBtn) linkBtn.classList.toggle('hidden', tab !== 'home');
+        if (linkBtn) {
+            linkBtn.classList.toggle('hidden', tab !== 'home');
+            linkBtn.onclick = () => window.open(`reserva.html?barberId=${auth.user.id}`, '_blank');
+        }
 
         if (tab === 'agenda') {
             agenda.init();

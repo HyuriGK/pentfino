@@ -8,8 +8,8 @@ const app = {
     ],
     availableTimes: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
     
-    // Default barber ID for the demo (demo@pentfino.com)
-    barberId: 1,
+    // Dynamic Barber ID from URL
+    barberId: parseInt(new URLSearchParams(window.location.search).get('barberId')) || 1,
 
     booking: {
         service: null,
