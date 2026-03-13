@@ -596,6 +596,7 @@ const admin = {
                 <tr>
                     <td><strong style="color:#fff">${i.item_name}</strong></td>
                     <td>${i.quantity} ${i.unit}</td>
+                    <td>R$ ${parseFloat(i.unit_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>
                         <div style="display:flex; gap:8px;">
@@ -823,9 +824,33 @@ const admin = {
                 <td>R$ ${parseFloat(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td>
                     <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="admin.editService(${s.id})">Editar</button>
+                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem; color: var(--danger);" onclick="admin.deleteService(${s.id}, '${s.name}')">Excluir</button>
                 </td>
             </tr>
         `).join('');
+    },
+
+    async editService(id) {
+        const svc = this.services.find(s => s.id === id);
+        if (!svc) return;
+
+        this.editingServiceId = id;
+        document.getElementById('modal-svc-name').value = svc.name;
+        document.getElementById('modal-svc-price').value = svc.price;
+        document.getElementById('modal-svc-duration').value = svc.duration;
+
+        const saveBtn = document.querySelector('#modal-service .btn-primary');
+        saveBtn.innerText = 'Salvar Alterações';
+        this.openModal('service');
+    },
+
+    async deleteService(id, name) {
+        if (confirm(`Deseja excluir o serviço "${name}"?`)) {
+            try {
+                await fetch(`/api/services/${id}`, { method: 'DELETE' });
+                this.loadServices();
+            } catch (err) { alert('Erro ao excluir serviço'); }
+        }
     },
 
     async saveService() {
@@ -836,14 +861,46 @@ const admin = {
         if(!name || !price) return alert('Nome e Preço são obrigatórios');
 
         try {
-            await fetch('/api/services', {
-                method: 'POST',
+            const method = this.editingServiceId ? 'PATCH' : 'POST';
+            const url = this.editingServiceId ? `/api/services/${this.editingServiceId}` : '/api/services';
+            
+            await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ barberId: auth.user.id, name, price, duration })
             });
+
             this.closeModal('service');
             this.loadServices();
         } catch (err) { alert('Erro ao salvar serviço'); }
+    },
+
+    // Inventory Helpers
+    async saveInventory() {
+        const itemName = document.getElementById('modal-inv-name').value;
+        const quantity = document.getElementById('modal-inv-qty').value;
+        const unit = document.getElementById('modal-inv-unit').value;
+        const minQuantity = document.getElementById('modal-inv-min').value;
+        const unitPrice = document.getElementById('modal-inv-price').value;
+
+        if(!itemName || !quantity) return alert('Nome e Quantidade são obrigatórios');
+
+        try {
+            await fetch('/api/inventory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    barberId: auth.user.id, 
+                    itemName, 
+                    quantity, 
+                    unit, 
+                    minQuantity: minQuantity || 0,
+                    unitPrice: unitPrice || 0
+                })
+            });
+            this.closeModal('inventory');
+            this.loadInventory();
+        } catch (err) { alert('Erro ao salvar item no estoque'); }
     },
 
     openModal(type) {
@@ -871,6 +928,22 @@ const admin = {
             document.getElementById('modal-prof-phone').value = '';
             document.getElementById('modal-prof-photo').value = '';
             document.getElementById('modal-prof-commission').value = '';
+        }
+        if (type === 'service') {
+            this.editingServiceId = null;
+            const saveBtn = document.querySelector('#modal-service .btn-primary');
+            saveBtn.innerText = 'Adicionar Serviço';
+            
+            document.getElementById('modal-svc-name').value = '';
+            document.getElementById('modal-svc-price').value = '';
+            document.getElementById('modal-svc-duration').value = '';
+        }
+        if (type === 'inventory') {
+            document.getElementById('modal-inv-name').value = '';
+            document.getElementById('modal-inv-qty').value = '';
+            document.getElementById('modal-inv-unit').value = '';
+            document.getElementById('modal-inv-min').value = '';
+            document.getElementById('modal-inv-price').value = '';
         }
         document.getElementById(`modal-${type}`).classList.add('hidden');
         const isOpen = document.querySelector('.modal-overlay:not(.hidden)');

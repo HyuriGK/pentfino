@@ -21,6 +21,7 @@ pool.on('connect', () => {
     console.log('✅ Connected to Neon PostgreSQL');
     // Ensure commission column exists (one-off migration)
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
+    pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS unit_price DECIMAL(10,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
 });
 
 // API Routes
@@ -243,6 +244,33 @@ app.post('/api/services', async (req, res) => {
     }
 });
 
+app.patch('/api/services/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, price, duration } = req.body;
+    try {
+        await pool.query(
+            'UPDATE services SET name = $1, price = $2, duration = $3 WHERE id = $4',
+            [name, price, duration, id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.delete('/api/services/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM professional_services WHERE service_id = $1', [id]);
+        await pool.query('DELETE FROM services WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // Professionals API
 app.get('/api/professionals/:barberId', async (req, res) => {
     try {
@@ -362,11 +390,11 @@ app.get('/api/inventory/:barberId', async (req, res) => {
 });
 
 app.post('/api/inventory', async (req, res) => {
-    const { barberId, itemName, quantity, unit, minQuantity } = req.body;
+    const { barberId, itemName, quantity, unit, minQuantity, unitPrice } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO inventory (barber_id, item_name, quantity, unit, min_quantity) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [barberId, itemName, quantity, unit, minQuantity]
+            'INSERT INTO inventory (barber_id, item_name, quantity, unit, min_quantity, unit_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [barberId, itemName, quantity, unit, minQuantity, unitPrice || 0]
         );
         res.json(result.rows[0]);
     } catch (err) {
