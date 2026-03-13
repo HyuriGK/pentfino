@@ -450,18 +450,111 @@ const admin = {
     },
 
     renderProfessionals() {
-        const container = document.getElementById('professionals-table-body');
+        const container = document.getElementById('professionals-grid');
         if (!container) return;
-        container.innerHTML = this.professionals.map(p => `
-            <tr>
-                <td><strong>${p.name}</strong></td>
-                <td>${p.phone || '-'}</td>
-                <td><span class="status-badge status-warn">Configurar...</span></td>
-                <td>
-                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="admin.editProfessional(${p.id})">Editar</button>
-                </td>
-            </tr>
-        `).join('');
+        
+        if (this.professionals.length === 0) {
+            container.innerHTML = `
+                <div class="glass" style="grid-column: 1/-1; padding: 4rem; text-align: center; border: 2px dashed var(--border);">
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Nenhum profissional cadastrado ainda.</p>
+                    <button class="btn btn-primary" onclick="admin.openModal('professional')" style="margin-top: 1.5rem; display: inline-flex;">Começar agora</button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.professionals.map(p => {
+            const initials = p.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            const services = p.services || [];
+            
+            return `
+                <div class="professional-card">
+                    <div class="prof-card-header">
+                        <div class="prof-card-avatar" ${p.photo_url ? `style="background-image: url('${p.photo_url}'); color: transparent;"` : ''}>
+                            ${p.photo_url ? '' : initials}
+                        </div>
+                        <div class="prof-card-info">
+                            <h3>${p.name}</h3>
+                            <p>${p.phone || 'Sem contato'}</p>
+                        </div>
+                    </div>
+                    <div class="prof-card-services">
+                        ${services.length > 0 
+                            ? services.map(s => `<span class="svc-tag">${s.name}</span>`).join('') 
+                            : '<span style="font-size: 0.7rem; color: var(--text-muted); font-style: italic;">Nenhum serviço vinculado</span>'
+                        }
+                    </div>
+                    <div class="prof-card-actions">
+                        <button class="btn btn-ghost" onclick="admin.editProfessional(${p.id})">Configurar</button>
+                        <button class="btn btn-ghost btn-delete" onclick="admin.deleteProfessional(${p.id}, '${p.name}')">Remover</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    async editProfessional(id) {
+        const prof = this.professionals.find(p => p.id === id);
+        if (!prof) return;
+
+        // Fill modal fields
+        document.getElementById('modal-prof-name').value = prof.name;
+        document.getElementById('modal-prof-phone').value = prof.phone || '';
+        document.getElementById('modal-prof-photo').value = prof.photo_url || '';
+        
+        // Open modal (this will also populate the services list via override)
+        this.openModal('professional');
+
+        // Check already linked services
+        const selectedIds = (prof.services || []).map(s => s.id);
+        const checkboxes = document.querySelectorAll('#modal-prof-services-list input');
+        checkboxes.forEach(cb => {
+            cb.checked = selectedIds.includes(parseInt(cb.value));
+        });
+
+        // Update save button to handle update
+        const saveBtn = document.querySelector('#modal-professional .btn-primary');
+        const originalText = saveBtn.innerText;
+        saveBtn.innerText = 'Salvar Alterações';
+        saveBtn.onclick = async () => {
+            await this.updateProfessional(id);
+            saveBtn.innerText = originalText;
+        };
+    },
+
+    async updateProfessional(id) {
+        const name = document.getElementById('modal-prof-name').value;
+        const phone = document.getElementById('modal-prof-phone').value;
+        const photoUrl = document.getElementById('modal-prof-photo').value;
+        const selectedServices = Array.from(document.querySelectorAll('#modal-prof-services-list input:checked')).map(cb => cb.value);
+
+        if(!name) return alert('Nome é obrigatório');
+
+        try {
+            await fetch(`/api/professionals/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone, photoUrl })
+            });
+            
+            await fetch('/api/professional-services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profId: id, serviceIds: selectedServices })
+            });
+
+            this.closeModal('professional');
+            await this.loadProfessionals();
+        } catch (err) { alert('Erro ao atualizar profissional'); }
+    },
+
+    async deleteProfessional(id, name) {
+        if (confirm(`Deseja remover ${name} da equipe? Esta ação não pode ser desfeita.`)) {
+            try {
+                await fetch(`/api/professionals/${id}`, { method: 'DELETE' });
+                await this.loadProfessionals();
+            } catch (err) { alert('Erro ao remover profissional'); }
+        }
     },
 
     async saveProfessional() {
@@ -549,6 +642,16 @@ const admin = {
     },
 
     closeModal(type) {
+        if (type === 'professional') {
+            const saveBtn = document.querySelector('#modal-professional .btn-primary');
+            saveBtn.innerText = 'Cadastrar Profissional';
+            saveBtn.onclick = () => this.saveProfessional();
+            
+            // Clear fields
+            document.getElementById('modal-prof-name').value = '';
+            document.getElementById('modal-prof-phone').value = '';
+            document.getElementById('modal-prof-photo').value = '';
+        }
         document.getElementById(`modal-${type}`).classList.add('hidden');
     }
 };

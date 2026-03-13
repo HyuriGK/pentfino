@@ -219,7 +219,16 @@ app.post('/api/services', async (req, res) => {
 app.get('/api/professionals/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
-        const result = await pool.query('SELECT * FROM professionals WHERE barber_id = $1 ORDER BY name ASC', [barberId]);
+        const result = await pool.query(`
+            SELECT p.*, 
+                   json_agg(json_build_object('id', s.id, 'name', s.name)) FILTER (WHERE s.id IS NOT NULL) as services
+            FROM professionals p
+            LEFT JOIN professional_services ps ON p.id = ps.professional_id
+            LEFT JOIN services s ON ps.service_id = s.id
+            WHERE p.barber_id = $1
+            GROUP BY p.id
+            ORDER BY p.name ASC
+        `, [barberId]);
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -265,6 +274,33 @@ app.post('/api/professional-services', async (req, res) => {
             await pool.query(`INSERT INTO professional_services (professional_id, service_id) VALUES ${values}`);
         }
         res.send('Linked successfully');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.patch('/api/professionals/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, phone, photoUrl } = req.body;
+        await pool.query(
+            'UPDATE professionals SET name = $1, phone = $2, photo_url = $3 WHERE id = $4',
+            [name, phone, photoUrl, id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.delete('/api/professionals/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM professional_services WHERE professional_id = $1', [id]);
+        await pool.query('DELETE FROM professionals WHERE id = $1', [id]);
+        res.json({ success: true });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');

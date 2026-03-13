@@ -237,23 +237,15 @@
             <!-- TAB PROFISSIONAIS -->
             <div id="tab-profissionais" class="hidden">
                 <div class="list-header">
-                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Equipe</h2>
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Equipe Profissional</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Gerencie sua equipe e os serviços que cada um realiza.</p>
+                    </div>
                     <button class="btn btn-primary" onclick="admin.openModal('professional')">+ Novo Profissional</button>
                 </div>
-                <div class="data-table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Profissional</th>
-                                <th>WhatsApp</th>
-                                <th>Serviços Vinculados</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="professionals-table-body">
-                            <!-- Dynamic Rows -->
-                        </tbody>
-                    </table>
+                
+                <div id="professionals-grid" class="professional-grid" style="margin-top: 2.5rem;">
+                    <!-- Card Grid Injected by JS -->
                 </div>
             </div>
 

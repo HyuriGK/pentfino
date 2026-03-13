@@ -921,3 +921,105 @@ body {
     color: #fff;
     margin-top: 8px;
 }
+
+/* Professional Cards Refinement */
+.professional-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.professional-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.professional-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--border-bright);
+    transform: translateY(-5px);
+}
+
+.prof-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.prof-card-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: var(--border-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--primary);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+.prof-card-info h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+}
+
+.prof-card-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.prof-card-services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 2rem;
+    min-height: 24px;
+}
+
+.svc-tag {
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.prof-card-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.prof-card-actions .btn {
+    padding: 10px;
+    font-size: 0.75rem;
+    flex: 1;
+}
+
+.btn-delete {
+    color: var(--danger) !important;
+    border-color: rgba(255, 68, 68, 0.2) !important;
+}
+
+.btn-delete:hover {
+    background: rgba(255, 68, 68, 0.1) !important;
+    border-color: var(--danger) !important;
+}
