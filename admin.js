@@ -511,9 +511,9 @@ const admin = {
                 <td><span style="color:var(--primary)">${formatDate(c.last_service_date, c.scheduled_time)}</span></td>
                 <td style="text-align:center">${c.total_appointments || 0}</td>
                 <td>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; justify-content: center;">
                         <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
-                        <button class="btn btn-ghost" style="color: var(--danger); font-size: 0.7rem;" onclick="admin.deleteClient(${c.id}, '${c.name}')">Excluir</button>
+                        <button class="btn btn-ghost" style="color: var(--danger); font-size: 1rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteClient(${c.id}, '${c.name.replace(/'/g, "\\'")}')">×</button>
                     </div>
                 </td>
             </tr>
@@ -569,7 +569,7 @@ const admin = {
                     <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${h.status}</span></td>
                     <td style="padding: 15px; text-align: center;">
-                        <button class="btn btn-ghost" style="color: var(--danger); padding: 4px 8px; font-size: 0.8rem;" onclick="admin.deleteAppointment(${h.id}, ${clientId})">🗑️</button>
+                        <button class="btn btn-ghost" style="color: var(--danger); width: 32px; height: 32px; padding: 0; font-size: 1.2rem;" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
                     </td>
                 </tr>
             `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
@@ -582,21 +582,32 @@ const admin = {
     },
 
     async deleteClient(id, name) {
-        if (!confirm(`Deseja remover o cliente "${name}" e todo o seu histórico?`)) return;
-        try {
-            await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-            this.loadClients();
-            this.closeModal('client-details');
-        } catch (err) { alert('Erro ao excluir cliente'); }
+        this.openDeleteConfirm(`Deseja remover o cliente <strong>${name}</strong> e todo o seu histórico? Esta ação é irreversível.`, async () => {
+            try {
+                await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+                this.loadClients();
+                this.closeModal('client-details');
+                this.closeModal('delete-confirm');
+            } catch (err) { alert('Erro ao excluir cliente'); }
+        });
     },
 
     async deleteAppointment(id, clientId) {
-        if (!confirm('Deseja excluir este registro de atendimento?')) return;
-        try {
-            await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
-            this.showClientDetails(clientId);
-            this.loadData();
-        } catch (err) { alert('Erro ao excluir atendimento'); }
+        this.openDeleteConfirm('Deseja excluir este registro de atendimento permanentemente?', async () => {
+            try {
+                await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
+                this.showClientDetails(clientId);
+                this.loadData();
+                this.closeModal('delete-confirm');
+            } catch (err) { alert('Erro ao excluir atendimento'); }
+        });
+    },
+
+    openDeleteConfirm(text, onConfirm) {
+        document.getElementById('delete-confirm-text').innerHTML = text;
+        const btn = document.getElementById('btn-do-delete');
+        btn.onclick = onConfirm;
+        this.openModal('delete-confirm');
     },
 
     filterClients() {
@@ -633,7 +644,7 @@ const admin = {
                         <div style="display:flex; gap:8px; align-items: center;">
                             <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity - 1})">−</button>
                             <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity + 1})">+</button>
-                            <button class="btn btn-ghost" style="margin-left: 10px; color: var(--danger); font-size: 0.9rem;" onclick="admin.deleteInventory(${i.id}, '${i.item_name}')">Excluir</button>
+                            <button class="btn btn-ghost" style="margin-left: 10px; color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteInventory(${i.id}, '${i.item_name.replace(/'/g, "\\'")}')">×</button>
                         </div>
                     </td>
                 </tr>
@@ -642,11 +653,13 @@ const admin = {
     },
 
     async deleteInventory(id, name) {
-        if (!confirm(`Deseja remover "${name}" do estoque?`)) return;
-        try {
-            await fetch(`/api/inventory/${id}`, { method: 'DELETE' });
-            this.loadInventory();
-        } catch (err) { alert('Erro ao excluir item do estoque'); }
+        this.openDeleteConfirm(`Deseja remover <strong>${name}</strong> do seu estoque?`, async () => {
+            try {
+                await fetch(`/api/inventory/${id}`, { method: 'DELETE' });
+                this.loadInventory();
+                this.closeModal('delete-confirm');
+            } catch (err) { alert('Erro ao excluir item do estoque'); }
+        });
     },
 
     async updateQty(id, newQty) {

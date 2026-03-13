@@ -229,6 +229,28 @@ app.get('/api/clients/:id/history', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+app.delete('/api/clients/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const clientRes = await pool.query('SELECT name, phone FROM clients WHERE id = $1', [id]);
+        if (clientRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Cliente não encontrado' });
+        
+        const { name, phone } = clientRes.rows[0];
+        
+        // Delete associated appointments
+        await pool.query('DELETE FROM appointments WHERE client_name = $1 AND client_phone = $2', [name, phone]);
+        
+        // Delete the client
+        await pool.query('DELETE FROM clients WHERE id = $1', [id]);
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // Services API
 app.get('/api/services/:barberId', async (req, res) => {
     try {
