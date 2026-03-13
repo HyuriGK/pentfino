@@ -129,6 +129,7 @@ const admin = {
             ]);
             
             const allApts = await aptRes.json();
+            this.allAppointments = allApts; // Store for agenda filtering
             this.pending = allApts.filter(a => a.status === 'pending');
             const stats = await statRes.json();
             
@@ -686,17 +687,18 @@ const admin = {
 
 const agenda = {
     calendar: null,
+    allAppointments: [],
 
     init() {
         const calendarEl = document.getElementById('calendar');
         if (!calendarEl || this.calendar) return;
 
         this.calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridDay',
+            initialView: 'timeGridWeek',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                right: 'dayGridMonth,timeGridWeek'
             },
             locale: 'pt-br',
             slotMinTime: '06:00:00',
@@ -717,7 +719,6 @@ const agenda = {
                 const name = info.event.title;
                 
                 if (status === 'pending') {
-                    // Use the same refined function as dashboard
                     admin.completeService(id, name);
                 } else {
                     this.showAppointmentDetails(info.event);
@@ -726,7 +727,27 @@ const agenda = {
         });
 
         this.calendar.render();
-        admin.loadData(); // This will populate events
+        this.populateBarberFilter();
+        admin.loadData();
+    },
+
+    populateBarberFilter() {
+        const select = document.getElementById('agenda-barber-filter');
+        if (!select) return;
+        
+        const professionals = admin.professionals || [];
+        select.innerHTML = '<option value="all">Todos os Barbeiros</option>' +
+            professionals.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    },
+
+    filterByProfessional(profId) {
+        const apts = this.allAppointments || admin.allAppointments || [];
+        if (profId === 'all') {
+            this.renderEvents(apts);
+        } else {
+            const filtered = apts.filter(a => String(a.professional_id) === String(profId));
+            this.renderEvents(filtered);
+        }
     },
 
     showAppointmentDetails(event) {
@@ -748,12 +769,11 @@ const agenda = {
 
     renderEvents(appointments) {
         if (!this.calendar) return;
+        this.allAppointments = appointments;
 
         const events = appointments.map(a => {
-            // Use the date from DB or fallback to today
             let dateStr = a.appointment_date;
             if (dateStr) {
-                // Handle different format possibilities (ISO or localized)
                 dateStr = new Date(dateStr).toISOString().split('T')[0];
             } else {
                 const now = new Date();

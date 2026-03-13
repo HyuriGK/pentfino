@@ -181,7 +181,9 @@
             <div id="tab-agenda" class="hidden">
                  <div class="list-header" style="margin-bottom: 2rem;">
                     <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Calendário de Atendimento</h2>
-                    <div style="width: 40px; height: 1px; background: var(--border-bright);"></div>
+                    <select id="agenda-barber-filter" onchange="agenda.filterByProfessional(this.value)" style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-bright); padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; min-width: 200px;">
+                        <option value="all">Todos os Barbeiros</option>
+                    </select>
                 </div>
                 <div id="calendar" class="glass" style="padding: 2rem; background: var(--bg-card);"></div>
             </div>
