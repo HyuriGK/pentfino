@@ -137,6 +137,7 @@ const admin = {
             this.updateStats(stats);
             
             if (agenda.calendar) {
+                agenda.allAppointments = allApts; // Fix: ensure agenda has the data before renderEvents if needed
                 agenda.renderEvents(allApts);
             }
         } catch (err) { console.error('Erro ao carregar dados'); }
@@ -200,6 +201,12 @@ const admin = {
 
         if (tab === 'agenda') {
             agenda.init();
+            setTimeout(() => {
+                if (agenda.calendar) {
+                    agenda.calendar.updateSize();
+                    agenda.calendar.render();
+                }
+            }, 50);
         }
         
         if (tab === 'clientes') {
@@ -504,7 +511,10 @@ const admin = {
                 <td><span style="color:var(--primary)">${formatDate(c.last_service_date, c.scheduled_time)}</span></td>
                 <td style="text-align:center">${c.total_appointments || 0}</td>
                 <td>
-                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
+                        <button class="btn btn-ghost" style="color: var(--danger); font-size: 0.7rem;" onclick="admin.deleteClient(${c.id}, '${c.name}')">Excluir</button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -558,6 +568,9 @@ const admin = {
                     <td style="padding: 15px; color: var(--primary); font-weight: 600;">${h.professional_name || 'Geral'}</td>
                     <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${h.status}</span></td>
+                    <td style="padding: 15px; text-align: center;">
+                        <button class="btn btn-ghost" style="color: var(--danger); padding: 4px 8px; font-size: 0.8rem;" onclick="admin.deleteAppointment(${h.id}, ${clientId})">🗑️</button>
+                    </td>
                 </tr>
             `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
             
@@ -566,6 +579,24 @@ const admin = {
             console.error('Erro ao buscar detalhes do cliente', err);
             alert('Erro ao carregar histórico do cliente');
         }
+    },
+
+    async deleteClient(id, name) {
+        if (!confirm(`Deseja remover o cliente "${name}" e todo o seu histórico?`)) return;
+        try {
+            await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+            this.loadClients();
+            this.closeModal('client-details');
+        } catch (err) { alert('Erro ao excluir cliente'); }
+    },
+
+    async deleteAppointment(id, clientId) {
+        if (!confirm('Deseja excluir este registro de atendimento?')) return;
+        try {
+            await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
+            this.showClientDetails(clientId);
+            this.loadData();
+        } catch (err) { alert('Erro ao excluir atendimento'); }
     },
 
     filterClients() {
@@ -599,14 +630,23 @@ const admin = {
                     <td>R$ ${parseFloat(i.unit_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 1rem;" onclick="admin.updateQty(${i.id}, ${i.quantity - 1})">-</button>
-                            <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 1rem;" onclick="admin.updateQty(${i.id}, ${i.quantity + 1})">+</button>
+                        <div style="display:flex; gap:8px; align-items: center;">
+                            <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity - 1})">−</button>
+                            <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity + 1})">+</button>
+                            <button class="btn btn-ghost" style="margin-left: 10px; color: var(--danger); font-size: 0.9rem;" onclick="admin.deleteInventory(${i.id}, '${i.item_name}')">Excluir</button>
                         </div>
                     </td>
                 </tr>
             `;
         }).join('');
+    },
+
+    async deleteInventory(id, name) {
+        if (!confirm(`Deseja remover "${name}" do estoque?`)) return;
+        try {
+            await fetch(`/api/inventory/${id}`, { method: 'DELETE' });
+            this.loadInventory();
+        } catch (err) { alert('Erro ao excluir item do estoque'); }
     },
 
     async updateQty(id, newQty) {

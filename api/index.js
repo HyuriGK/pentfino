@@ -143,6 +143,17 @@ app.patch('/api/appointments/:id', async (req, res) => {
     }
 });
 
+app.delete('/api/appointments/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM appointments WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 app.get('/api/stats/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
@@ -408,6 +419,17 @@ app.patch('/api/inventory/:id', async (req, res) => {
     const { quantity } = req.body;
     try {
         await pool.query('UPDATE inventory SET quantity = $1 WHERE id = $2', [quantity, id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.delete('/api/inventory/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM inventory WHERE id = $1', [id]);
         res.json({ success: true });
     } catch (err) {
         console.error(err);
