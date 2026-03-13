@@ -1179,6 +1179,29 @@ aside nav {
     background: var(--success);
 }
 
+.month-btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid transparent !important;
+}
+
+.month-btn.active {
+    background: var(--primary) !important;
+    color: #000 !important;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.month-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+}
+
 .fc-timegrid-event {
     border-radius: 6px !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;

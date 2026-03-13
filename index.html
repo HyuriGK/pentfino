@@ -258,10 +258,26 @@
 
             <!-- TAB COMISSOES -->
             <div id="tab-comissoes" class="hidden">
-                <div class="list-header">
+                <div class="list-header" style="flex-direction: column; align-items: flex-start; gap: 20px;">
                     <div>
                         <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Dashboard de Comissões</h2>
                         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Acompanhe o faturamento e comissões devidas a cada profissional.</p>
+                    </div>
+                    
+                    <!-- Month Selector -->
+                    <div id="commissions-month-selector" class="glass" style="display: flex; gap: 8px; padding: 8px; border-radius: 12px; overflow-x: auto; width: 100%; border: 1px solid var(--border-bright);">
+                        <button class="btn btn-ghost month-btn active" onclick="admin.setCommMonth(0)">Jan</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(1)">Fev</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(2)">Mar</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(3)">Abr</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(4)">Mai</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(5)">Jun</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(6)">Jul</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(7)">Ago</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(8)">Set</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(9)">Out</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(10)">Nov</button>
+                        <button class="btn btn-ghost month-btn" onclick="admin.setCommMonth(11)">Dez</button>
                     </div>
                 </div>
 
@@ -559,6 +575,54 @@
             <button class="btn btn-primary btn-full" onclick="admin.copyShareLink()">Copiar Link de Reserva</button>
         </div>
     </div>
+    <!-- MODAL PROFESSIONAL COMMISSIONS DETAILS -->
+    <div id="modal-prof-comm-details" class="modal-overlay modal-full hidden">
+        <div class="modal-content glass" style="max-width: 1000px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <div>
+                    <h2 id="prof-details-name" style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 4px;">--</h2>
+                    <p id="prof-details-period" style="color: var(--text-muted); font-size: 0.9rem;">Relatório de Comissões - <span id="prof-details-month">--</span></p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('prof-comm-details')">×</button>
+            </div>
+            
+            <div class="modal-body" style="overflow-y: auto; padding: 0 40px 40px 40px;">
+                <div class="stat-grid" style="margin-bottom: 40px;">
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Total Gerado</label>
+                        <h3 id="prof-details-total-gen" style="font-size: 2rem; color: var(--primary);">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">Comissão Loja</label>
+                        <h3 id="prof-details-shop-share" style="font-size: 2rem; color: var(--danger);">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card glass">
+                        <label class="input-label-mini">A Receber</label>
+                        <h3 id="prof-details-prof-share" style="font-size: 2rem; color: var(--success);">R$ 0,00</h3>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 24px; font-size: 1.25rem; font-family: 'Outfit', sans-serif; letter-spacing: -0.5px; color: var(--primary);">Serviços Realizados no Período</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Serviço</th>
+                                <th>Valor</th>
+                                <th>Comissão (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prof-comm-details-table-body">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL LOGOUT CONFIRMATION -->
     <div id="modal-logout" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px; text-align: center;">

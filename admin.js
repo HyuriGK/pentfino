@@ -230,14 +230,24 @@ const admin = {
         const container = document.getElementById('commissions-table-body');
         if (!container) return;
 
+        // Default to current month if not set
+        if (this.selectedCommMonth === undefined) {
+            this.selectedCommMonth = new Date().getMonth();
+            this.updateMonthSelectorUI();
+        }
+
         let totalRevenue = 0;
         let totalCommissions = 0;
         let totalToProfessionals = 0;
 
+        const currentYear = new Date().getFullYear();
+
         const commData = this.professionals.map(p => {
-            const profApts = (this.allAppointments || []).filter(a => 
-                String(a.professional_id) === String(p.id) && a.status === 'completed'
-            );
+            const profApts = (this.allAppointments || []).filter(a => {
+                const aDate = new Date(a.appointment_date);
+                const isCorrectMonth = aDate.getMonth() === this.selectedCommMonth && aDate.getFullYear() === currentYear;
+                return String(a.professional_id) === String(p.id) && a.status === 'completed' && isCorrectMonth;
+            });
 
             const generated = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
             const shopShare = generated * (parseFloat(p.commission || 0) / 100);
@@ -248,6 +258,7 @@ const admin = {
             totalToProfessionals += toProfessional;
 
             return {
+                id: p.id,
                 name: p.name,
                 rate: p.commission || 0,
                 generated,
@@ -268,14 +279,65 @@ const admin = {
         }
 
         container.innerHTML = commData.map(c => `
-            <tr>
-                <td><strong style="color:#fff">${c.name}</strong></td>
+            <tr onclick="admin.showProfCommDetails(${c.id})" style="cursor: pointer;">
+                <td><strong style="color:var(--primary); text-decoration: underline;">${c.name}</strong></td>
                 <td><span class="svc-tag" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">${c.rate}%</span></td>
                 <td style="font-weight: 600;">R$ ${c.generated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--danger); font-weight: 600;">R$ ${c.shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--success); font-weight: 700;">R$ ${c.toProfessional.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
             </tr>
         `).join('');
+    },
+
+    setCommMonth(m) {
+        this.selectedCommMonth = m;
+        this.updateMonthSelectorUI();
+        this.loadCommissions();
+    },
+
+    updateMonthSelectorUI() {
+        const btns = document.querySelectorAll('.month-btn');
+        btns.forEach((btn, idx) => {
+            btn.classList.toggle('active', idx === this.selectedCommMonth);
+        });
+    },
+
+    async showProfCommDetails(profId) {
+        const prof = this.professionals.find(p => String(p.id) === String(profId));
+        if (!prof) return;
+
+        const currentYear = new Date().getFullYear();
+        const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        
+        const profApts = (this.allAppointments || []).filter(a => {
+            const aDate = new Date(a.appointment_date);
+            const isCorrectMonth = aDate.getMonth() === this.selectedCommMonth && aDate.getFullYear() === currentYear;
+            return String(a.professional_id) === String(profId) && a.status === 'completed' && isCorrectMonth;
+        });
+
+        const totalGen = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
+        const shopShare = totalGen * (parseFloat(prof.commission || 0) / 100);
+        const profShare = totalGen - shopShare;
+
+        // Fill modal
+        document.getElementById('prof-details-name').innerText = prof.name;
+        document.getElementById('prof-details-month').innerText = `${monthNames[this.selectedCommMonth]} ${currentYear}`;
+        document.getElementById('prof-details-total-gen').innerText = `R$ ${totalGen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('prof-details-shop-share').innerText = `R$ ${shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('prof-details-prof-share').innerText = `R$ ${profShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+        const container = document.getElementById('prof-comm-details-table-body');
+        container.innerHTML = profApts.length > 0 ? profApts.map(a => `
+            <tr>
+                <td>${new Date(a.appointment_date).toLocaleDateString('pt-BR')} ${a.appointment_time}</td>
+                <td>${a.client_name}</td>
+                <td style="color: var(--primary);">${a.service_name}</td>
+                <td style="font-weight: 600;">R$ ${parseFloat(a.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td>${prof.commission}%</td>
+            </tr>
+        `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum faturamento registrado para este mês.</td></tr>';
+
+        this.openModal('prof-comm-details');
     },
 
     renderAppointments() {
