@@ -197,13 +197,22 @@ const agenda = {
         if (!calendarEl || this.calendar) return;
 
         this.calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
+            initialView: 'timeGridDay', // Start with Day view as it's more actionable
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             locale: 'pt-br',
+            slotMinTime: '08:00:00', // Business hours start
+            slotMaxTime: '20:00:00', // Business hours end
+            allDaySlot: false,
+            slotLabelFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                omitZeroMinute: false,
+                meridiem: false
+            },
             themeSystem: 'standard',
             height: 'auto',
             events: [],
