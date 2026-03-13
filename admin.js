@@ -327,15 +327,22 @@ const admin = {
         document.getElementById('prof-details-prof-share').innerText = `R$ ${profShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
         const container = document.getElementById('prof-comm-details-table-body');
-        container.innerHTML = profApts.length > 0 ? profApts.map(a => `
-            <tr>
-                <td>${new Date(a.appointment_date).toLocaleDateString('pt-BR')} ${a.appointment_time}</td>
-                <td>${a.client_name}</td>
-                <td style="color: var(--primary);">${a.service_name}</td>
-                <td style="font-weight: 600;">R$ ${parseFloat(a.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td>${prof.commission}%</td>
-            </tr>
-        `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum faturamento registrado para este mês.</td></tr>';
+        container.innerHTML = profApts.length > 0 ? profApts.map(a => {
+            const servicePrice = parseFloat(a.service_price || 0);
+            const serviceShopShare = servicePrice * (parseFloat(prof.commission || 0) / 100);
+            const serviceProfShare = servicePrice - serviceShopShare;
+
+            return `
+                <tr>
+                    <td>${new Date(a.appointment_date).toLocaleDateString('pt-BR')} ${a.appointment_time}</td>
+                    <td>${a.client_name}</td>
+                    <td style="color: var(--primary);">${a.service_name}</td>
+                    <td style="font-weight: 600;">R$ ${servicePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td style="color: var(--danger); font-weight: 600;">R$ ${serviceShopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td style="color: var(--success); font-weight: 700;">R$ ${serviceProfShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                </tr>
+            `;
+        }).join('') : '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum faturamento registrado para este mês.</td></tr>';
 
         this.openModal('prof-comm-details');
     },
