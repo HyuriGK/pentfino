@@ -189,6 +189,20 @@ body {
     white-space: nowrap;
 }
 
+.logo-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.logo-img-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+}
+
 .sidebar.collapsed .logo-text,
 .sidebar.collapsed .nav-text {
     opacity: 0;
