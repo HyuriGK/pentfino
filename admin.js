@@ -349,10 +349,11 @@ const admin = {
                 <tr style="background: rgba(255,255,255,0.02)">
                     <td style="padding: 15px;">${new Date(h.created_at).toLocaleDateString('pt-BR')} ${h.appointment_time}</td>
                     <td style="padding: 15px;">${h.service_name}</td>
+                    <td style="padding: 15px; color: var(--primary); font-weight: 600;">${h.professional_name || 'Geral'}</td>
                     <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${h.status}</span></td>
                 </tr>
-            `).join('') : '<tr><td colspan="4" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
+            `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
             
             this.openModal('client-details');
         } catch (err) {

@@ -165,9 +165,10 @@ app.get('/api/clients/:id/history', async (req, res) => {
         if (!client) return res.status(404).send('Client not found');
 
         const appointmentsResult = await pool.query(`
-            SELECT a.*, s.name as service_name, s.price as service_price 
+            SELECT a.*, s.name as service_name, s.price as service_price, p.name as professional_name 
             FROM appointments a
             JOIN services s ON a.service_id = s.id
+            LEFT JOIN professionals p ON a.professional_id = p.id
             WHERE a.client_name = $1 AND a.client_phone = $2
             ORDER BY a.appointment_date DESC, a.appointment_time DESC
         `, [client.name, client.phone]);
