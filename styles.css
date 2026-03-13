@@ -442,24 +442,203 @@ body {
 .client-info h4 { font-size: 1.2rem; font-weight: 700; }
 .client-info p { font-size: 0.9rem; margin-top: 4px; }
 
-/* Customer Page specific */
-.card-grid {
+/* Lateralized Booking Redesign */
+.booking-page-wrapper {
+    display: flex;
+    height: 100vh;
+    background: #000;
+    overflow: hidden;
+}
+
+.booking-sidebar {
+    flex: 0.8;
+    position: relative;
+    background: url('auth-bg.png') center/cover no-repeat;
+    display: flex;
+    padding: 4rem;
+    overflow: hidden;
+}
+
+.sidebar-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+    z-index: 1;
+}
+
+.booking-sidebar-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.sidebar-hero-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-top: auto;
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-desc {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 300px;
+    margin-bottom: 3rem;
+}
+
+.booking-main {
+    flex: 1.2;
+    background: #000;
+    padding: 4rem 6rem;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--border);
+}
+
+.step-container {
+    width: 100%;
+    max-width: 600px;
+    animation: fadeInUp 0.8s ease;
+}
+
+.step-header {
+    margin-bottom: 3rem;
+}
+
+.step-count {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.step-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: -1.5px;
+}
+
+.card-grid-custom {
     display: grid;
-    gap: 1.25rem;
+    gap: 1rem;
+    margin-bottom: 3rem;
 }
 
 .service-card {
-    padding: 1.5rem;
+    padding: 1.5rem 2rem;
     border: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 20px;
 }
 
 .service-card.selected {
-    background: var(--primary);
-    color: #000;
+    border-color: var(--primary);
+    background: rgba(255,255,255,0.05);
 }
 
-.service-card.selected .price, 
-.service-card.selected p { color: #000 !important; }
+.details-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.input-label-mini {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.time-grid-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.time-card {
+    padding: 12px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 10px;
+}
+
+.input-group-modern input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 15px 0;
+    font-size: 1rem;
+    color: #fff;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.input-group-modern input:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.step-footer-dual {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-large {
+    padding: 20px 40px;
+    font-size: 1rem;
+    flex: 1;
+}
+
+/* Success Screen */
+.success-screen {
+    text-align: center;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--primary);
+    color: #000;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 2rem;
+}
+
+.success-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    letter-spacing: -2px;
+}
+
+.success-desc {
+    color: var(--text-muted);
+    margin-bottom: 3rem;
+}
+
+@media (max-width: 1024px) {
+    .booking-sidebar { display: none; }
+    .booking-main { padding: 2rem; }
+    .booking-page-wrapper { overflow-y: auto; height: auto; min-height: 100vh; }
+    .details-layout { grid-template-columns: 1fr; gap: 2rem; }
+}
 
 /* Retention Toast */
 .retention-toast {

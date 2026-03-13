@@ -56,17 +56,23 @@ const app = {
         el.classList.add('selected');
         this.booking.service = this.services.find(s => s.id === id);
         document.getElementById('btn-next-step').disabled = false;
+        
+        // Live summary
+        document.getElementById('active-booking-summary').classList.remove('hidden');
+        document.getElementById('summary-service-name').innerText = this.booking.service.name;
     },
 
     selectTime(time, el) {
         document.querySelectorAll('.time-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
         this.booking.time = time;
+        document.getElementById('summary-time-val').innerText = time;
     },
 
     showStep(stepId) {
         ['services', 'details', 'success'].forEach(s => {
-            document.getElementById(`step-${s}`).classList.add('hidden');
+            const el = document.getElementById(`step-${s}`);
+            if (el) el.classList.add('hidden');
         });
         document.getElementById(`step-${stepId}`).classList.remove('hidden');
     },
@@ -95,9 +101,9 @@ const app = {
 
             if (res.ok) {
                 document.getElementById('summary-content').innerHTML = `
-                    <p><strong>Serviço:</strong> ${this.booking.service.name}</p>
-                    <p><strong>Horário:</strong> Hoje às ${this.booking.time}</p>
-                    <p><strong>Total:</strong> R$ ${this.booking.service.price}</p>
+                    <p style="margin-bottom: 12px;"><strong style="color: var(--primary);">${this.booking.service.name}</strong></p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">Hoje às ${this.booking.time}</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">Valor: R$ ${this.booking.service.price}</p>
                 `;
                 this.showStep('success');
             } else {

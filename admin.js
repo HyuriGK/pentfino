@@ -90,11 +90,20 @@ const admin = {
             this.renderAppointments();
             this.updateStats(stats);
             
-            // Sync with Calendar if initialized
             if (agenda.calendar) {
                 agenda.renderEvents(allApts);
             }
         } catch (err) { console.error('Erro ao carregar dados'); }
+    },
+
+    startPolling() {
+        // Refresh data every 30 seconds
+        setInterval(() => {
+            if (auth.user) {
+                this.loadData();
+                console.log('🔄 Agenda auto-atualizada');
+            }
+        }, 30000);
     },
 
     showTab(tab) {
@@ -272,4 +281,5 @@ const ui = {
 window.onload = () => {
     auth.init();
     ui.init();
+    admin.startPolling();
 };
