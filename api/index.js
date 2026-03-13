@@ -112,6 +112,79 @@ app.get('/api/stats/:barberId', async (req, res) => {
     }
 });
 
+// Clients API
+app.get('/api/clients/:barberId', async (req, res) => {
+    try {
+        const { barberId } = req.params;
+        const result = await pool.query(`
+            SELECT c.*, 
+                   MAX(a.appointment_time) as last_service_date,
+                   COUNT(a.id) as total_appointments
+            FROM clients c
+            LEFT JOIN appointments a ON c.phone = a.client_phone
+            WHERE c.barber_id = $1
+            GROUP BY c.id
+            ORDER BY c.name ASC
+        `, [barberId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.post('/api/clients', async (req, res) => {
+    const { barberId, name, phone, notes } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO clients (barber_id, name, phone, notes) VALUES ($1, $2, $3, $4) RETURNING *',
+            [barberId, name, phone, notes]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Inventory API
+app.get('/api/inventory/:barberId', async (req, res) => {
+    try {
+        const { barberId } = req.params;
+        const result = await pool.query('SELECT * FROM inventory WHERE barber_id = $1 ORDER BY item_name ASC', [barberId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.post('/api/inventory', async (req, res) => {
+    const { barberId, itemName, quantity, unit, minQuantity } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO inventory (barber_id, item_name, quantity, unit, min_quantity) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [barberId, itemName, quantity, unit, minQuantity]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.patch('/api/inventory/:id', async (req, res) => {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    try {
+        await pool.query('UPDATE inventory SET quantity = $1 WHERE id = $2', [quantity, id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 if (require.main === module) {
     app.listen(port, () => {
         console.log(`🚀 Pentfino Server running on http://localhost:${port}`);

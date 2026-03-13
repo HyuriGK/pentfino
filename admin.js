@@ -72,10 +72,15 @@ const auth = {
 const admin = {
     pending: [],
     history: [],
+    clients: [],
+    allClients: [], // For filtering
+    inventory: [],
 
     async init() {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         await this.loadData();
+        await this.loadClients();
+        await this.loadInventory();
         this.startInsights();
     },
 
@@ -115,7 +120,7 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda'];
+        const tabs = ['home', 'agenda', 'clientes', 'estoque'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -124,8 +129,14 @@ const admin = {
         if (tab === 'agenda') {
             agenda.init();
         }
+        
+        if (tab === 'clientes') {
+            this.loadClients();
+        }
 
-        if (!tabs.includes(tab)) alert(`Módulo de ${tab} será liberado na versão 2.0!`);
+        if (tab === 'estoque') {
+            this.loadInventory();
+        }
     },
 
     renderAppointments() {
@@ -198,6 +209,129 @@ const admin = {
                 i++;
             }
         }, 10000);
+    },
+
+    // CRM / Clients Logic
+    async loadClients() {
+        try {
+            const res = await fetch(`/api/clients/${auth.user.id}`);
+            this.allClients = await res.json();
+            this.renderClients(this.allClients);
+        } catch (err) { console.error('Erro ao carregar clientes'); }
+    },
+
+    renderClients(clientsList) {
+        const container = document.getElementById('clients-table-body');
+        if (!container) return;
+        container.innerHTML = clientsList.map(c => `
+            <tr>
+                <td><strong style="color:#fff">${c.name}</strong></td>
+                <td>${c.phone}</td>
+                <td><span style="color:var(--primary)">${c.last_service_date || 'Nenhum'}</span></td>
+                <td style="text-align:center">${c.total_appointments || 0}</td>
+                <td>
+                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
+                </td>
+            </tr>
+        `).join('');
+    },
+
+    filterClients() {
+        const term = document.getElementById('client-search').value.toLowerCase();
+        const filtered = this.allClients.filter(c => 
+            c.name.toLowerCase().includes(term) || c.phone.includes(term)
+        );
+        this.renderClients(filtered);
+    },
+
+    // Inventory Logic
+    async loadInventory() {
+        try {
+            const res = await fetch(`/api/inventory/${auth.user.id}`);
+            this.inventory = await res.json();
+            this.renderInventory();
+        } catch (err) { console.error('Erro ao carregar estoque'); }
+    },
+
+    renderInventory() {
+        const container = document.getElementById('inventory-table-body');
+        if (!container) return;
+        container.innerHTML = this.inventory.map(i => {
+            const statusClass = i.quantity <= i.min_quantity ? 'status-danger' : 'status-ok';
+            const statusText = i.quantity <= i.min_quantity ? 'Baixo Estoque' : 'Em estoque';
+            
+            return `
+                <tr>
+                    <td><strong style="color:#fff">${i.item_name}</strong></td>
+                    <td>${i.quantity} ${i.unit}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 1rem;" onclick="admin.updateQty(${i.id}, ${i.quantity - 1})">-</button>
+                            <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 1rem;" onclick="admin.updateQty(${i.id}, ${i.quantity + 1})">+</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    },
+
+    async updateQty(id, newQty) {
+        if (newQty < 0) return;
+        try {
+            await fetch(`/api/inventory/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity: newQty })
+            });
+            this.loadInventory();
+        } catch (err) { alert('Erro ao atualizar quantidade'); }
+    },
+
+    // Modal Logic
+    openModal(type) {
+        document.getElementById(`modal-${type}`).classList.remove('hidden');
+    },
+
+    closeModal(type) {
+        document.getElementById(`modal-${type}`).classList.add('hidden');
+    },
+
+    async saveClient() {
+        const name = document.getElementById('modal-client-name').value;
+        const phone = document.getElementById('modal-client-phone').value;
+        const notes = document.getElementById('modal-client-notes').value;
+
+        if(!name || !phone) return alert('Nome e Telefone são obrigatórios');
+
+        try {
+            await fetch('/api/clients', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barberId: auth.user.id, name, phone, notes })
+            });
+            this.closeModal('client');
+            this.loadClients();
+        } catch (err) { alert('Erro ao salvar cliente'); }
+    },
+
+    async saveInventory() {
+        const itemName = document.getElementById('modal-inv-name').value;
+        const quantity = parseInt(document.getElementById('modal-inv-qty').value) || 0;
+        const unit = document.getElementById('modal-inv-unit').value || 'un';
+        const minQuantity = parseInt(document.getElementById('modal-inv-min').value) || 5;
+
+        if(!itemName) return alert('Nome do produto é obrigatório');
+
+        try {
+            await fetch('/api/inventory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barberId: auth.user.id, itemName, quantity, unit, minQuantity })
+            });
+            this.closeModal('inventory');
+            this.loadInventory();
+        } catch (err) { alert('Erro ao salvar item'); }
     }
 };
 

@@ -714,3 +714,111 @@ body {
 .fc-theme-standard td, .fc-theme-standard th {
     border-color: var(--border) !important;
 }
+
+/* Premium Data Table */
+.data-table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin-top: 1rem;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 12px 20px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+}
+
+.data-table td {
+    padding: 20px;
+    background: #050505;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table td:first-child {
+    border-left: 1px solid var(--border);
+    border-radius: 16px 0 0 16px;
+}
+
+.data-table td:last-child {
+    border-right: 1px solid var(--border);
+    border-radius: 0 16px 16px 0;
+}
+
+.data-table tr:hover td {
+    border-color: var(--border-bright);
+}
+
+/* Badges & Status */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.status-ok { background: rgba(0, 255, 136, 0.1); color: var(--success); }
+.status-warn { background: rgba(255, 255, 255, 0.05); color: var(--primary); }
+.status-danger { background: rgba(255, 68, 68, 0.1); color: var(--danger); }
+
+/* Premium Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 2rem;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 500px;
+    background: #000;
+    border: 1px solid var(--border-bright);
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    animation: fadeInUp 0.4s ease;
+}
+
+.modal-header {
+    margin-bottom: 2rem;
+}
+
+.modal-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: -1px;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.btn-icon:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}

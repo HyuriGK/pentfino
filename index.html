@@ -178,6 +178,108 @@
                 </div>
                 <div id="calendar" class="glass" style="padding: 2rem; background: var(--bg-card);"></div>
             </div>
+
+            <!-- TAB CLIENTES -->
+            <div id="tab-clientes" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Relação de Clientes</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('client')">+ Novo Cliente</button>
+                </div>
+                <div class="input-group-new" style="margin-bottom: 2rem; max-width: 400px;">
+                    <input type="text" id="client-search" placeholder="🔍 Buscar por nome ou WhatsApp..." onkeyup="admin.filterClients()">
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>WhatsApp</th>
+                                <th>Último Corte</th>
+                                <th>Total atendimentos</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB ESTOQUE -->
+            <div id="tab-estoque" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Controle de Estoque</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('inventory')">+ Adicionar Item</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item / Produto</th>
+                                <th>Quantidade</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL NEW CLIENT -->
+    <div id="modal-client" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Novo Cliente</h2>
+                <button class="btn-icon" onclick="admin.closeModal('client')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome Completo</label>
+                <input type="text" id="modal-client-name" placeholder="Ex: João Silva">
+            </div>
+            <div class="input-group-new">
+                <label>WhatsApp</label>
+                <input type="tel" id="modal-client-phone" placeholder="Ex: (11) 99999-9999">
+            </div>
+            <div class="input-group-new">
+                <label>Notas/Observações</label>
+                <input type="text" id="modal-client-notes" placeholder="Preferências, alergias, etc.">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveClient()">Cadastrar Cliente</button>
+        </div>
+    </div>
+
+    <!-- MODAL NEW INVENTORY ITEM -->
+    <div id="modal-inventory" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Novo Item</h2>
+                <button class="btn-icon" onclick="admin.closeModal('inventory')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Nome do Produto</label>
+                <input type="text" id="modal-inv-name" placeholder="Ex: Pomada Efeito Matte">
+            </div>
+            <div class="input-group-new">
+                <label>Quantidade Inicial</label>
+                <input type="number" id="modal-inv-qty" placeholder="0">
+            </div>
+            <div class="input-group-new">
+                <label>Unidade</label>
+                <input type="text" id="modal-inv-unit" placeholder="Ex: un, ml, kg">
+            </div>
+            <div class="input-group-new">
+                <label>Mínimo em Estoque (Alerta)</label>
+                <input type="number" id="modal-inv-min" placeholder="5">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="admin.saveInventory()">Adicionar ao Estoque</button>
+        </div>
+    </div>
         </main>
     </div>
 

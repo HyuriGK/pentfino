@@ -30,6 +30,25 @@ CREATE TABLE IF NOT EXISTS appointments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS clients (
+    id SERIAL PRIMARY KEY,
+    barber_id INTEGER REFERENCES barbers(id),
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+    id SERIAL PRIMARY KEY,
+    barber_id INTEGER REFERENCES barbers(id),
+    item_name VARCHAR(100) NOT NULL,
+    quantity INTEGER DEFAULT 0,
+    unit VARCHAR(20) DEFAULT 'un',
+    min_quantity INTEGER DEFAULT 5,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Seed Initial Data
 INSERT INTO barbers (email, password, shop_name) 
 VALUES ('demo@pentfino.com', 'demo123', 'Pentfino Luxury')
