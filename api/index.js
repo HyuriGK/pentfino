@@ -135,6 +135,10 @@ app.get('/api/clients/:barberId', async (req, res) => {
         const result = await pool.query(`
             SELECT c.*, 
                    MAX(a.created_at) as last_service_date,
+                   (SELECT a2.appointment_time 
+                    FROM appointments a2 
+                    WHERE a2.client_phone = c.phone 
+                    ORDER BY a2.created_at DESC LIMIT 1) as scheduled_time,
                    COUNT(a.id) as total_appointments
             FROM clients c
             LEFT JOIN appointments a ON c.phone = a.client_phone

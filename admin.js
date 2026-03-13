@@ -235,7 +235,7 @@ const admin = {
             return new Date(b.last_service_date) - new Date(a.last_service_date);
         });
 
-        const formatDate = (dateStr) => {
+        const formatDate = (dateStr, scheduledTime) => {
             if (!dateStr) return 'Nenhum';
             const date = new Date(dateStr);
             const today = new Date();
@@ -244,19 +244,20 @@ const admin = {
                           date.getMonth() === today.getMonth() &&
                           date.getFullYear() === today.getFullYear();
             
+            const displayTime = scheduledTime || date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
             if (isToday) {
-                return `Hoje às ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                return `Hoje às ${displayTime}`;
             }
             
-            return date.toLocaleDateString('pt-BR') + ' ' + 
-                   date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleDateString('pt-BR') + ' ' + displayTime;
         };
 
         container.innerHTML = sorted.map(c => `
             <tr>
                 <td><strong style="color:#fff">${c.name}</strong></td>
                 <td>${c.phone}</td>
-                <td><span style="color:var(--primary)">${formatDate(c.last_service_date)}</span></td>
+                <td><span style="color:var(--primary)">${formatDate(c.last_service_date, c.scheduled_time)}</span></td>
                 <td style="text-align:center">${c.total_appointments || 0}</td>
                 <td>
                     <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
