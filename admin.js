@@ -232,6 +232,7 @@ const admin = {
 
         let totalRevenue = 0;
         let totalCommissions = 0;
+        let totalToProfessionals = 0;
 
         const commData = this.professionals.map(p => {
             const profApts = (this.allAppointments || []).filter(a => 
@@ -239,26 +240,30 @@ const admin = {
             );
 
             const generated = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
-            const due = generated * (parseFloat(p.commission || 0) / 100);
+            const shopShare = generated * (parseFloat(p.commission || 0) / 100);
+            const toProfessional = generated - shopShare;
 
             totalRevenue += generated;
-            totalCommissions += due;
+            totalCommissions += shopShare;
+            totalToProfessionals += toProfessional;
 
             return {
                 name: p.name,
                 rate: p.commission || 0,
                 generated,
-                due
+                shopShare,
+                toProfessional
             };
         });
 
         // Update KPIs
         document.getElementById('comm-total-revenue').innerText = `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         document.getElementById('comm-total-due').innerText = `R$ ${totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('comm-total-prof').innerText = `R$ ${totalToProfessionals.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
         // Render Table
         if (commData.length === 0) {
-            container.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum profissional cadastrado para calcular comissões.</td></tr>';
+            container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum profissional cadastrado para calcular comissões.</td></tr>';
             return;
         }
 
@@ -267,7 +272,8 @@ const admin = {
                 <td><strong style="color:#fff">${c.name}</strong></td>
                 <td><span class="svc-tag" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">${c.rate}%</span></td>
                 <td style="font-weight: 600;">R$ ${c.generated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td style="color: var(--success); font-weight: 700;">R$ ${c.due.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td style="color: var(--danger); font-weight: 600;">R$ ${c.shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td style="color: var(--success); font-weight: 700;">R$ ${c.toProfessional.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
             </tr>
         `).join('');
     },
