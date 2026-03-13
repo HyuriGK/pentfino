@@ -3,39 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pentfino | A Evolução da Sua Barbearia</title>
+    <title>Pentfino | The Art of Management</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
 </head>
-<body class="landing-body">
+<body class="landing-body no-scrollbar">
+    <div class="mesh-gradient"></div>
+
     <header class="landing-header">
         <div class="landing-container">
-            <div class="logo logo-landing">
-                <img src="image.png" alt="Pentfino" class="logo-img">
+            <div class="logo-landing">
                 <span class="logo-text">Pentfino</span>
             </div>
             <nav class="landing-nav">
-                <a href="#features">Recursos</a>
-                <a href="#pricing">Planos</a>
-                <a href="admin.html" class="btn btn-outline">Entrar</a>
-                <a href="admin.html" class="btn btn-primary">Começar Agora</a>
+                <a href="#vision">Visão</a>
+                <a href="#pinnacle">Pinnacle</a>
+                <a href="admin.html">Access</a>
             </nav>
         </div>
     </header>
 
     <main>
-        <!-- Hero Section -->
         <section class="hero-section">
             <div class="landing-container">
                 <div class="hero-content">
-                    <span class="badge">Próxima Geração</span>
-                    <h1 class="hero-title">Gestão Inteligente para<br>Barbearias de Elite.</h1>
-                    <p class="hero-description">Controle sua agenda, comissões e estoque com a interface mais rápida e premium do mercado.</p>
+                    <span class="hero-tagline">Crafted for Masters</span>
+                    <h1 class="hero-title">The New Era of Barbering.</h1>
+                    <p class="hero-description">Pentfino isn't just software. It's a digital atelier for the modern professional. Precision meet's performance in every pixel.</p>
                     <div class="hero-actions">
-                        <a href="admin.html" class="btn btn-primary btn-hero">Experimentar Grátis</a>
-                        <a href="#features" class="btn btn-ghost btn-hero">Ver Recursos ↗</a>
+                        <a href="admin.html" class="btn-premium">Experience Now</a>
                     </div>
                 </div>
                 <div class="hero-visual">
@@ -44,91 +42,61 @@
             </div>
         </section>
 
-        <!-- Features Section -->
-        <section id="features" class="features-section">
+        <section id="vision" class="features-section">
             <div class="landing-container">
-                <h2 class="section-title">Construído para Performance</h2>
+                <span class="section-label">Our Vision</span>
                 <div class="features-grid">
-                    <div class="feature-card glass">
-                        <div class="feature-icon">📅</div>
-                        <h3>Agenda em Tempo Real</h3>
-                        <p>Sincronização instantânea entre barbeiros e clientes. Sem conflitos, sem espera.</p>
+                    <div class="feature-item">
+                        <h3>Master the Flow.</h3>
+                        <p>Every second in the chair is art. Our real-time scheduling ensures your focus remains on the blade, not the screen.</p>
                     </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">💰</div>
-                        <h3>Comissões Detalhadas</h3>
-                        <p>Cálculo automático de repasses e taxas da loja por serviço e por profissional.</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">📦</div>
-                        <h3>Estoque e Custos</h3>
-                        <p>Controle de produtos e insumos com alertas de baixo estoque e histórico de preços.</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">📱</div>
-                        <h3>Experiência Mobile</h3>
-                        <p>Seus clientes agendam em segundos, sem precisar baixar nenhum aplicativo.</p>
+                    <div class="feature-item">
+                        <h3>Absolute Precision.</h3>
+                        <p>Inventory, commissions, and revenue tracked with surgical accuracy. Your business data, refined and ready.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Pricing Section -->
-        <section id="pricing" class="pricing-section">
+        <section id="pinnacle" class="pricing-section">
             <div class="landing-container">
-                <h2 class="section-title">Escolha sua Evolução</h2>
+                <span class="section-label">Select Your Tier</span>
                 <div class="pricing-grid">
-                    <div class="pricing-card glass">
-                        <div class="pricing-header">
-                            <h3>Starter</h3>
-                            <div class="price">R$ 49<span>/mês</span></div>
-                        </div>
-                        <ul class="pricing-features">
-                            <li>Até 2 Barbeiros</li>
-                            <li>Agenda Completa</li>
-                            <li>Relatórios Básicos</li>
+                    <div class="pricing-card">
+                        <h4>Essential</h4>
+                        <div class="price">R$ 49<span>/m</span></div>
+                        <ul class="pricing-list">
+                            <li>2 Masters</li>
+                            <li>Real-time Agenda</li>
+                            <li>Core Insights</li>
                         </ul>
-                        <a href="admin.html" class="btn btn-outline btn-full">Começar</a>
+                        <a href="admin.html" class="btn-pricing">Request Entry</a>
                     </div>
-                    <div class="pricing-card glass popular">
-                        <div class="pricing-badge">Mais Popular</div>
-                        <div class="pricing-header">
-                            <h3>Professional</h3>
-                            <div class="price">R$ 99<span>/mês</span></div>
-                        </div>
-                        <ul class="pricing-features">
-                            <li>Até 10 Barbeiros</li>
-                            <li>Comissões Avançadas</li>
-                            <li>Gestão de Estoque</li>
-                            <li>Link de Reserva Personalizado</li>
+                    <div class="pricing-card" style="background: #080808;">
+                        <h4>Signature</h4>
+                        <div class="price">R$ 99<span>/m</span></div>
+                        <ul class="pricing-list">
+                            <li>10 Masters</li>
+                            <li>Advanced Commissions</li>
+                            <li>Stock Management</li>
+                            <li>Private Booking Link</li>
                         </ul>
-                        <a href="admin.html" class="btn btn-primary btn-full">Começar</a>
+                        <a href="admin.html" class="btn-pricing" style="background: #fff; color: #000;">Most Refined</a>
                     </div>
-                    <div class="pricing-card glass">
-                        <div class="pricing-header">
-                            <h3>Enterprise</h3>
-                            <div class="price">R$ 199<span>/mês</span></div>
-                        </div>
-                        <ul class="pricing-features">
-                            <li>Barbeiros Ilimitados</li>
-                            <li>Suporte VIP 24h</li>
-                            <li>Múltiplas Unidades</li>
-                            <li>Domínio Próprio</li>
+                    <div class="pricing-card">
+                        <h4>Immersive</h4>
+                        <div class="price">R$ 199<span>/m</span></div>
+                        <ul class="pricing-list">
+                            <li>Unlimited Masters</li>
+                            <li>24/7 Concierge</li>
+                            <li>Multi-Unit Control</li>
+                            <li>Custom Domain</li>
                         </ul>
-                        <a href="admin.html" class="btn btn-outline btn-full">Conversar</a>
+                        <a href="admin.html" class="btn-pricing">Join Elite</a>
                     </div>
                 </div>
             </div>
         </section>
     </main>
-
-    <footer class="landing-footer">
-        <div class="landing-container">
-            <div class="footer-content">
-                <div class="logo">Pentfino</div>
-                <p>© 2026 Pentfino Technologies. Todos os direitos reservados.</p>
-            </div>
-        </div>
-    </footer>
 </body>
 </html>
