@@ -19,6 +19,8 @@ const pool = new Pool({
 
 pool.on('connect', () => {
     console.log('✅ Connected to Neon PostgreSQL');
+    // Ensure commission column exists (one-off migration)
+    pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
 });
 
 // API Routes
@@ -263,11 +265,11 @@ app.get('/api/professionals/:barberId', async (req, res) => {
 });
 
 app.post('/api/professionals', async (req, res) => {
-    const { barberId, name, phone, photoUrl } = req.body;
+    const { barberId, name, phone, photoUrl, commission } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO professionals (barber_id, name, phone, photo_url) VALUES ($1, $2, $3, $4) RETURNING *',
-            [barberId, name, phone, photoUrl]
+            'INSERT INTO professionals (barber_id, name, phone, photo_url, commission) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [barberId, name, phone, photoUrl, commission || 0]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -309,10 +311,10 @@ app.post('/api/professional-services', async (req, res) => {
 app.patch('/api/professionals/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, phone, photoUrl } = req.body;
+        const { name, phone, photoUrl, commission } = req.body;
         await pool.query(
-            'UPDATE professionals SET name = $1, phone = $2, photo_url = $3 WHERE id = $4',
-            [name, phone, photoUrl, id]
+            'UPDATE professionals SET name = $1, phone = $2, photo_url = $3, commission = $4 WHERE id = $5',
+            [name, phone, photoUrl, commission || 0, id]
         );
         res.json({ success: true });
     } catch (err) {

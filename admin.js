@@ -534,7 +534,10 @@ const admin = {
                             ${p.photo_url ? '' : initials}
                         </div>
                         <div class="prof-card-info">
-                            <h3>${p.name}</h3>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <h3>${p.name}</h3>
+                                ${p.commission > 0 ? `<span class="svc-tag" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-bright);">${p.commission}%</span>` : ''}
+                            </div>
                             <p>${p.phone || 'Sem contato'}</p>
                         </div>
                     </div>
@@ -561,6 +564,7 @@ const admin = {
         document.getElementById('modal-prof-name').value = prof.name;
         document.getElementById('modal-prof-phone').value = prof.phone || '';
         document.getElementById('modal-prof-photo').value = prof.photo_url || '';
+        document.getElementById('modal-prof-commission').value = prof.commission || '';
         
         // Open modal (this will also populate the services list via override)
         this.openModal('professional');
@@ -586,6 +590,7 @@ const admin = {
         const name = document.getElementById('modal-prof-name').value;
         const phone = document.getElementById('modal-prof-phone').value;
         const photoUrl = document.getElementById('modal-prof-photo').value;
+        const commission = document.getElementById('modal-prof-commission').value;
         const selectedServices = Array.from(document.querySelectorAll('#modal-prof-services-list input:checked')).map(cb => cb.value);
 
         if(!name) return alert('Nome é obrigatório');
@@ -594,7 +599,7 @@ const admin = {
             await fetch(`/api/professionals/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone, photoUrl })
+                body: JSON.stringify({ name, phone, photoUrl, commission: commission || 0 })
             });
             
             await fetch('/api/professional-services', {
@@ -621,6 +626,7 @@ const admin = {
         const name = document.getElementById('modal-prof-name').value;
         const phone = document.getElementById('modal-prof-phone').value;
         const photoUrl = document.getElementById('modal-prof-photo').value;
+        const commission = document.getElementById('modal-prof-commission').value;
         const selectedServices = Array.from(document.querySelectorAll('#modal-prof-services-list input:checked')).map(cb => cb.value);
 
         if(!name) return alert('Nome é obrigatório');
@@ -629,7 +635,7 @@ const admin = {
             const res = await fetch('/api/professionals', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ barberId: auth.user.id, name, phone, photoUrl })
+                body: JSON.stringify({ barberId: auth.user.id, name, phone, photoUrl, commission: commission || 0 })
             });
             const prof = await res.json();
             
@@ -711,6 +717,7 @@ const admin = {
             document.getElementById('modal-prof-name').value = '';
             document.getElementById('modal-prof-phone').value = '';
             document.getElementById('modal-prof-photo').value = '';
+            document.getElementById('modal-prof-commission').value = '';
         }
         document.getElementById(`modal-${type}`).classList.add('hidden');
     }
