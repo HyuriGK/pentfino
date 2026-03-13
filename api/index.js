@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(path.join(__dirname, '..')));
 
 // DB Connection
 const pool = new Pool({
@@ -22,15 +22,12 @@ pool.on('connect', () => {
 });
 
 // API Routes
-
-// 1. Auth: Login
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     try {
         const result = await pool.query('SELECT * FROM barbers WHERE email = $1', [email]);
         const user = result.rows[0];
-        
-        if (user && user.password === password) { // Simple check for MVP, should use bcrypt
+        if (user && user.password === password) {
             res.json({ success: true, user: { id: user.id, email: user.email, shop: user.shop_name } });
         } else {
             res.status(401).json({ success: false, message: 'Credenciais inválidas' });
@@ -41,7 +38,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 2. Auth: Register
 app.post('/api/register', async (req, res) => {
     const { email, password, shop } = req.body;
     try {
@@ -52,11 +48,10 @@ app.post('/api/register', async (req, res) => {
         res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, message: 'Erro ao registrar (email já existe?)' });
+        res.status(500).json({ success: false, message: 'Erro ao registrar' });
     }
 });
 
-// 3. Get Appointments
 app.get('/api/appointments/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
@@ -74,7 +69,6 @@ app.get('/api/appointments/:barberId', async (req, res) => {
     }
 });
 
-// 4. Create Appointment
 app.post('/api/appointments', async (req, res) => {
     const { barberId, serviceId, clientName, clientPhone, time } = req.body;
     try {
@@ -89,7 +83,6 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
-// 5. Complete/Cancel Service
 app.patch('/api/appointments/:id', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
@@ -102,7 +95,6 @@ app.patch('/api/appointments/:id', async (req, res) => {
     }
 });
 
-// 6. Get Stats (Historical)
 app.get('/api/stats/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
@@ -119,6 +111,10 @@ app.get('/api/stats/:barberId', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`🚀 Pentfino Server running on http://localhost:${port}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`🚀 Pentfino Server running on http://localhost:${port}`);
+    });
+}
+
+module.exports = app;
