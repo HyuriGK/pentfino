@@ -461,6 +461,25 @@ const admin = {
             document.getElementById('detail-visit-count').innerText = visitCount;
             document.getElementById('detail-avg-ticket').innerText = `R$ ${avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             
+            // Calculate Average Interval
+            const completedVisits = history
+                .filter(h => h.status === 'completed')
+                .sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
+
+            if (completedVisits.length > 1) {
+                let totalDays = 0;
+                for (let i = 1; i < completedVisits.length; i++) {
+                    const d1 = new Date(completedVisits[i-1].appointment_date);
+                    const d2 = new Date(completedVisits[i].appointment_date);
+                    const diff = Math.abs(d2 - d1);
+                    totalDays += diff / (1000 * 60 * 60 * 24);
+                }
+                const avg = Math.round(totalDays / (completedVisits.length - 1));
+                document.getElementById('detail-avg-interval').innerText = `${avg} dias`;
+            } else {
+                document.getElementById('detail-avg-interval').innerText = '--';
+            }
+            
             // Render History
             const historyContainer = document.getElementById('client-history-table-body');
             historyContainer.innerHTML = history.length > 0 ? history.map(h => `
