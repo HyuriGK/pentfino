@@ -751,8 +751,12 @@ const admin = {
     },
 
     openEditInventory(id) {
-        const item = admin.inventory.find(i => i.id === id);
-        if (!item) return;
+        // Use loose equality or string cast for ID comparison to be safe
+        const item = admin.inventory.find(i => String(i.id) === String(id));
+        if (!item) {
+            console.error('[ERRO] Item não encontrado no inventário local:', id);
+            return;
+        }
 
         admin.editingInventoryId = id;
         document.getElementById('modal-inv-edit-id').value = id;
@@ -819,11 +823,15 @@ const admin = {
 
         if (type === 'sale') {
             const statusLabel = document.getElementById('modal-sale-item-status');
-            if (statusLabel) statusLabel.innerText = 'Buscando produtos...';
+            if (statusLabel) statusLabel.innerText = 'Sincronizando estoque...';
             
             await admin.loadInventory(); 
             await admin.loadProfessionals();
-            admin.prepareSaleModal();
+            
+            // Added small delay to ensure DOM is ready and data is bound
+            setTimeout(() => {
+                admin.prepareSaleModal();
+            }, 300);
         }
 
         document.getElementById(`modal-${type}`).classList.remove('hidden');
@@ -868,13 +876,19 @@ const admin = {
             console.log('[DEBUG] Final Save - ID:', finalId, 'Name:', name);
 
             if (finalId !== null && !isNaN(finalId)) {
-                // UPDATE MODE
-                console.log('[DEBUG] Executing PATCH for ID:', finalId);
-                await auth.apiRequest(`/api/inventory/${finalId}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
+                // UPDATE MODE - Workaround: DELETE then POST as requested by user
+                console.log('[DEBUG] Executing Workaround: DELETE then POST for ID:', finalId);
+                
+                // 1. Delete old
+                await auth.apiRequest(`/api/inventory/${finalId}`, { method: 'DELETE' });
+                
+                // 2. Create new with updated data
+                await auth.apiRequest('/api/inventory', {
+                    method: 'POST',
+                    body: JSON.stringify({ barberId: auth.user.id, itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
                 });
-                auth.notify('Estoque atualizado!', 'success');
+                
+                auth.notify('Estoque atualizado (via recriação)!', 'success');
             } else {
                 // CREATE MODE
                 console.log('[DEBUG] Executing POST for new item');
