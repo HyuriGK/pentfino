@@ -9,7 +9,9 @@ window.__BARBER_DEBUG__ = {
 const auth = {
     user: (() => {
         try {
-            return JSON.parse(localStorage.getItem('barberpoint_user'));
+            const stored = localStorage.getItem('barberpoint_user');
+            if (!stored) return null;
+            return JSON.parse(stored);
         } catch (e) {
             console.error('Erro ao ler usuário do localStorage', e);
             return null;
@@ -812,55 +814,67 @@ const admin = {
 
     // Modal Logic
     async openModal(type) {
-        if (type === 'inventory' && admin.editingInventoryId === null) {
-            // Reset for "New Item"
-            const modal = document.getElementById('modal-inventory');
-            modal.querySelector('.modal-title').innerText = 'Novo Item';
-            modal.querySelector('.btn-primary').innerText = 'Adicionar ao Estoque';
-            document.getElementById('modal-inv-name').value = '';
-            document.getElementById('modal-inv-qty').value = '';
-            document.getElementById('modal-inv-unit').value = 'un';
-            document.getElementById('modal-inv-min').value = '5';
-            document.getElementById('modal-inv-price').value = '';
-            document.getElementById('modal-inv-edit-id').value = '';
-            
-            const debugDiv = document.getElementById('modal-inv-debug');
-            if (debugDiv) debugDiv.style.display = 'none';
-        }
+        console.log(`[DEBUG] Abrindo modal do tipo: ${type}`);
+        try {
+            if (type === 'inventory' && (admin.editingInventoryId === null || admin.editingInventoryId === undefined)) {
+                // Reset for "New Item"
+                const modal = document.getElementById('modal-inventory');
+                if (modal) {
+                    const title = modal.querySelector('.modal-title');
+                    const btn = modal.querySelector('.btn-primary');
+                    if (title) title.innerText = 'Novo Item';
+                    if (btn) btn.innerText = 'Adicionar ao Estoque';
+                    
+                    document.getElementById('modal-inv-name').value = '';
+                    document.getElementById('modal-inv-qty').value = '';
+                    document.getElementById('modal-inv-unit').value = 'un';
+                    document.getElementById('modal-inv-min').value = '5';
+                    document.getElementById('modal-inv-price').value = '';
+                    document.getElementById('modal-inv-edit-id').value = '';
+                    
+                    const debugDiv = document.getElementById('modal-inv-debug');
+                    if (debugDiv) debugDiv.style.display = 'none';
+                }
+            }
 
-        if (type === 'sale') {
-            // Show modal FIRST so user sees something immediately
-            document.getElementById('modal-sale').classList.remove('hidden');
-            document.body.classList.add('modal-open');
-            
-            const statusEl = document.getElementById('modal-sale-item-status');
-            if (statusEl) statusEl.innerText = 'Sincronizando estoque...';
-            
-            try {
-                await admin.loadInventory();
-            } catch(err) {
-                console.error('[SALE] Erro ao carregar estoque:', err);
+            if (type === 'sale') {
+                const modalSale = document.getElementById('modal-sale');
+                if (!modalSale) {
+                    alert('Erro crítico: Modal de venda não encontrado no HTML');
+                    return;
+                }
+                
+                modalSale.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+                
+                const statusEl = document.getElementById('modal-sale-item-status');
+                if (statusEl) statusEl.innerText = 'Iniciando sincronização...';
+                
+                try {
+                    await admin.loadInventory();
+                    if (statusEl) statusEl.innerText = 'Estoque carregado. Carregando profissionais...';
+                    await admin.loadProfessionals();
+                    if (statusEl) statusEl.innerText = 'Dados carregados. Preparando campos...';
+                    admin.prepareSaleModal();
+                } catch (err) {
+                    console.error('[SALE] Erro no fluxo do modal:', err);
+                    if (statusEl) statusEl.innerText = 'Erro: ' + err.message;
+                    alert('Erro ao carregar dados de venda: ' + err.message);
+                }
+                return;
             }
-            
-            try {
-                await admin.loadProfessionals();
-            } catch(err) {
-                console.error('[SALE] Erro ao carregar profissionais:', err);
-            }
-            
-            // Call prepareSaleModal DIRECTLY (no setTimeout)
-            try {
-                admin.prepareSaleModal();
-            } catch(err) {
-                console.error('[SALE] Erro ao popular modal de venda:', err);
-                if (statusEl) statusEl.innerText = 'Erro: ' + err.message;
-            }
-            
-            return; // Already showed the modal above, skip the code below
-        }
 
-        document.getElementById(`modal-${type}`).classList.remove('hidden');
-        document.body.classList.add('modal-open');
+            const genericModal = document.getElementById(`modal-${type}`);
+            if (genericModal) {
+                genericModal.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            } else {
+                console.error(`Modal id="modal-${type}" não encontrado`);
+            }
+        } catch (err) {
+            console.error(`Erro fatal em openModal(${type}):`, err);
+            alert(`Erro ao abrir modal: ${err.message}`);
+        }
     },
 
     closeModal(type) {
@@ -908,27 +922,27 @@ const admin = {
             const src4 = modal ? modal.getAttribute('data-edit-id') : null;
             
             const rawId = src1 || src2 || src3 || src4;
-            const finalId = rawId ? parseInt(rawId) : null;
+            const finalId = (rawId !== null && rawId !== undefined && rawId !== '') ? parseInt(rawId) : null;
             
-            console.log('[SAVE] Sources - var:', src1, 'hidden:', src2, 'btn:', src3, 'modal:', src4, '=> finalId:', finalId);
+            console.log('[SAVE] Analysis:', { src1, src2, src3, src4, rawId, finalId });
 
-            if (finalId && !isNaN(finalId)) {
+            if (finalId !== null && !isNaN(finalId)) {
                 // UPDATE MODE
-                console.log('[SAVE] PATCH mode for ID:', finalId);
+                console.log('[SAVE] Iniciando PATCH para ID:', finalId);
                 const res = await auth.apiRequest(`/api/inventory/${finalId}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
                 });
-                if (!res.ok) throw new Error('PATCH failed: ' + res.status);
+                if (!res.ok) throw new Error(`Erro na atualização (Status ${res.status})`);
                 auth.notify('Estoque atualizado!', 'success');
             } else {
                 // CREATE MODE
-                console.log('[SAVE] POST mode (new item)');
+                console.log('[SAVE] Iniciando POST (Novo Item)');
                 const res = await auth.apiRequest('/api/inventory', {
                     method: 'POST',
                     body: JSON.stringify({ barberId: auth.user.id, itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
                 });
-                if (!res.ok) throw new Error('POST failed: ' + res.status);
+                if (!res.ok) throw new Error(`Erro na criação (Status ${res.status})`);
                 auth.notify('Item adicionado!', 'success');
             }
             
@@ -1603,5 +1617,17 @@ document.addEventListener('mousedown', (e) => {
     }
 });
 
+// Global Error Handler for debugging production issues
+window.onerror = function(msg, url, line, col, error) {
+    const errorMsg = `[JS ERROR] ${msg} em ${url}:${line}:${col}`;
+    console.error(errorMsg, error);
+    // Only alert for BarberPoint scripts to avoid noise from extensions
+    if (url.includes('admin.js') || url.includes('admin.html')) {
+        alert(errorMsg);
+    }
+    return false;
+};
+
 // Extra safety: expose admin globally
 window.admin = admin;
+console.log('[BARBERPOINT] admin.js v4 fully initialized');
