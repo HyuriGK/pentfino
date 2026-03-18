@@ -808,13 +808,19 @@ const admin = {
     },
 
     async saveInventory() {
+        const btn = document.querySelector('#modal-inventory .btn-primary');
+        if (btn) btn.disabled = true;
+
         const itemName = document.getElementById('modal-inv-name').value;
         const quantity = parseInt(document.getElementById('modal-inv-qty').value);
         const unit = document.getElementById('modal-inv-unit').value;
         const minQuantity = parseInt(document.getElementById('modal-inv-min').value);
         const unitPrice = parseFloat(document.getElementById('modal-inv-price').value || 0);
 
-        if(!itemName || isNaN(quantity)) return alert('Preencha os campos obrigatórios');
+        if(!itemName || isNaN(quantity)) {
+            if (btn) btn.disabled = false;
+            return alert('Preencha os campos obrigatórios');
+        }
         
         try {
             if (this.editingInventoryId !== null) {
@@ -832,7 +838,11 @@ const admin = {
             }
             this.closeModal('inventory');
             await this.loadInventory();
-        } catch (err) { alert('Erro ao salvar item no estoque'); }
+        } catch (err) { 
+            alert('Erro ao salvar item no estoque'); 
+        } finally {
+            if (btn) btn.disabled = false;
+        }
     },
 
     // Sales Content
@@ -877,7 +887,7 @@ const admin = {
         console.log('DEBUG: Populating Sale Modal. Inventory count:', items.length);
 
         if (items.length === 0) {
-            itemSelect.innerHTML = '<option value="">Nenhum produto em estoque...</option>';
+            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque)</option>';
         } else {
             let options = '<option value="">Selecione um produto...</option>';
             items.forEach(i => {
@@ -885,6 +895,9 @@ const admin = {
             });
             itemSelect.innerHTML = options;
         }
+        
+        // Force refresh of the select view
+        itemSelect.dispatchEvent(new Event('change'));
 
         // Populate Professionals
         if (profSelect) {
