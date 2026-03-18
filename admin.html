@@ -841,8 +841,12 @@
                 </select>
             </div>
             <div class="input-group-new" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                <input autocomplete="off" type="checkbox" id="modal-sale-commission" checked style="width: auto;">
+                <input autocomplete="off" type="checkbox" id="modal-sale-commission" checked style="width: auto;" onchange="document.getElementById('modal-sale-comm-rate-group').style.display = this.checked ? 'block' : 'none'">
                 <label style="margin-bottom: 0;">Aplicar Comissão ao Profissional</label>
+            </div>
+            <div class="input-group-new" id="modal-sale-comm-rate-group">
+                <label>Comissão (%)</label>
+                <input autocomplete="off" type="number" id="modal-sale-comm-rate" value="0">
             </div>
             <button class="btn btn-primary btn-full" style="margin-top: 20px;" onclick="admin.saveSale()">Confirmar Venda</button>
         </div>

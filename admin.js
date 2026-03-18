@@ -777,7 +777,7 @@ const admin = {
     },
 
     // Modal Logic
-    openModal(type) {
+    async openModal(type) {
         if (type === 'inventory' && !this.editingInventoryId) {
             // Reset for "New Item"
             document.getElementById('modal-inventory').querySelector('.modal-title').innerText = 'Novo Item';
@@ -790,6 +790,8 @@ const admin = {
         }
 
         if (type === 'sale') {
+            await this.loadInventory(); // Ensure we have latest for the select
+            await this.loadProfessionals();
             this.prepareSaleModal();
         }
 
@@ -868,14 +870,30 @@ const admin = {
     prepareSaleModal() {
         const itemSelect = document.getElementById('modal-sale-item');
         const profSelect = document.getElementById('modal-sale-prof');
+        const commRateInput = document.getElementById('modal-sale-comm-rate');
         
-        itemSelect.innerHTML = this.inventory.map(i => `
-            <option value="${i.id}" data-price="${i.unit_price}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>
+        if (!itemSelect || !profSelect) return;
+
+        itemSelect.innerHTML = (this.inventory || []).map(i => `
+            <option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>
         `).join('');
 
-        profSelect.innerHTML = '<option value="">Nenhum (Venda Direta)</option>' + this.professionals.map(p => `
-            <option value="${p.id}">${p.name}</option>
+        profSelect.innerHTML = '<option value="">Nenhum (Venda Direta)</option>' + (this.professionals || []).map(p => `
+            <option value="${p.id}" data-commission="${p.commission}">${p.name}</option>
         `).join('');
+
+        // Reset inputs
+        document.getElementById('modal-sale-qty').value = 1;
+        document.getElementById('modal-sale-commission').checked = true;
+        document.getElementById('modal-sale-comm-rate-group').style.display = 'block';
+        commRateInput.value = 0;
+
+        // Auto-fill commission when professional is selected
+        profSelect.onchange = (e) => {
+            const selected = e.target.options[e.target.selectedIndex];
+            const comm = selected.dataset.commission || 0;
+            commRateInput.value = comm;
+        };
     },
 
     async saveSale() {
@@ -883,6 +901,7 @@ const admin = {
         const profId = document.getElementById('modal-sale-prof').value;
         const qty = parseInt(document.getElementById('modal-sale-qty').value);
         const hasComm = document.getElementById('modal-sale-commission').checked;
+        const commRate = parseFloat(document.getElementById('modal-sale-comm-rate').value || 0);
 
         if (!itemId || isNaN(qty) || qty <= 0) return alert('Selecione um produto e a quantidade');
 
@@ -900,7 +919,8 @@ const admin = {
                     professionalId: profId || null,
                     quantity: qty,
                     price: item.unit_price,
-                    hasCommission: hasComm
+                    hasCommission: hasComm,
+                    commissionRate: commRate
                 })
             });
             auth.notify('Venda registrada com sucesso!', 'success');

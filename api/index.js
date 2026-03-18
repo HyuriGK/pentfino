@@ -49,9 +49,14 @@ pool.on('connect', () => {
             price_at_sale DECIMAL(10,2) NOT NULL,
             total_price DECIMAL(10,2) NOT NULL,
             has_commission BOOLEAN DEFAULT TRUE,
+            commission_rate DECIMAL(5,2) DEFAULT 0,
+            commission_value DECIMAL(10,2) DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (sales):', e));
+    // Migration to add columns if table already exists
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5,2) DEFAULT 0').catch(() => {});
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_value DECIMAL(10,2) DEFAULT 0').catch(() => {});
 });
 
 // API Routes
@@ -531,15 +536,18 @@ app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/sales', authenticateToken, async (req, res) => {
-    const { barberId, itemId, professionalId, quantity, price, hasCommission } = req.body;
+    const { barberId, itemId, professionalId, quantity, price, hasCommission, commissionRate } = req.body;
     try {
         await pool.query('BEGIN');
         
         // 1. Record the sale
         const totalPrice = parseFloat(price) * parseInt(quantity);
+        const commRate = parseFloat(commissionRate || 0);
+        const commValue = hasCommission ? (totalPrice * (commRate / 100)) : 0;
+
         const saleRes = await pool.query(
-            'INSERT INTO sales (barber_id, item_id, professional_id, quantity, price_at_sale, total_price, has_commission) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-            [barberId, itemId, professionalId || null, quantity, price, totalPrice, hasCommission]
+            'INSERT INTO sales (barber_id, item_id, professional_id, quantity, price_at_sale, total_price, has_commission, commission_rate, commission_value) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+            [barberId, itemId, professionalId || null, quantity, price, totalPrice, hasCommission, commRate, commValue]
         );
 
         // 2. Decrement inventory
