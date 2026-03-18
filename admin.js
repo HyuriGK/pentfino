@@ -726,11 +726,9 @@ const admin = {
                     <td>R$ ${parseFloat(i.unit_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>
-                        <div style="display:flex; gap:8px; align-items: center;">
-                            <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity - 1})">−</button>
-                            <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity + 1})">+</button>
-                            <button class="btn btn-ghost" style="margin-left: 8px; color: var(--primary); font-size: 0.75rem; padding: 4px 8px;" onclick="admin.openEditInventory(${i.id})">EDITAR</button>
-                            <button class="btn btn-ghost" style="margin-left: 4px; color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteInventory(${i.id}, '${i.item_name.replace(/'/g, "\\'")}')">×</button>
+                        <div style="display:flex; gap:8px; align-items: center; justify-content: flex-start;">
+                            <button class="btn btn-ghost" style="height: 32px; color: var(--primary); font-size: 0.75rem; padding: 0 12px; border: 1px solid rgba(var(--primary-rgb), 0.2); border-radius: 8px; font-weight: 600; text-transform: uppercase;" onclick="admin.openEditInventory(${i.id})">EDITAR</button>
+                            <button class="btn btn-ghost" style="color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px;" onclick="admin.deleteInventory(${i.id}, '${i.item_name.replace(/'/g, "\\'")}')">×</button>
                         </div>
                     </td>
                 </tr>
@@ -819,7 +817,7 @@ const admin = {
         if(!itemName || isNaN(quantity)) return alert('Preencha os campos obrigatórios');
         
         try {
-            if (this.editingInventoryId) {
+            if (this.editingInventoryId !== null) {
                 await auth.apiRequest(`/api/inventory/${this.editingInventoryId}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ itemName, quantity, unit, minQuantity, unitPrice })
@@ -833,7 +831,7 @@ const admin = {
                 auth.notify('Item adicionado ao estoque!', 'success');
             }
             this.closeModal('inventory');
-            this.loadInventory();
+            await this.loadInventory();
         } catch (err) { alert('Erro ao salvar item no estoque'); }
     },
 
