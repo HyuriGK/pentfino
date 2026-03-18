@@ -1,7 +1,7 @@
 const auth = {
     user: (() => {
         try {
-            return JSON.parse(localStorage.getItem('pentfino_user'));
+            return JSON.parse(localStorage.getItem('barberpoint_user'));
         } catch (e) {
             console.error('Erro ao ler usuário do localStorage', e);
             return null;
@@ -52,7 +52,7 @@ const auth = {
             const data = await res.json();
             if (data.success) {
                 this.user = data.user;
-                localStorage.setItem('pentfino_user', JSON.stringify(this.user));
+                localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
                 this.showDashboard();
             } else {
                 alert(data.message || 'Erro ao realizar login');
@@ -81,7 +81,7 @@ const auth = {
             const data = await res.json();
             if (data.success) {
                 this.user = data.user;
-                localStorage.setItem('pentfino_user', JSON.stringify(this.user));
+                localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
                 this.showDashboard();
             } else {
                 alert(data.message);
@@ -97,7 +97,7 @@ const auth = {
     },
 
     logout() {
-        localStorage.removeItem('pentfino_user');
+        localStorage.removeItem('barberpoint_user');
         location.reload();
     }
 };
@@ -451,7 +451,7 @@ const admin = {
     startInsights() {
         const tips = [
             "Aumento de 20% na procura por serviços esta semana.",
-            "Insight Pentfino: Ofereça um café aos clientes que chegarem 10min antes.",
+            "Insight BarberPoint: Ofereça um café aos clientes que chegarem 10min antes.",
             "Lembrete: Foque em retenção este mês para dobrar o lucro.",
             "Atenção: Seu faturamento cresceu 15% em relação ao mês anterior."
         ];
@@ -1163,7 +1163,7 @@ const agenda = {
 
 const sessionManager = {
     TIMEOUT_MS: 3600000, // 1 hour
-    STORAGE_KEY: 'pentfino_last_activity',
+    STORAGE_KEY: 'barberpoint_last_activity',
 
     init() {
         if (!auth.user) return;
@@ -1202,7 +1202,7 @@ const sessionManager = {
 
         const now = Date.now();
         if (now - lastActivity > this.TIMEOUT_MS) {
-            console.warn('Sessão expirada por inatividade (Pentfino).');
+            console.warn('Sessão expirada por inatividade (BarberPoint).');
             auth.logout();
         }
     },

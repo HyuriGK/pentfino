@@ -1,5 +1,5 @@
 /* 
-  SQL Schema for Neon PostgreSQL - Pentfino
+  SQL Schema for Neon PostgreSQL - BarberPoint
   Paste this into your Neon SQL Editor:
 */
 
@@ -69,12 +69,12 @@ CREATE TABLE IF NOT EXISTS inventory (
 
 -- Seed Initial Data
 INSERT INTO barbers (email, password, shop_name) 
-VALUES ('demo@pentfino.com', 'demo123', 'Pentfino Luxury')
+VALUES ('demo@barberpoint.com', 'demo123', 'BarberPoint Luxury')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO services (barber_id, name, price, duration)
-SELECT id, 'Corte de Cabelo', 50, '40 min' FROM barbers WHERE email = 'demo@pentfino.com'
+SELECT id, 'Corte de Cabelo', 50, '40 min' FROM barbers WHERE email = 'demo@barberpoint.com'
 UNION ALL
-SELECT id, 'Barba Completa', 30, '20 min' FROM barbers WHERE email = 'demo@pentfino.com'
+SELECT id, 'Barba Completa', 30, '20 min' FROM barbers WHERE email = 'demo@barberpoint.com'
 UNION ALL
-SELECT id, 'Combo (Corte + Barba)', 70, '60 min' FROM barbers WHERE email = 'demo@pentfino.com';
+SELECT id, 'Combo (Corte + Barba)', 70, '60 min' FROM barbers WHERE email = 'demo@barberpoint.com';

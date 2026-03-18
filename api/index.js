@@ -461,7 +461,7 @@ app.delete('/api/inventory/:id', async (req, res) => {
 
 if (require.main === module) {
     app.listen(port, () => {
-        console.log(`🚀 Pentfino Server running on http://localhost:${port}`);
+        console.log(`🚀 BarberPoint Server running on http://localhost:${port}`);
     });
 }
 
