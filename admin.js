@@ -706,7 +706,7 @@ const admin = {
     // Inventory Logic
     async loadInventory() {
         try {
-            const res = await auth.apiRequest(`/api/inventory/${auth.user.id}`);
+            const res = await auth.apiRequest(`/api/inventory/${auth.user.id}?t=${Date.now()}`);
             this.inventory = await res.json();
             this.renderInventory();
         } catch (err) { console.error('Erro ao carregar estoque'); }
@@ -873,11 +873,14 @@ const admin = {
         if (!itemSelect) return;
 
         // Populate Products
-        if (!this.inventory || this.inventory.length === 0) {
+        const items = admin.inventory || this.inventory || [];
+        console.log('DEBUG: Populating Sale Modal. Inventory count:', items.length);
+
+        if (items.length === 0) {
             itemSelect.innerHTML = '<option value="">Nenhum produto em estoque...</option>';
         } else {
             let options = '<option value="">Selecione um produto...</option>';
-            this.inventory.forEach(i => {
+            items.forEach(i => {
                 options += `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>`;
             });
             itemSelect.innerHTML = options;
