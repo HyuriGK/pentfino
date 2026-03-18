@@ -1,3 +1,10 @@
+// Global State for diagnostic purposes
+window.__BARBER_DEBUG__ = {
+    lastInventoryLoad: null,
+    inventoryCount: 0,
+    editingId: null
+};
+
 const auth = {
     user: (() => {
         try {
@@ -707,7 +714,14 @@ const admin = {
     async loadInventory() {
         try {
             const res = await auth.apiRequest(`/api/inventory/${auth.user.id}?t=${Date.now()}`);
-            this.inventory = await res.json();
+            const data = await res.json();
+            this.inventory = data;
+            
+            // Redundancy for sales modal
+            window.__BARBER_DEBUG__.lastInventoryContent = data;
+            window.__BARBER_DEBUG__.inventoryCount = data.length;
+            window.__BARBER_DEBUG__.lastInventoryLoad = new Date().toLocaleTimeString();
+            
             this.renderInventory();
         } catch (err) { console.error('Erro ao carregar estoque'); }
     },
@@ -828,62 +842,57 @@ const admin = {
         }
     },
 
-    async saveInventory() {
-        if (admin.isSavingInventory) return;
-        admin.isSavingInventory = true;
+    async saveInventory(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         
+        if (admin.isSaving) return;
+        admin.isSaving = true;
+
         const btn = document.querySelector('#modal-inventory .btn-primary');
         if (btn) {
             btn.disabled = true;
-            btn.innerText = admin.editingInventoryId !== null ? 'ATUALIZANDO...' : 'ADICIONANDO...';
+            btn.innerText = 'PROCESSANDO...';
         }
 
-        const itemName = document.getElementById('modal-inv-name').value;
-        const quantity = parseInt(document.getElementById('modal-inv-qty').value);
-        const unit = document.getElementById('modal-inv-unit').value;
-        const minQuantity = parseInt(document.getElementById('modal-inv-min').value);
-        const unitPrice = parseFloat(document.getElementById('modal-inv-price').value || 0);
-
-        if(!itemName || isNaN(quantity)) {
-            if (btn) {
-                btn.disabled = false;
-                btn.innerText = admin.editingInventoryId !== null ? 'Salvar Alterações' : 'Adicionar ao Estoque';
-            }
-            admin.isSavingInventory = false;
-            return alert('Preencha os campos obrigatórios');
-        }
-        
         try {
-            // Get ID from both the JS variable and the hidden input for maximum safety
+            const name = document.getElementById('modal-inv-name').value;
+            const qty = parseInt(document.getElementById('modal-inv-qty').value);
+            const unit = document.getElementById('modal-inv-unit').value;
+            const min = parseInt(document.getElementById('modal-inv-min').value);
+            const price = parseFloat(document.getElementById('modal-inv-price').value || 0);
+            
+            // Critical: check multiple sources for ID
             const domId = document.getElementById('modal-inv-edit-id').value;
             const finalId = admin.editingInventoryId || (domId ? parseInt(domId) : null);
+            
+            console.log('[DEBUG] Final Save - ID:', finalId, 'Name:', name);
 
-            console.log('DEBUG: Salvando Estoque. ID de Edição:', finalId);
-
-            if (finalId !== null) {
+            if (finalId !== null && !isNaN(finalId)) {
+                // UPDATE MODE
+                console.log('[DEBUG] Executing PATCH for ID:', finalId);
                 await auth.apiRequest(`/api/inventory/${finalId}`, {
                     method: 'PATCH',
-                    body: JSON.stringify({ itemName, quantity, unit, minQuantity, unitPrice })
+                    body: JSON.stringify({ itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
                 });
-                auth.notify('Item atualizado com sucesso!', 'success');
+                auth.notify('Estoque atualizado!', 'success');
             } else {
+                // CREATE MODE
+                console.log('[DEBUG] Executing POST for new item');
                 await auth.apiRequest('/api/inventory', {
                     method: 'POST',
-                    body: JSON.stringify({ barberId: auth.user.id, itemName, quantity, unit, minQuantity, unitPrice })
+                    body: JSON.stringify({ barberId: auth.user.id, itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
                 });
-                auth.notify('Item adicionado ao estoque!', 'success');
+                auth.notify('Item adicionado!', 'success');
             }
+            
             admin.closeModal('inventory');
             await admin.loadInventory();
-        } catch (err) { 
-            console.error('ERRO AO SALVAR ESTOQUE:', err);
-            alert('Erro ao salvar item no estoque'); 
+        } catch (err) {
+            console.error('[CRITICAL] Erro no salvamento:', err);
+            alert('Erro ao salvar no banco de dados. Verifique sua conexão.');
         } finally {
-            admin.isSavingInventory = false;
-            if (btn) {
-                btn.disabled = false;
-                btn.innerText = admin.editingInventoryId !== null ? 'Salvar Alterações' : 'Adicionar ao Estoque';
-            }
+            admin.isSaving = false;
+            if (btn) btn.disabled = false;
         }
     },
 
@@ -920,25 +929,24 @@ const admin = {
     prepareSaleModal() {
         const itemSelect = document.getElementById('modal-sale-item');
         const profSelect = document.getElementById('modal-sale-prof');
-        const commRateInput = document.getElementById('modal-sale-comm-rate');
         const statusLabel = document.getElementById('modal-sale-item-status');
         
         if (!itemSelect) return;
 
-        // Force explicit reference to data
-        const items = admin.inventory || [];
-        console.log('DEBUG: Modal de Venda - Itens de Estoque:', items);
+        // Use global window access if local fails
+        const items = admin.inventory || window.__BARBER_DEBUG__.lastInventoryContent || [];
+        console.log('[DEBUG] Populando modal de venda. Itens:', items.length);
 
         if (items.length === 0) {
-            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque - cadastre no menu estoque)</option>';
-            if (statusLabel) statusLabel.innerText = 'Nenhum item encontrado no banco de dados.';
+            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque)</option>';
+            if (statusLabel) statusLabel.innerText = 'Aviso: Lista de estoque está vazia no sistema.';
         } else {
             let options = '<option value="">Selecione um produto...</option>';
             items.forEach(i => {
-                options += `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>`;
+                options += `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit})</option>`;
             });
             itemSelect.innerHTML = options;
-            if (statusLabel) statusLabel.innerText = `${items.length} itens carregados com sucesso.`;
+            if (statusLabel) statusLabel.innerText = `${items.length} itens prontos para venda.`;
         }
         
         // Populate Professionals
@@ -1541,3 +1549,6 @@ document.addEventListener('mousedown', (e) => {
         admin.closeModal(type);
     }
 });
+
+// Extra safety: expose admin globally
+window.admin = admin;

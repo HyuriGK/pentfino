@@ -518,9 +518,11 @@ app.post('/api/inventory', authenticateToken, async (req, res) => {
 });
 
 app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
     const { itemName, quantity, unit, minQuantity, unitPrice } = req.body;
-    console.log(`[API] Atuallizando item do estoque ID: ${id}, Nome: ${itemName || '(apenas qty)'}`);
+    console.log(`[API] Processando PATCH para ID: ${id} (${typeof id}). Item: ${itemName || 'qty-only'}`);
+    
+    if (isNaN(id)) return res.status(400).send('Invalid ID');
     try {
         if (itemName !== undefined) {
             await pool.query(
