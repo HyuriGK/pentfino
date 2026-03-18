@@ -1298,32 +1298,6 @@ aside nav {
     padding: 0 40px;
 }
 
-/* Sales Modal Vertical Layout */
-#modal-sale .modal-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-width: 500px;
-    width: 90%;
-    padding: 20px;
-    background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-}
-
-/* Ensure input groups within modals take full width */
-.modal-content .input-group-new {
-    width: 100%;
-    margin-bottom: 12px;
-}
-
-/* Make select and input elements full width inside modal */
-.modal-content select,
-.modal-content input[type="text"],
-.modal-content input[type="number"] {
-    width: 100% !important;
-    box-sizing: border-box;
-}
 
 .landing-header {
     padding: 40px 0;

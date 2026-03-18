@@ -873,32 +873,30 @@ const admin = {
             const domId = document.getElementById('modal-inv-edit-id').value;
             const finalId = admin.editingInventoryId || (domId ? parseInt(domId) : null);
             
-            console.log('[DEBUG] Final Save - ID:', finalId, 'Name:', name);
+            console.log('[SAVE] finalId:', finalId, 'editingInventoryId:', admin.editingInventoryId, 'domId:', domId);
 
-            if (finalId !== null && !isNaN(finalId)) {
-                // UPDATE MODE - Workaround: DELETE then POST as requested by user
-                console.log('[DEBUG] Executing Workaround: DELETE then POST for ID:', finalId);
-                
-                // 1. Delete old
-                await auth.apiRequest(`/api/inventory/${finalId}`, { method: 'DELETE' });
-                
-                // 2. Create new with updated data
-                await auth.apiRequest('/api/inventory', {
-                    method: 'POST',
-                    body: JSON.stringify({ barberId: auth.user.id, itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
+            if (finalId !== null && finalId !== undefined && !isNaN(finalId)) {
+                // UPDATE MODE - Use PATCH to update the existing record
+                console.log('[SAVE] PATCH mode for ID:', finalId);
+                const res = await auth.apiRequest(`/api/inventory/${finalId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
                 });
-                
-                auth.notify('Estoque atualizado (via recriação)!', 'success');
+                if (!res.ok) throw new Error('PATCH failed: ' + res.status);
+                auth.notify('Estoque atualizado!', 'success');
             } else {
                 // CREATE MODE
-                console.log('[DEBUG] Executing POST for new item');
-                await auth.apiRequest('/api/inventory', {
+                console.log('[SAVE] POST mode (new item)');
+                const res = await auth.apiRequest('/api/inventory', {
                     method: 'POST',
                     body: JSON.stringify({ barberId: auth.user.id, itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
                 });
+                if (!res.ok) throw new Error('POST failed: ' + res.status);
                 auth.notify('Item adicionado!', 'success');
             }
             
+            admin.editingInventoryId = null;
+            document.getElementById('modal-inv-edit-id').value = '';
             admin.closeModal('inventory');
             await admin.loadInventory();
         } catch (err) {
@@ -944,12 +942,13 @@ const admin = {
         const itemSelect = document.getElementById('modal-sale-item');
         const profSelect = document.getElementById('modal-sale-prof');
         const statusLabel = document.getElementById('modal-sale-item-status');
+        const commRateInput = document.getElementById('modal-sale-comm-rate');
         
         if (!itemSelect) return;
 
         // Use global window access if local fails
         const items = admin.inventory || window.__BARBER_DEBUG__.lastInventoryContent || [];
-        console.log('[DEBUG] Populando modal de venda. Itens:', items.length);
+        console.log('[SALE] Populando modal de venda. Itens:', items.length);
 
         if (items.length === 0) {
             itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque)</option>';
