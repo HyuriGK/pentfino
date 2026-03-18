@@ -486,6 +486,11 @@
                 <h2 class="modal-title">Novo Item</h2>
                 <button class="btn-icon-close" onclick="admin.closeModal('inventory')">×</button>
             </header>
+            <!-- DEBUG INDICATOR -->
+            <div id="modal-inv-debug" style="display:none; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); padding: 8px; border-radius: 8px; margin-bottom: 12px; font-size: 0.8rem; text-align: center; border: 1px solid rgba(var(--primary-rgb), 0.2);">
+                ⚙️ MODO EDIÇÃO ATIVO (ID: <span id="modal-inv-debug-id">?</span>)
+            </div>
+            <input type="hidden" id="modal-inv-edit-id">
             <div class="input-group-new">
                 <label>Nome do Produto</label>
                 <input autocomplete="off" type="text" id="modal-inv-name" placeholder="Ex: Pomada Efeito Matte">
@@ -828,6 +833,10 @@
                 <select id="modal-sale-item" style="width: 100%; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright);">
                     <!-- Injected by JS -->
                 </select>
+                <div id="modal-sale-debug" style="margin-top: 4px; font-size: 0.7rem; color: var(--text-muted);">
+                    Status: <span id="modal-sale-item-status">Carregando...</span>
+                </div>
+            </div>
             </div>
             <div class="input-group-new">
                 <label>Quantidade</label>

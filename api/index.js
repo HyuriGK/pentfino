@@ -504,6 +504,7 @@ app.get('/api/inventory/:barberId', authenticateToken, async (req, res) => {
 
 app.post('/api/inventory', authenticateToken, async (req, res) => {
     const { barberId, itemName, quantity, unit, minQuantity, unitPrice } = req.body;
+    console.log(`[API] Criando novo item no estoque para BarberID: ${barberId}, Item: ${itemName}`);
     try {
         const result = await pool.query(
             'INSERT INTO inventory (barber_id, item_name, quantity, unit, min_quantity, unit_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
@@ -519,6 +520,7 @@ app.post('/api/inventory', authenticateToken, async (req, res) => {
 app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { itemName, quantity, unit, minQuantity, unitPrice } = req.body;
+    console.log(`[API] Atuallizando item do estoque ID: ${id}, Nome: ${itemName || '(apenas qty)'}`);
     try {
         if (itemName !== undefined) {
             await pool.query(

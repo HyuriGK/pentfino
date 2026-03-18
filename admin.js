@@ -737,20 +737,31 @@ const admin = {
     },
 
     openEditInventory(id) {
-        const item = this.inventory.find(i => i.id === id);
+        const item = admin.inventory.find(i => i.id === id);
         if (!item) return;
 
-        this.editingInventoryId = id;
+        admin.editingInventoryId = id;
+        document.getElementById('modal-inv-edit-id').value = id;
+        
+        const modal = document.getElementById('modal-inventory');
+        modal.querySelector('.modal-title').innerText = 'Editar Item';
+        modal.querySelector('.btn-primary').innerText = 'Salvar Alterações';
+        
+        // Show Debug Info
+        const debugDiv = document.getElementById('modal-inv-debug');
+        const debugId = document.getElementById('modal-inv-debug-id');
+        if (debugDiv && debugId) {
+            debugDiv.style.display = 'block';
+            debugId.innerText = id;
+        }
+
         document.getElementById('modal-inv-name').value = item.item_name;
         document.getElementById('modal-inv-qty').value = item.quantity;
         document.getElementById('modal-inv-unit').value = item.unit;
         document.getElementById('modal-inv-min').value = item.min_quantity;
-        document.getElementById('modal-inv-price').value = item.unit_price;
+        document.getElementById('modal-inv-price').value = item.unit_price || 0;
 
-        const modal = document.getElementById('modal-inventory');
-        modal.querySelector('.modal-title').innerText = 'Editar Item';
-        modal.querySelector('.btn-primary').innerText = 'Salvar Alterações';
-        this.openModal('inventory');
+        admin.openModal('inventory');
     },
 
     async deleteInventory(id, name) {
@@ -776,21 +787,29 @@ const admin = {
 
     // Modal Logic
     async openModal(type) {
-        if (type === 'inventory' && !this.editingInventoryId) {
+        if (type === 'inventory' && admin.editingInventoryId === null) {
             // Reset for "New Item"
-            document.getElementById('modal-inventory').querySelector('.modal-title').innerText = 'Novo Item';
-            document.getElementById('modal-inventory').querySelector('.btn-primary').innerText = 'Adicionar ao Estoque';
+            const modal = document.getElementById('modal-inventory');
+            modal.querySelector('.modal-title').innerText = 'Novo Item';
+            modal.querySelector('.btn-primary').innerText = 'Adicionar ao Estoque';
             document.getElementById('modal-inv-name').value = '';
             document.getElementById('modal-inv-qty').value = '';
             document.getElementById('modal-inv-unit').value = 'un';
             document.getElementById('modal-inv-min').value = '5';
             document.getElementById('modal-inv-price').value = '';
+            document.getElementById('modal-inv-edit-id').value = '';
+            
+            const debugDiv = document.getElementById('modal-inv-debug');
+            if (debugDiv) debugDiv.style.display = 'none';
         }
 
         if (type === 'sale') {
-            await this.loadInventory(); // Ensure we have latest for the select
-            await this.loadProfessionals();
-            this.prepareSaleModal();
+            const statusLabel = document.getElementById('modal-sale-item-status');
+            if (statusLabel) statusLabel.innerText = 'Buscando produtos...';
+            
+            await admin.loadInventory(); 
+            await admin.loadProfessionals();
+            admin.prepareSaleModal();
         }
 
         document.getElementById(`modal-${type}`).classList.remove('hidden');
@@ -798,9 +817,11 @@ const admin = {
     },
 
     closeModal(type) {
-        if (type === 'inventory') this.editingInventoryId = null;
+        if (type === 'inventory') {
+            admin.editingInventoryId = null;
+            document.getElementById('modal-inv-edit-id').value = '';
+        }
         document.getElementById(`modal-${type}`).classList.add('hidden');
-        // Check if any other modal is still visible
         const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
         if (!isOpen) {
             document.body.classList.remove('modal-open');
@@ -833,8 +854,14 @@ const admin = {
         }
         
         try {
-            if (admin.editingInventoryId !== null) {
-                await auth.apiRequest(`/api/inventory/${admin.editingInventoryId}`, {
+            // Get ID from both the JS variable and the hidden input for maximum safety
+            const domId = document.getElementById('modal-inv-edit-id').value;
+            const finalId = admin.editingInventoryId || (domId ? parseInt(domId) : null);
+
+            console.log('DEBUG: Salvando Estoque. ID de Edição:', finalId);
+
+            if (finalId !== null) {
+                await auth.apiRequest(`/api/inventory/${finalId}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ itemName, quantity, unit, minQuantity, unitPrice })
                 });
@@ -849,6 +876,7 @@ const admin = {
             admin.closeModal('inventory');
             await admin.loadInventory();
         } catch (err) { 
+            console.error('ERRO AO SALVAR ESTOQUE:', err);
             alert('Erro ao salvar item no estoque'); 
         } finally {
             admin.isSavingInventory = false;
@@ -893,21 +921,24 @@ const admin = {
         const itemSelect = document.getElementById('modal-sale-item');
         const profSelect = document.getElementById('modal-sale-prof');
         const commRateInput = document.getElementById('modal-sale-comm-rate');
+        const statusLabel = document.getElementById('modal-sale-item-status');
         
         if (!itemSelect) return;
 
         // Force explicit reference to data
         const items = admin.inventory || [];
-        console.log('DEBUG: Sale Modal - Inventory Items:', items);
+        console.log('DEBUG: Modal de Venda - Itens de Estoque:', items);
 
         if (items.length === 0) {
-            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque - tente cadastrar primeiro)</option>';
+            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque - cadastre no menu estoque)</option>';
+            if (statusLabel) statusLabel.innerText = 'Nenhum item encontrado no banco de dados.';
         } else {
             let options = '<option value="">Selecione um produto...</option>';
             items.forEach(i => {
                 options += `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>`;
             });
             itemSelect.innerHTML = options;
+            if (statusLabel) statusLabel.innerText = `${items.length} itens carregados com sucesso.`;
         }
         
         // Populate Professionals
