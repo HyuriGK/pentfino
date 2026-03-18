@@ -1,3 +1,4 @@
+console.log('[BARBERPOINT] admin.js v3 loaded');
 // Global State for diagnostic purposes
 window.__BARBER_DEBUG__ = {
     lastInventoryLoad: null,
@@ -828,16 +829,34 @@ const admin = {
         }
 
         if (type === 'sale') {
-            const statusLabel = document.getElementById('modal-sale-item-status');
-            if (statusLabel) statusLabel.innerText = 'Sincronizando estoque...';
+            // Show modal FIRST so user sees something immediately
+            document.getElementById('modal-sale').classList.remove('hidden');
+            document.body.classList.add('modal-open');
             
-            await admin.loadInventory(); 
-            await admin.loadProfessionals();
+            const statusEl = document.getElementById('modal-sale-item-status');
+            if (statusEl) statusEl.innerText = 'Sincronizando estoque...';
             
-            // Added small delay to ensure DOM is ready and data is bound
-            setTimeout(() => {
+            try {
+                await admin.loadInventory();
+            } catch(err) {
+                console.error('[SALE] Erro ao carregar estoque:', err);
+            }
+            
+            try {
+                await admin.loadProfessionals();
+            } catch(err) {
+                console.error('[SALE] Erro ao carregar profissionais:', err);
+            }
+            
+            // Call prepareSaleModal DIRECTLY (no setTimeout)
+            try {
                 admin.prepareSaleModal();
-            }, 300);
+            } catch(err) {
+                console.error('[SALE] Erro ao popular modal de venda:', err);
+                if (statusEl) statusEl.innerText = 'Erro: ' + err.message;
+            }
+            
+            return; // Already showed the modal above, skip the code below
         }
 
         document.getElementById(`modal-${type}`).classList.remove('hidden');
