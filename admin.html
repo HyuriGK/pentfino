@@ -41,11 +41,11 @@
 
                     <div class="input-group-new">
                         <label>E-mail Corporativo</label>
-                        <input type="email" id="email" placeholder="nome@suabarbearia.com">
+                        <input autocomplete="off" type="email" id="email" placeholder="nome@suabarbearia.com">
                     </div>
                     <div class="input-group-new">
                         <label>Senha</label>
-                        <input type="password" id="password" placeholder="••••••••">
+                        <input autocomplete="off" type="password" id="password" placeholder="••••••••">
                     </div>
 
                     <button class="btn btn-primary btn-full" onclick="auth.login()">Entrar no Dashboard</button>
@@ -63,15 +63,15 @@
 
                     <div class="input-group-new">
                         <label>Nome da Unidade</label>
-                        <input type="text" id="reg-shop" placeholder="Ex: BarberPoint Matriz">
+                        <input autocomplete="off" type="text" id="reg-shop" placeholder="Ex: BarberPoint Matriz">
                     </div>
                     <div class="input-group-new">
                         <label>E-mail Principal</label>
-                        <input type="email" id="reg-email" placeholder="admin@exemplo.com">
+                        <input autocomplete="off" type="email" id="reg-email" placeholder="admin@exemplo.com">
                     </div>
                     <div class="input-group-new">
                         <label>Senha de Acesso</label>
-                        <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
+                        <input autocomplete="off" type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
                     </div>
 
                     <button class="btn btn-primary btn-full" onclick="auth.register()">Finalizar Cadastro</button>
@@ -122,6 +122,15 @@
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     <span class="nav-text">Clientes</span>
+                </div>
+                <div class="nav-item" onclick="admin.showTab('vendas')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="nav-text">Vendas</span>
                 </div>
                 <div class="nav-item" onclick="admin.showTab('estoque')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -268,7 +277,7 @@
                     <button class="btn btn-primary" onclick="admin.openModal('client')">+ Novo Cliente</button>
                 </div>
                 <div class="input-group-new" style="margin-bottom: 2rem; max-width: 400px;">
-                    <input type="text" id="client-search" placeholder="Buscar por nome ou WhatsApp..."
+                    <input autocomplete="off" type="text" id="client-search" placeholder="Buscar por nome ou WhatsApp..."
                         onkeyup="admin.filterClients()">
                 </div>
                 <div class="data-table-container">
@@ -283,6 +292,32 @@
                             </tr>
                         </thead>
                         <tbody id="clients-table-body">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB VENDAS -->
+            <div id="tab-vendas" class="hidden">
+                <div class="list-header">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+                        Registro de Vendas</h2>
+                    <button class="btn btn-primary" onclick="admin.openModal('sale')">+ Nova Venda</button>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Produto</th>
+                                <th>Qtd</th>
+                                <th>Subtotal</th>
+                                <th>Vendedor</th>
+                                <th>Comissão</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-table-body">
                             <!-- Dynamic Rows -->
                         </tbody>
                     </table>
@@ -430,15 +465,15 @@
             </header>
             <div class="input-group-new">
                 <label>Nome Completo</label>
-                <input type="text" id="modal-client-name" placeholder="Ex: João Silva">
+                <input autocomplete="off" type="text" id="modal-client-name" placeholder="Ex: João Silva">
             </div>
             <div class="input-group-new">
                 <label>WhatsApp</label>
-                <input type="tel" id="modal-client-phone" placeholder="Ex: (11) 99999-9999">
+                <input autocomplete="off" type="tel" id="modal-client-phone" placeholder="Ex: (11) 99999-9999">
             </div>
             <div class="input-group-new">
                 <label>Notas/Observações</label>
-                <input type="text" id="modal-client-notes" placeholder="Preferências, alergias, etc.">
+                <input autocomplete="off" type="text" id="modal-client-notes" placeholder="Preferências, alergias, etc.">
             </div>
             <button class="btn btn-primary btn-full" onclick="admin.saveClient()">Cadastrar Cliente</button>
         </div>
@@ -453,23 +488,23 @@
             </header>
             <div class="input-group-new">
                 <label>Nome do Produto</label>
-                <input type="text" id="modal-inv-name" placeholder="Ex: Pomada Efeito Matte">
+                <input autocomplete="off" type="text" id="modal-inv-name" placeholder="Ex: Pomada Efeito Matte">
             </div>
             <div class="input-group-new">
                 <label>Quantidade Inicial</label>
-                <input type="number" id="modal-inv-qty" placeholder="0">
+                <input autocomplete="off" type="number" id="modal-inv-qty" placeholder="0">
             </div>
             <div class="input-group-new">
                 <label>Unidade</label>
-                <input type="text" id="modal-inv-unit" placeholder="Ex: un, ml, kg">
+                <input autocomplete="off" type="text" id="modal-inv-unit" placeholder="Ex: un, ml, kg">
             </div>
             <div class="input-group-new">
                 <label>Mínimo em Estoque (Alerta)</label>
-                <input type="number" id="modal-inv-min" placeholder="5">
+                <input autocomplete="off" type="number" id="modal-inv-min" placeholder="5">
             </div>
             <div class="input-group-new">
                 <label>Preço Unitário (Custo)</label>
-                <input type="number" id="modal-inv-price" placeholder="R$ 0,00" step="0.01">
+                <input autocomplete="off" type="number" id="modal-inv-price" placeholder="R$ 0,00" step="0.01">
             </div>
             <button class="btn btn-primary btn-full" onclick="admin.saveInventory()">Adicionar ao Estoque</button>
         </div>
@@ -484,19 +519,19 @@
             </header>
             <div class="input-group-new">
                 <label>Nome do Profissional</label>
-                <input type="text" id="modal-prof-name" placeholder="Ex: Rodrigo Barbeiro">
+                <input autocomplete="off" type="text" id="modal-prof-name" placeholder="Ex: Rodrigo Barbeiro">
             </div>
             <div class="input-group-new">
                 <label>WhatsApp</label>
-                <input type="tel" id="modal-prof-phone" placeholder="Ex: (11) 99999-9999">
+                <input autocomplete="off" type="tel" id="modal-prof-phone" placeholder="Ex: (11) 99999-9999">
             </div>
             <div class="input-group-new">
                 <label>Imagem (URL)</label>
-                <input type="text" id="modal-prof-photo" placeholder="https://...">
+                <input autocomplete="off" type="text" id="modal-prof-photo" placeholder="https://...">
             </div>
             <div class="input-group-new">
                 <label>Comissão (%)</label>
-                <input type="number" id="modal-prof-commission" placeholder="Ex: 20">
+                <input autocomplete="off" type="number" id="modal-prof-commission" placeholder="Ex: 20">
             </div>
             <div class="input-group-new">
                 <label>Serviços Realizados</label>
@@ -518,15 +553,15 @@
             </header>
             <div class="input-group-new">
                 <label>Nome do Serviço</label>
-                <input type="text" id="modal-svc-name" placeholder="Ex: Barba Terapia">
+                <input autocomplete="off" type="text" id="modal-svc-name" placeholder="Ex: Barba Terapia">
             </div>
             <div class="input-group-new">
                 <label>Preço (R$)</label>
-                <input type="number" id="modal-svc-price" placeholder="R$ 0,00">
+                <input autocomplete="off" type="number" id="modal-svc-price" placeholder="R$ 0,00">
             </div>
             <div class="input-group-new">
                 <label>Duração Estimada</label>
-                <input type="text" id="modal-svc-duration" placeholder="Ex: 30 min">
+                <input autocomplete="off" type="text" id="modal-svc-duration" placeholder="Ex: 30 min">
             </div>
             <button class="btn btn-primary btn-full" onclick="admin.saveService()">Adicionar Serviço</button>
         </div>
@@ -698,7 +733,7 @@
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Este é o seu link exclusivo
                     para clientes realizarem agendamentos diretos.</p>
                 <div class="input-group-new" style="margin-bottom: 0;">
-                    <input type="text" id="share-link-input" readonly
+                    <input autocomplete="off" type="text" id="share-link-input" readonly
                         style="text-align: center; background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">
                 </div>
             </div>
@@ -778,6 +813,38 @@
                 <button class="btn btn-primary" style="background: var(--danger); color: #fff;"
                     onclick="auth.logout()">Sim, Sair</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL NEW SALE -->
+    <div id="modal-sale" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Registrar Venda</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('sale')">×</button>
+            </header>
+            <div class="input-group-new">
+                <label>Produto em Estoque</label>
+                <select id="modal-sale-item" style="width: 100%; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright);">
+                    <!-- Injected by JS -->
+                </select>
+            </div>
+            <div class="input-group-new">
+                <label>Quantidade</label>
+                <input autocomplete="off" type="number" id="modal-sale-qty" value="1" min="1">
+            </div>
+            <div class="input-group-new">
+                <label>Profissional / Vendedor (Opcional)</label>
+                <select id="modal-sale-prof" style="width: 100%; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright);">
+                    <option value="">Nenhum (Venda Direta)</option>
+                    <!-- Injected by JS -->
+                </select>
+            </div>
+            <div class="input-group-new" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                <input autocomplete="off" type="checkbox" id="modal-sale-commission" checked style="width: auto;">
+                <label style="margin-bottom: 0;">Aplicar Comissão ao Profissional</label>
+            </div>
+            <button class="btn btn-primary btn-full" style="margin-top: 20px;" onclick="admin.saveSale()">Confirmar Venda</button>
         </div>
     </div>
 </body>

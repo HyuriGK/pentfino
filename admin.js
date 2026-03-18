@@ -188,8 +188,10 @@ const admin = {
     clients: [],
     allClients: [], // For filtering
     inventory: [],
+    sales: [],
     professionals: [],
     services: [],
+    editingInventoryId: null,
 
     async init() {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
@@ -198,6 +200,7 @@ const admin = {
         await this.loadInventory();
         await this.loadProfessionals();
         await this.loadServices();
+        await this.loadSales();
         this.startInsights();
     },
 
@@ -266,7 +269,7 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'estoque', 'profissionais', 'servicos', 'comissoes'];
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -295,6 +298,10 @@ const admin = {
 
         if (tab === 'estoque') {
             this.loadInventory();
+        }
+
+        if (tab === 'vendas') {
+            this.loadSales();
         }
 
         if (tab === 'profissionais') {
@@ -521,7 +528,7 @@ const admin = {
 
     updateStats(stats) {
         const revenue = parseFloat(stats.revenue || 0);
-        document.getElementById('stat-revenue').innerText = `R$ ${revenue.toLocaleString('pt-BR')}`;
+        document.getElementById('stat-revenue').innerText = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         document.getElementById('stat-count').innerText = stats.count || 0;
         document.getElementById('stat-scheduled-count').innerText = this.pending.length;
     },
@@ -715,19 +722,37 @@ const admin = {
             return `
                 <tr>
                     <td><strong style="color:#fff">${i.item_name}</strong></td>
-                    <td>${i.quantity} ${i.unit}</td>
+                    <td style="font-weight: 600;">${i.quantity} <small>${i.unit}</small></td>
                     <td>R$ ${parseFloat(i.unit_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>
                         <div style="display:flex; gap:8px; align-items: center;">
                             <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity - 1})">−</button>
                             <button class="btn btn-ghost" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0;" onclick="admin.updateQty(${i.id}, ${i.quantity + 1})">+</button>
-                            <button class="btn btn-ghost" style="margin-left: 10px; color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteInventory(${i.id}, '${i.item_name.replace(/'/g, "\\'")}')">×</button>
+                            <button class="btn btn-ghost" style="margin-left: 8px; color: var(--primary); font-size: 0.75rem; padding: 4px 8px;" onclick="admin.openEditInventory(${i.id})">EDITAR</button>
+                            <button class="btn btn-ghost" style="margin-left: 4px; color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteInventory(${i.id}, '${i.item_name.replace(/'/g, "\\'")}')">×</button>
                         </div>
                     </td>
                 </tr>
             `;
         }).join('');
+    },
+
+    openEditInventory(id) {
+        const item = this.inventory.find(i => i.id === id);
+        if (!item) return;
+
+        this.editingInventoryId = id;
+        document.getElementById('modal-inv-name').value = item.item_name;
+        document.getElementById('modal-inv-qty').value = item.quantity;
+        document.getElementById('modal-inv-unit').value = item.unit;
+        document.getElementById('modal-inv-min').value = item.min_quantity;
+        document.getElementById('modal-inv-price').value = item.unit_price;
+
+        const modal = document.getElementById('modal-inventory');
+        modal.querySelector('.modal-title').innerText = 'Editar Item';
+        modal.querySelector('.btn-primary').innerText = 'Salvar Alterações';
+        this.openModal('inventory');
     },
 
     async deleteInventory(id, name) {
@@ -753,11 +778,27 @@ const admin = {
 
     // Modal Logic
     openModal(type) {
+        if (type === 'inventory' && !this.editingInventoryId) {
+            // Reset for "New Item"
+            document.getElementById('modal-inventory').querySelector('.modal-title').innerText = 'Novo Item';
+            document.getElementById('modal-inventory').querySelector('.btn-primary').innerText = 'Adicionar ao Estoque';
+            document.getElementById('modal-inv-name').value = '';
+            document.getElementById('modal-inv-qty').value = '';
+            document.getElementById('modal-inv-unit').value = 'un';
+            document.getElementById('modal-inv-min').value = '5';
+            document.getElementById('modal-inv-price').value = '';
+        }
+
+        if (type === 'sale') {
+            this.prepareSaleModal();
+        }
+
         document.getElementById(`modal-${type}`).classList.remove('hidden');
         document.body.classList.add('modal-open');
     },
 
     closeModal(type) {
+        if (type === 'inventory') this.editingInventoryId = null;
         document.getElementById(`modal-${type}`).classList.add('hidden');
         // Check if any other modal is still visible
         const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
@@ -766,21 +807,108 @@ const admin = {
         }
     },
 
-    async saveClient() {
-        const name = document.getElementById('modal-client-name').value;
-        const phone = document.getElementById('modal-client-phone').value;
-        const notes = document.getElementById('modal-client-notes').value;
+    async saveInventory() {
+        const itemName = document.getElementById('modal-inv-name').value;
+        const quantity = parseInt(document.getElementById('modal-inv-qty').value);
+        const unit = document.getElementById('modal-inv-unit').value;
+        const minQuantity = parseInt(document.getElementById('modal-inv-min').value);
+        const unitPrice = parseFloat(document.getElementById('modal-inv-price').value || 0);
 
-        if(!name || !phone) return alert('Nome e Telefone são obrigatórios');
+        if(!itemName || isNaN(quantity)) return alert('Preencha os campos obrigatórios');
         
         try {
-            await auth.apiRequest('/api/clients', {
+            if (this.editingInventoryId) {
+                await auth.apiRequest(`/api/inventory/${this.editingInventoryId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ itemName, quantity, unit, minQuantity, unitPrice })
+                });
+                auth.notify('Item atualizado com sucesso!', 'success');
+            } else {
+                await auth.apiRequest('/api/inventory', {
+                    method: 'POST',
+                    body: JSON.stringify({ barberId: auth.user.id, itemName, quantity, unit, minQuantity, unitPrice })
+                });
+                auth.notify('Item adicionado ao estoque!', 'success');
+            }
+            this.closeModal('inventory');
+            this.loadInventory();
+        } catch (err) { alert('Erro ao salvar item no estoque'); }
+    },
+
+    // Sales Content
+    async loadSales() {
+        try {
+            const res = await auth.apiRequest(`/api/sales/${auth.user.id}`);
+            this.sales = await res.json();
+            this.renderSales();
+        } catch (err) { console.error('Erro ao carregar vendas'); }
+    },
+
+    renderSales() {
+        const container = document.getElementById('sales-table-body');
+        if (!container) return;
+
+        if (this.sales.length === 0) {
+            container.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhuma venda registrada até o momento.</td></tr>';
+            return;
+        }
+
+        container.innerHTML = this.sales.map(s => `
+            <tr>
+                <td>${new Date(s.created_at).toLocaleDateString('pt-BR')} ${new Date(s.created_at).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })}</td>
+                <td><strong style="color:var(--primary)">${s.item_name}</strong></td>
+                <td>${s.quantity}</td>
+                <td style="font-weight: 600;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td>${s.professional_name || '<small style="opacity:0.5">Venda Direta</small>'}</td>
+                <td>${s.has_commission ? '<span class="svc-tag" style="color:var(--success)">S</span>' : '<span class="svc-tag" style="color:var(--text-muted)">N</span>'}</td>
+            </tr>
+        `).join('');
+    },
+
+    prepareSaleModal() {
+        const itemSelect = document.getElementById('modal-sale-item');
+        const profSelect = document.getElementById('modal-sale-prof');
+        
+        itemSelect.innerHTML = this.inventory.map(i => `
+            <option value="${i.id}" data-price="${i.unit_price}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>
+        `).join('');
+
+        profSelect.innerHTML = '<option value="">Nenhum (Venda Direta)</option>' + this.professionals.map(p => `
+            <option value="${p.id}">${p.name}</option>
+        `).join('');
+    },
+
+    async saveSale() {
+        const itemId = document.getElementById('modal-sale-item').value;
+        const profId = document.getElementById('modal-sale-prof').value;
+        const qty = parseInt(document.getElementById('modal-sale-qty').value);
+        const hasComm = document.getElementById('modal-sale-commission').checked;
+
+        if (!itemId || isNaN(qty) || qty <= 0) return alert('Selecione um produto e a quantidade');
+
+        const item = this.inventory.find(i => String(i.id) === String(itemId));
+        if (item && qty > item.quantity) {
+            return auth.notify(`Estoque insuficiente! Você tem apenas ${item.quantity} ${item.unit}.`, 'error');
+        }
+
+        try {
+            await auth.apiRequest('/api/sales', {
                 method: 'POST',
-                body: JSON.stringify({ barberId: auth.user.id, name, phone, notes })
+                body: JSON.stringify({
+                    barberId: auth.user.id,
+                    itemId,
+                    professionalId: profId || null,
+                    quantity: qty,
+                    price: item.unit_price,
+                    hasCommission: hasComm
+                })
             });
-            this.closeModal('client');
-            this.loadClients();
-        } catch (err) { alert('Erro ao salvar cliente'); }
+            auth.notify('Venda registrada com sucesso!', 'success');
+            this.closeModal('sale');
+            this.loadSales();
+            this.loadInventory();
+            this.loadData(); // Update dashboard stats
+        } catch (err) { alert('Erro ao registrar venda'); }
     },
 
     // Professionals Management
