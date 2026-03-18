@@ -808,8 +808,14 @@ const admin = {
     },
 
     async saveInventory() {
+        if (admin.isSavingInventory) return;
+        admin.isSavingInventory = true;
+        
         const btn = document.querySelector('#modal-inventory .btn-primary');
-        if (btn) btn.disabled = true;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = admin.editingInventoryId !== null ? 'ATUALIZANDO...' : 'ADICIONANDO...';
+        }
 
         const itemName = document.getElementById('modal-inv-name').value;
         const quantity = parseInt(document.getElementById('modal-inv-qty').value);
@@ -818,13 +824,17 @@ const admin = {
         const unitPrice = parseFloat(document.getElementById('modal-inv-price').value || 0);
 
         if(!itemName || isNaN(quantity)) {
-            if (btn) btn.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = admin.editingInventoryId !== null ? 'Salvar Alterações' : 'Adicionar ao Estoque';
+            }
+            admin.isSavingInventory = false;
             return alert('Preencha os campos obrigatórios');
         }
         
         try {
-            if (this.editingInventoryId !== null) {
-                await auth.apiRequest(`/api/inventory/${this.editingInventoryId}`, {
+            if (admin.editingInventoryId !== null) {
+                await auth.apiRequest(`/api/inventory/${admin.editingInventoryId}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ itemName, quantity, unit, minQuantity, unitPrice })
                 });
@@ -836,12 +846,16 @@ const admin = {
                 });
                 auth.notify('Item adicionado ao estoque!', 'success');
             }
-            this.closeModal('inventory');
-            await this.loadInventory();
+            admin.closeModal('inventory');
+            await admin.loadInventory();
         } catch (err) { 
             alert('Erro ao salvar item no estoque'); 
         } finally {
-            if (btn) btn.disabled = false;
+            admin.isSavingInventory = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = admin.editingInventoryId !== null ? 'Salvar Alterações' : 'Adicionar ao Estoque';
+            }
         }
     },
 
@@ -882,12 +896,12 @@ const admin = {
         
         if (!itemSelect) return;
 
-        // Populate Products
-        const items = admin.inventory || this.inventory || [];
-        console.log('DEBUG: Populating Sale Modal. Inventory count:', items.length);
+        // Force explicit reference to data
+        const items = admin.inventory || [];
+        console.log('DEBUG: Sale Modal - Inventory Items:', items);
 
         if (items.length === 0) {
-            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque)</option>';
+            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque - tente cadastrar primeiro)</option>';
         } else {
             let options = '<option value="">Selecione um produto...</option>';
             items.forEach(i => {
@@ -896,18 +910,14 @@ const admin = {
             itemSelect.innerHTML = options;
         }
         
-        // Force refresh of the select view
-        itemSelect.dispatchEvent(new Event('change'));
-
         // Populate Professionals
         if (profSelect) {
             let profOptions = '<option value="">Nenhum (Venda Direta)</option>';
-            (this.professionals || []).forEach(p => {
+            (admin.professionals || []).forEach(p => {
                 profOptions += `<option value="${p.id}" data-commission="${p.commission}">${p.name}</option>`;
             });
             profSelect.innerHTML = profOptions;
             
-            // Auto-fill commission when professional is selected
             profSelect.onchange = (e) => {
                 const selected = e.target.options[e.target.selectedIndex];
                 const comm = selected.dataset.commission || 0;
@@ -915,7 +925,7 @@ const admin = {
             };
         }
 
-        // Reset inputs
+        // Reset fields
         if (document.getElementById('modal-sale-qty')) document.getElementById('modal-sale-qty').value = 1;
         if (document.getElementById('modal-sale-commission')) document.getElementById('modal-sale-commission').checked = true;
         if (document.getElementById('modal-sale-comm-rate-group')) document.getElementById('modal-sale-comm-rate-group').style.display = 'block';
