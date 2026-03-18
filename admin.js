@@ -870,28 +870,40 @@ const admin = {
         const profSelect = document.getElementById('modal-sale-prof');
         const commRateInput = document.getElementById('modal-sale-comm-rate');
         
-        if (!itemSelect || !profSelect) return;
+        if (!itemSelect) return;
 
-        itemSelect.innerHTML = (this.inventory || []).map(i => `
-            <option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>
-        `).join('');
+        // Populate Products
+        if (!this.inventory || this.inventory.length === 0) {
+            itemSelect.innerHTML = '<option value="">Nenhum produto em estoque...</option>';
+        } else {
+            let options = '<option value="">Selecione um produto...</option>';
+            this.inventory.forEach(i => {
+                options += `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit} em estoque)</option>`;
+            });
+            itemSelect.innerHTML = options;
+        }
 
-        profSelect.innerHTML = '<option value="">Nenhum (Venda Direta)</option>' + (this.professionals || []).map(p => `
-            <option value="${p.id}" data-commission="${p.commission}">${p.name}</option>
-        `).join('');
+        // Populate Professionals
+        if (profSelect) {
+            let profOptions = '<option value="">Nenhum (Venda Direta)</option>';
+            (this.professionals || []).forEach(p => {
+                profOptions += `<option value="${p.id}" data-commission="${p.commission}">${p.name}</option>`;
+            });
+            profSelect.innerHTML = profOptions;
+            
+            // Auto-fill commission when professional is selected
+            profSelect.onchange = (e) => {
+                const selected = e.target.options[e.target.selectedIndex];
+                const comm = selected.dataset.commission || 0;
+                if (commRateInput) commRateInput.value = comm;
+            };
+        }
 
         // Reset inputs
-        document.getElementById('modal-sale-qty').value = 1;
-        document.getElementById('modal-sale-commission').checked = true;
-        document.getElementById('modal-sale-comm-rate-group').style.display = 'block';
-        commRateInput.value = 0;
-
-        // Auto-fill commission when professional is selected
-        profSelect.onchange = (e) => {
-            const selected = e.target.options[e.target.selectedIndex];
-            const comm = selected.dataset.commission || 0;
-            commRateInput.value = comm;
-        };
+        if (document.getElementById('modal-sale-qty')) document.getElementById('modal-sale-qty').value = 1;
+        if (document.getElementById('modal-sale-commission')) document.getElementById('modal-sale-commission').checked = true;
+        if (document.getElementById('modal-sale-comm-rate-group')) document.getElementById('modal-sale-comm-rate-group').style.display = 'block';
+        if (commRateInput) commRateInput.value = 0;
     },
 
     async saveSale() {
