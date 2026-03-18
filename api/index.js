@@ -3,6 +3,23 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'barberpoint_fallback_secret';
+
+// Auth Middleware
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ success: false, message: 'Token não fornecido' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ success: false, message: 'Token inválido' });
+        req.user = user;
+        next();
+    });
+};
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -30,8 +47,18 @@ app.post('/api/login', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM barbers WHERE email = $1', [email]);
         const user = result.rows[0];
-        if (user && user.password === password) {
-            res.json({ success: true, user: { id: user.id, email: user.email, shop: user.shop_name } });
+        
+        if (user && await bcrypt.compare(password, user.password)) {
+            const token = jwt.sign(
+                { id: user.id, email: user.email },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+            res.json({ 
+                success: true, 
+                token, 
+                user: { id: user.id, email: user.email, shop: user.shop_name } 
+            });
         } else {
             res.status(401).json({ success: false, message: 'Credenciais inválidas' });
         }
@@ -44,18 +71,27 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/register', async (req, res) => {
     const { email, password, shop } = req.body;
     try {
+        const hashedPassword = await bcrypt.hash(password, 10);
         const result = await pool.query(
             'INSERT INTO barbers (email, password, shop_name) VALUES ($1, $2, $3) RETURNING id, email, shop_name',
-            [email, password, shop]
+            [email, hashedPassword, shop]
         );
-        res.json({ success: true, user: result.rows[0] });
+        
+        const user = result.rows[0];
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({ success: true, token, user });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Erro ao registrar' });
     }
 });
 
-app.get('/api/appointments/:barberId', async (req, res) => {
+app.get('/api/appointments/:barberId', authenticateToken, async (req, res) => {
     try {
         const { barberId } = req.params;
         // Fetch all appointments for the calendar (pending, completed, canceled)
@@ -131,7 +167,7 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
-app.patch('/api/appointments/:id', async (req, res) => {
+app.patch('/api/appointments/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     try {
@@ -143,7 +179,7 @@ app.patch('/api/appointments/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/appointments/:id', async (req, res) => {
+app.delete('/api/appointments/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM appointments WHERE id = $1', [id]);
@@ -154,7 +190,7 @@ app.delete('/api/appointments/:id', async (req, res) => {
     }
 });
 
-app.get('/api/stats/:barberId', async (req, res) => {
+app.get('/api/stats/:barberId', authenticateToken, async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query(`
@@ -171,7 +207,7 @@ app.get('/api/stats/:barberId', async (req, res) => {
 });
 
 // Clients API - Fixed last_service_date to use appointment_date for business logic
-app.get('/api/clients/:barberId', async (req, res) => {
+app.get('/api/clients/:barberId', authenticateToken, async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query(`
@@ -195,7 +231,7 @@ app.get('/api/clients/:barberId', async (req, res) => {
     }
 });
 
-app.get('/api/clients/:id/history', async (req, res) => {
+app.get('/api/clients/:id/history', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         const clientResult = await pool.query('SELECT * FROM clients WHERE id = $1', [id]);
@@ -230,7 +266,7 @@ app.get('/api/clients/:id/history', async (req, res) => {
     }
 });
 
-app.delete('/api/clients/:id', async (req, res) => {
+app.delete('/api/clients/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         const clientRes = await pool.query('SELECT name, phone FROM clients WHERE id = $1', [id]);
@@ -252,7 +288,7 @@ app.delete('/api/clients/:id', async (req, res) => {
 });
 
 // Services API
-app.get('/api/services/:barberId', async (req, res) => {
+app.get('/api/services/:barberId', authenticateToken, async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query('SELECT * FROM services WHERE barber_id = $1 ORDER BY name ASC', [barberId]);
@@ -263,7 +299,7 @@ app.get('/api/services/:barberId', async (req, res) => {
     }
 });
 
-app.post('/api/services', async (req, res) => {
+app.post('/api/services', authenticateToken, async (req, res) => {
     const { barberId, name, price, duration } = req.body;
     try {
         const result = await pool.query(
@@ -277,7 +313,7 @@ app.post('/api/services', async (req, res) => {
     }
 });
 
-app.patch('/api/services/:id', async (req, res) => {
+app.patch('/api/services/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { name, price, duration } = req.body;
     try {
@@ -292,7 +328,7 @@ app.patch('/api/services/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/services/:id', async (req, res) => {
+app.delete('/api/services/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM professional_services WHERE service_id = $1', [id]);
@@ -305,7 +341,7 @@ app.delete('/api/services/:id', async (req, res) => {
 });
 
 // Professionals API
-app.get('/api/professionals/:barberId', async (req, res) => {
+app.get('/api/professionals/:barberId', authenticateToken, async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query(`
@@ -325,7 +361,7 @@ app.get('/api/professionals/:barberId', async (req, res) => {
     }
 });
 
-app.post('/api/professionals', async (req, res) => {
+app.post('/api/professionals', authenticateToken, async (req, res) => {
     const { barberId, name, phone, photoUrl, commission } = req.body;
     try {
         const result = await pool.query(
@@ -369,7 +405,7 @@ app.post('/api/professional-services', async (req, res) => {
     }
 });
 
-app.patch('/api/professionals/:id', async (req, res) => {
+app.patch('/api/professionals/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, phone, photoUrl, commission } = req.body;
@@ -384,7 +420,7 @@ app.patch('/api/professionals/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/professionals/:id', async (req, res) => {
+app.delete('/api/professionals/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         await pool.query('DELETE FROM professional_services WHERE professional_id = $1', [id]);
@@ -411,7 +447,7 @@ app.post('/api/clients', async (req, res) => {
 });
 
 // Inventory API
-app.get('/api/inventory/:barberId', async (req, res) => {
+app.get('/api/inventory/:barberId', authenticateToken, async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query('SELECT * FROM inventory WHERE barber_id = $1 ORDER BY item_name ASC', [barberId]);
@@ -422,7 +458,7 @@ app.get('/api/inventory/:barberId', async (req, res) => {
     }
 });
 
-app.post('/api/inventory', async (req, res) => {
+app.post('/api/inventory', authenticateToken, async (req, res) => {
     const { barberId, itemName, quantity, unit, minQuantity, unitPrice } = req.body;
     try {
         const result = await pool.query(
@@ -436,7 +472,7 @@ app.post('/api/inventory', async (req, res) => {
     }
 });
 
-app.patch('/api/inventory/:id', async (req, res) => {
+app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { quantity } = req.body;
     try {
@@ -448,7 +484,7 @@ app.patch('/api/inventory/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/inventory/:id', async (req, res) => {
+app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM inventory WHERE id = $1', [id]);

@@ -7,6 +7,7 @@ const auth = {
             return null;
         }
     })(),
+    token: localStorage.getItem('barberpoint_token'),
 
     init() {
         if (this.user && typeof this.user === 'object' && this.user.id) {
@@ -52,7 +53,9 @@ const auth = {
             const data = await res.json();
             if (data.success) {
                 this.user = data.user;
+                this.token = data.token;
                 localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
+                localStorage.setItem('barberpoint_token', this.token);
                 this.showDashboard();
             } else {
                 alert(data.message || 'Erro ao realizar login');
@@ -81,7 +84,9 @@ const auth = {
             const data = await res.json();
             if (data.success) {
                 this.user = data.user;
+                this.token = data.token;
                 localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
+                localStorage.setItem('barberpoint_token', this.token);
                 this.showDashboard();
             } else {
                 alert(data.message);
@@ -98,7 +103,29 @@ const auth = {
 
     logout() {
         localStorage.removeItem('barberpoint_user');
+        localStorage.removeItem('barberpoint_token');
         location.reload();
+    },
+
+    async apiRequest(url, options = {}) {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers,
+        };
+
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+
+        const res = await fetch(url, { ...options, headers });
+        
+        if (res.status === 401 || res.status === 403) {
+            console.warn('Sessão inválida ou expirada. Redirecionando para login.');
+            this.logout();
+            throw new Error('Unauthorized');
+        }
+
+        return res;
     }
 };
 
@@ -124,8 +151,8 @@ const admin = {
     async loadData() {
         try {
             const [aptRes, statRes] = await Promise.all([
-                fetch(`/api/appointments/${auth.user.id}`),
-                fetch(`/api/stats/${auth.user.id}`)
+                auth.apiRequest(`/api/appointments/${auth.user.id}`),
+                auth.apiRequest(`/api/stats/${auth.user.id}`)
             ]);
             
             const allApts = await aptRes.json();
@@ -402,9 +429,8 @@ const admin = {
 
     async executeCompletion(id) {
         try {
-            const res = await fetch(`/api/appointments/${id}`, {
+            const res = await auth.apiRequest(`/api/appointments/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'completed' })
             });
             if (res.ok) {
@@ -429,9 +455,8 @@ const admin = {
 
     async executeCancellation(id) {
         try {
-            const res = await fetch(`/api/appointments/${id}`, {
+            const res = await auth.apiRequest(`/api/appointments/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'canceled' })
             });
             if (res.ok) {
@@ -469,7 +494,7 @@ const admin = {
     // CRM / Clients Logic
     async loadClients() {
         try {
-            const res = await fetch(`/api/clients/${auth.user.id}`);
+            const res = await auth.apiRequest(`/api/clients/${auth.user.id}`);
             this.allClients = await res.json();
             this.renderClients(this.allClients);
         } catch (err) { console.error('Erro ao carregar clientes'); }
@@ -522,7 +547,7 @@ const admin = {
 
     async showClientDetails(clientId) {
         try {
-            const res = await fetch(`/api/clients/${clientId}/history`);
+            const res = await auth.apiRequest(`/api/clients/${clientId}/history`);
             const data = await res.json();
             
             const { client, history, stats } = data;
@@ -584,7 +609,7 @@ const admin = {
     async deleteClient(id, name) {
         this.openDeleteConfirm(`Deseja remover o cliente <strong>${name}</strong> e todo o seu histórico? Esta ação é irreversível.`, async () => {
             try {
-                await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+                await auth.apiRequest(`/api/clients/${id}`, { method: 'DELETE' });
                 this.loadClients();
                 this.closeModal('client-details');
                 this.closeModal('delete-confirm');
@@ -595,7 +620,7 @@ const admin = {
     async deleteAppointment(id, clientId) {
         this.openDeleteConfirm('Deseja excluir este registro de atendimento permanentemente?', async () => {
             try {
-                await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
+                await auth.apiRequest(`/api/appointments/${id}`, { method: 'DELETE' });
                 this.showClientDetails(clientId);
                 this.loadData();
                 this.closeModal('delete-confirm');
@@ -621,7 +646,7 @@ const admin = {
     // Inventory Logic
     async loadInventory() {
         try {
-            const res = await fetch(`/api/inventory/${auth.user.id}`);
+            const res = await auth.apiRequest(`/api/inventory/${auth.user.id}`);
             this.inventory = await res.json();
             this.renderInventory();
         } catch (err) { console.error('Erro ao carregar estoque'); }
@@ -655,7 +680,7 @@ const admin = {
     async deleteInventory(id, name) {
         this.openDeleteConfirm(`Deseja remover <strong>${name}</strong> do seu estoque?`, async () => {
             try {
-                await fetch(`/api/inventory/${id}`, { method: 'DELETE' });
+                await auth.apiRequest(`/api/inventory/${id}`, { method: 'DELETE' });
                 this.loadInventory();
                 this.closeModal('delete-confirm');
             } catch (err) { alert('Erro ao excluir item do estoque'); }
@@ -665,9 +690,8 @@ const admin = {
     async updateQty(id, newQty) {
         if (newQty < 0) return;
         try {
-            await fetch(`/api/inventory/${id}`, {
+            await auth.apiRequest(`/api/inventory/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantity: newQty })
             });
             this.loadInventory();
@@ -697,9 +721,8 @@ const admin = {
         if(!name || !phone) return alert('Nome e Telefone são obrigatórios');
         
         try {
-            await fetch('/api/clients', {
+            await auth.apiRequest('/api/clients', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ barberId: auth.user.id, name, phone, notes })
             });
             this.closeModal('client');
@@ -710,7 +733,7 @@ const admin = {
     // Professionals Management
     async loadProfessionals() {
         try {
-            const res = await fetch(`/api/professionals/${auth.user.id}`);
+            const res = await auth.apiRequest(`/api/professionals/${auth.user.id}`);
             this.professionals = await res.json();
             this.renderProfessionals();
         } catch (err) { console.error('Erro ao carregar profissionais'); }
@@ -803,15 +826,13 @@ const admin = {
         if(!name) return alert('Nome é obrigatório');
 
         try {
-            await fetch(`/api/professionals/${id}`, {
+            await auth.apiRequest(`/api/professionals/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, phone, photoUrl, commission: commission || 0 })
             });
             
-            await fetch('/api/professional-services', {
+            await auth.apiRequest('/api/professional-services', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ profId: id, serviceIds: selectedServices })
             });
 
@@ -823,7 +844,7 @@ const admin = {
     async deleteProfessional(id, name) {
         if (confirm(`Deseja remover ${name} da equipe? Esta ação não pode ser desfeita.`)) {
             try {
-                await fetch(`/api/professionals/${id}`, { method: 'DELETE' });
+                await auth.apiRequest(`/api/professionals/${id}`, { method: 'DELETE' });
                 await this.loadProfessionals();
             } catch (err) { alert('Erro ao remover profissional'); }
         }
@@ -839,17 +860,15 @@ const admin = {
         if(!name) return alert('Nome é obrigatório');
 
         try {
-            const res = await fetch('/api/professionals', {
+            const res = await auth.apiRequest('/api/professionals', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ barberId: auth.user.id, name, phone, photoUrl, commission: commission || 0 })
             });
             const prof = await res.json();
             
             // Link services
-            await fetch('/api/professional-services', {
+            await auth.apiRequest('/api/professional-services', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ profId: prof.id, serviceIds: selectedServices })
             });
 
@@ -861,7 +880,7 @@ const admin = {
     // Services Management
     async loadServices() {
         try {
-            const res = await fetch(`/api/services/${auth.user.id}`);
+            const res = await auth.apiRequest(`/api/services/${auth.user.id}`);
             this.services = await res.json();
             this.renderServices();
         } catch (err) { console.error('Erro ao carregar serviços'); }
@@ -900,7 +919,7 @@ const admin = {
     async deleteService(id, name) {
         if (confirm(`Deseja excluir o serviço "${name}"?`)) {
             try {
-                await fetch(`/api/services/${id}`, { method: 'DELETE' });
+                await auth.apiRequest(`/api/services/${id}`, { method: 'DELETE' });
                 this.loadServices();
             } catch (err) { alert('Erro ao excluir serviço'); }
         }
@@ -917,9 +936,8 @@ const admin = {
             const method = this.editingServiceId ? 'PATCH' : 'POST';
             const url = this.editingServiceId ? `/api/services/${this.editingServiceId}` : '/api/services';
             
-            await fetch(url, {
+            await auth.apiRequest(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ barberId: auth.user.id, name, price, duration })
             });
 
@@ -939,9 +957,8 @@ const admin = {
         if(!itemName || !quantity) return alert('Nome e Quantidade são obrigatórios');
 
         try {
-            await fetch('/api/inventory', {
+            await auth.apiRequest('/api/inventory', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     barberId: auth.user.id, 
                     itemName, 
