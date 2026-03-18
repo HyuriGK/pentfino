@@ -48,20 +48,28 @@ app.post('/api/login', async (req, res) => {
         const result = await pool.query('SELECT * FROM barbers WHERE email = $1', [email]);
         const user = result.rows[0];
         
-        if (user && await bcrypt.compare(password, user.password)) {
-            const token = jwt.sign(
-                { id: user.id, email: user.email },
-                JWT_SECRET,
-                { expiresIn: '7d' }
-            );
-            res.json({ 
-                success: true, 
-                token, 
-                user: { id: user.id, email: user.email, shop: user.shop_name } 
-            });
-        } else {
-            res.status(401).json({ success: false, message: 'Credenciais inválidas' });
+        if (user) {
+            let isMatch = false;
+            try {
+                isMatch = await bcrypt.compare(password, user.password);
+            } catch (e) {
+                console.warn('Senha em formato antigo ou inválido. Considere resetar a senha.');
+            }
+
+            if (isMatch) {
+                const token = jwt.sign(
+                    { id: user.id, email: user.email },
+                    JWT_SECRET,
+                    { expiresIn: '7d' }
+                );
+                return res.json({ 
+                    success: true, 
+                    token, 
+                    user: { id: user.id, email: user.email, shop: user.shop_name } 
+                });
+            }
         }
+        res.status(401).json({ success: false, message: 'E-mail ou senha incorretos.' });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -87,7 +95,10 @@ app.post('/api/register', async (req, res) => {
         res.json({ success: true, token, user });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, message: 'Erro ao registrar' });
+        if (err.code === '23505') { // Postgres Unique Violation
+            return res.status(409).json({ success: false, message: 'Este e-mail já está registrado em nossa base de dados.' });
+        }
+        res.status(500).json({ success: false, message: 'Erro ao processar o registro no servidor.' });
     }
 });
 

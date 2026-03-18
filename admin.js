@@ -10,6 +10,7 @@ const auth = {
     token: localStorage.getItem('barberpoint_token'),
 
     init() {
+        this.setupEventListeners();
         if (this.user && typeof this.user === 'object' && this.user.id) {
             try {
                 sessionManager.init();
@@ -18,6 +19,60 @@ const auth = {
                 console.error('Erro durante inicialização do auth:', err);
             }
         }
+    },
+
+    setupEventListeners() {
+        // Login on Enter
+        const loginInputs = ['email', 'password'];
+        loginInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') this.login();
+                });
+            }
+        });
+
+        // Register on Enter
+        const registerInputs = ['reg-shop', 'reg-email', 'reg-password'];
+        registerInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') this.register();
+                });
+            }
+        });
+    },
+
+    notify(message, type = 'info') {
+        const icon = type === 'error' ? '❌' : (type === 'success' ? '✅' : 'ℹ️');
+        const bgColor = type === 'error' ? 'var(--danger)' : (type === 'success' ? 'var(--success)' : 'var(--primary)');
+        
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: ${bgColor};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            font-weight: 600;
+        `;
+        toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
     },
 
     toggleForm(type) {
@@ -57,16 +112,13 @@ const auth = {
                 localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
                 localStorage.setItem('barberpoint_token', this.token);
                 this.showDashboard();
+                this.notify('Acesso autorizado!', 'success');
             } else {
-                alert(data.message || 'Erro ao realizar login');
+                this.notify(data.message || 'E-mail ou senha incorretos.', 'error');
             }
         } catch (err) { 
             console.error('Login Error:', err);
-            if (err.name === 'AbortError') {
-                alert('O servidor demorou muito para responder. Verifique sua conexão.');
-            } else {
-                alert('Erro ao conectar ao servidor. Verifique se a API está online.');
-            }
+            this.notify('Erro ao conectar ao servidor. Verifique se a API está online.', 'error');
         }
     },
 
@@ -88,10 +140,11 @@ const auth = {
                 localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
                 localStorage.setItem('barberpoint_token', this.token);
                 this.showDashboard();
+                this.notify('Bem-vindo ao BarberPoint!', 'success');
             } else {
-                alert(data.message);
+                this.notify(data.message, 'error');
             }
-        } catch (err) { alert('Erro ao registrar'); }
+        } catch (err) { this.notify('Erro ao realizar cadastro', 'error'); }
     },
 
     showDashboard() {
