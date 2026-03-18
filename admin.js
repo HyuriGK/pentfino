@@ -751,19 +751,24 @@ const admin = {
     },
 
     openEditInventory(id) {
-        // Use loose equality or string cast for ID comparison to be safe
         const item = admin.inventory.find(i => String(i.id) === String(id));
         if (!item) {
             console.error('[ERRO] Item não encontrado no inventário local:', id);
             return;
         }
 
+        // Store ID in FOUR places to make it impossible to lose
         admin.editingInventoryId = id;
         document.getElementById('modal-inv-edit-id').value = id;
         
         const modal = document.getElementById('modal-inventory');
+        modal.setAttribute('data-edit-id', id);
+        
+        const saveBtn = modal.querySelector('.btn-primary');
+        saveBtn.setAttribute('data-edit-id', id);
+        saveBtn.innerText = 'Salvar Alterações';
+        
         modal.querySelector('.modal-title').innerText = 'Editar Item';
-        modal.querySelector('.btn-primary').innerText = 'Salvar Alterações';
         
         // Show Debug Info
         const debugDiv = document.getElementById('modal-inv-debug');
@@ -779,6 +784,7 @@ const admin = {
         document.getElementById('modal-inv-min').value = item.min_quantity;
         document.getElementById('modal-inv-price').value = item.unit_price || 0;
 
+        console.log('[EDIT] Abrindo edição para ID:', id, 'Nome:', item.item_name);
         admin.openModal('inventory');
     },
 
@@ -842,6 +848,12 @@ const admin = {
         if (type === 'inventory') {
             admin.editingInventoryId = null;
             document.getElementById('modal-inv-edit-id').value = '';
+            const modal = document.getElementById('modal-inventory');
+            if (modal) {
+                modal.removeAttribute('data-edit-id');
+                const btn = modal.querySelector('.btn-primary');
+                if (btn) btn.removeAttribute('data-edit-id');
+            }
         }
         document.getElementById(`modal-${type}`).classList.add('hidden');
         const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
@@ -857,6 +869,7 @@ const admin = {
         admin.isSaving = true;
 
         const btn = document.querySelector('#modal-inventory .btn-primary');
+        const modal = document.getElementById('modal-inventory');
         if (btn) {
             btn.disabled = true;
             btn.innerText = 'PROCESSANDO...';
@@ -869,14 +882,19 @@ const admin = {
             const min = parseInt(document.getElementById('modal-inv-min').value);
             const price = parseFloat(document.getElementById('modal-inv-price').value || 0);
             
-            // Critical: check multiple sources for ID
-            const domId = document.getElementById('modal-inv-edit-id').value;
-            const finalId = admin.editingInventoryId || (domId ? parseInt(domId) : null);
+            // Read ID from FOUR sources (belt and suspenders)
+            const src1 = admin.editingInventoryId;
+            const src2 = document.getElementById('modal-inv-edit-id').value;
+            const src3 = btn ? btn.getAttribute('data-edit-id') : null;
+            const src4 = modal ? modal.getAttribute('data-edit-id') : null;
             
-            console.log('[SAVE] finalId:', finalId, 'editingInventoryId:', admin.editingInventoryId, 'domId:', domId);
+            const rawId = src1 || src2 || src3 || src4;
+            const finalId = rawId ? parseInt(rawId) : null;
+            
+            console.log('[SAVE] Sources - var:', src1, 'hidden:', src2, 'btn:', src3, 'modal:', src4, '=> finalId:', finalId);
 
-            if (finalId !== null && finalId !== undefined && !isNaN(finalId)) {
-                // UPDATE MODE - Use PATCH to update the existing record
+            if (finalId && !isNaN(finalId)) {
+                // UPDATE MODE
                 console.log('[SAVE] PATCH mode for ID:', finalId);
                 const res = await auth.apiRequest(`/api/inventory/${finalId}`, {
                     method: 'PATCH',
@@ -895,8 +913,11 @@ const admin = {
                 auth.notify('Item adicionado!', 'success');
             }
             
+            // Clean up all ID sources
             admin.editingInventoryId = null;
             document.getElementById('modal-inv-edit-id').value = '';
+            if (btn) btn.removeAttribute('data-edit-id');
+            if (modal) modal.removeAttribute('data-edit-id');
             admin.closeModal('inventory');
             await admin.loadInventory();
         } catch (err) {
