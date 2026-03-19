@@ -307,6 +307,7 @@ const admin = {
             this.loadClients();
         }
         if (tab === 'vendas') {
+            this.loadInventory(); // Load items for the sales modal
             this.loadSales();
         }
         if (tab === 'estoque') {
@@ -902,7 +903,10 @@ const admin = {
         `).join('');
     },
 
-    openSaleModal() {
+    async openSaleModal() {
+        if (!this.inventory.length) {
+            await this.loadInventory();
+        }
         const select = document.getElementById('modal-sale-item');
         if (!select) return;
 
