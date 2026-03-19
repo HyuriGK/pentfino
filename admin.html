@@ -596,20 +596,28 @@
                     </div>
                 </div>
 
-                <!-- Row 3: Unit Price and Total Display -->
-                <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: end; margin-top: 25px;">
+                <!-- Row 3: Unit Price and Total Display (Side-by-Side) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: end; margin-top: 25px;">
                     <div class="input-group-new">
                         <label>Preço Unitário (R$)</label>
-                        <input type="number" id="modal-sale-price-unit" readonly style="background: rgba(255,255,255,0.02); color: var(--text-muted); border-style: dashed; pointer-events: none; height: 80px; font-size: 1.5rem; font-weight: 800; text-align: center;">
+                        <div class="glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dotted var(--border-bright); background: rgba(255, 255, 255, 0.02);">
+                            <div>
+                                <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Preço por Unidade</span>
+                                <input type="number" id="modal-sale-price-unit" readonly style="background: transparent; border: none; padding: 0; height: auto; font-size: 1.8rem; font-weight: 800; color: var(--text-muted); width: 100%; pointer-events: none;">
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="sale-total-display glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-bright); background: rgba(0, 255, 136, 0.03);">
-                        <div>
-                            <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Total da Venda</span>
-                            <div id="modal-sale-total" style="font-size: 2.2rem; font-weight: 900; color: var(--primary); margin-top: -2px;">R$ 0,00</div>
-                        </div>
-                        <div style="opacity: 0.15; transform: rotate(-10deg);">
-                            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    <div class="input-group-new">
+                        <label>Resumo Financeiro</label>
+                        <div class="sale-total-display glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-bright); background: rgba(0, 255, 136, 0.03);">
+                            <div>
+                                <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Total da Venda</span>
+                                <div id="modal-sale-total" style="font-size: 2.2rem; font-weight: 900; color: var(--primary); margin-top: -2px;">R$ 0,00</div>
+                            </div>
+                            <div style="opacity: 0.15; transform: rotate(-10deg);">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -624,7 +632,7 @@
 
     <!-- MODAL SELECT ITEM (PRODUCT) -->
     <div id="modal-select-item" class="modal-overlay hidden" style="z-index: 2000;">
-        <div class="modal-content" style="max-width: 850px;">
+        <div class="modal-content" style="max-width: 1000px;">
             <header class="modal-header">
                 <div>
                     <h2 class="modal-title">Selecionar Produto</h2>
@@ -663,7 +671,7 @@
 
     <!-- MODAL SELECT CLIENT (FOR SALES) -->
     <div id="modal-select-client" class="modal-overlay hidden" style="z-index: 2000;">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content" style="max-width: 850px;">
             <header class="modal-header">
                 <div>
                     <h2 class="modal-title">Selecionar Cliente</h2>
@@ -704,7 +712,7 @@
 
     <!-- MODAL SELECT PROFESSIONAL -->
     <div id="modal-select-professional" class="modal-overlay hidden" style="z-index: 2000;">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content" style="max-width: 850px;">
             <header class="modal-header">
                 <div>
                     <h2 class="modal-title">Selecionar Barbeiro/Atendente</h2>

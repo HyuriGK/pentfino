@@ -1460,6 +1460,8 @@ const admin = {
 
 
 
+    modalStack: [],
+
     openModal(type) {
         if (type === 'professional') {
             const list = document.getElementById('modal-prof-services-list');
@@ -1470,40 +1472,57 @@ const admin = {
                 </label>
             `).join('');
         }
-        document.getElementById(`modal-${type}`).classList.remove('hidden');
+        const modalId = `modal-${type}`;
+        if (!this.modalStack.includes(modalId)) {
+            this.modalStack.push(modalId);
+        }
+        document.getElementById(modalId).classList.remove('hidden');
         document.body.classList.add('modal-open');
     },
 
     closeModal(type) {
+        const modalId = `modal-${type}`;
         if (type === 'professional') {
             const saveBtn = document.querySelector('#modal-professional .btn-primary');
-            saveBtn.innerText = 'Cadastrar Profissional';
-            saveBtn.onclick = () => this.saveProfessional();
+            if (saveBtn) {
+                saveBtn.innerText = 'Cadastrar Profissional';
+                saveBtn.onclick = () => this.saveProfessional();
+            }
             
             // Clear fields
-            document.getElementById('modal-prof-name').value = '';
-            document.getElementById('modal-prof-phone').value = '';
-            document.getElementById('modal-prof-photo').value = '';
-            document.getElementById('modal-prof-commission').value = '';
+            const pName = document.getElementById('modal-prof-name');
+            if (pName) {
+                pName.value = '';
+                document.getElementById('modal-prof-phone').value = '';
+                document.getElementById('modal-prof-photo').value = '';
+                document.getElementById('modal-prof-commission').value = '';
+            }
         }
         if (type === 'client') {
-            document.getElementById('modal-client-name').value = '';
-            document.getElementById('modal-client-phone').value = '';
-            document.getElementById('modal-client-notes').value = '';
+            const cName = document.getElementById('modal-client-name');
+            if (cName) {
+                cName.value = '';
+                document.getElementById('modal-client-phone').value = '';
+                document.getElementById('modal-client-notes').value = '';
+            }
         }
         if (type === 'service') {
             this.editingServiceId = null;
             const saveBtn = document.querySelector('#modal-service .btn-primary');
-            saveBtn.innerText = 'Adicionar Serviço';
+            if (saveBtn) saveBtn.innerText = 'Adicionar Serviço';
             
-            document.getElementById('modal-svc-name').value = '';
-            document.getElementById('modal-svc-price').value = '';
-            document.getElementById('modal-svc-duration').value = '';
+            const sName = document.getElementById('modal-svc-name');
+            if (sName) {
+                sName.value = '';
+                document.getElementById('modal-svc-price').value = '';
+                document.getElementById('modal-svc-duration').value = '';
+            }
         }
 
-        document.getElementById(`modal-${type}`).classList.add('hidden');
-        const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
-        if (!isOpen) {
+        this.modalStack = this.modalStack.filter(id => id !== modalId);
+        document.getElementById(modalId).classList.add('hidden');
+        
+        if (this.modalStack.length === 0) {
             document.body.classList.remove('modal-open');
         }
     }
@@ -1745,10 +1764,16 @@ window.onload = () => {
 // Global Modal Interactions
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        const openModal = document.querySelector('.modal-overlay:not(.hidden)');
-        if (openModal) {
-            const type = openModal.id.replace('modal-', '');
+        if (admin.modalStack && admin.modalStack.length > 0) {
+            const topModalId = admin.modalStack[admin.modalStack.length - 1];
+            const type = topModalId.replace('modal-', '');
             admin.closeModal(type);
+        } else {
+            const openModal = document.querySelector('.modal-overlay:not(.hidden)');
+            if (openModal) {
+                const type = openModal.id.replace('modal-', '');
+                admin.closeModal(type);
+            }
         }
     }
 });
