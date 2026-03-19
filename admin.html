@@ -318,8 +318,9 @@
                         <thead>
                             <tr>
                                 <th>Data</th>
+                                <th>Cliente</th>
                                 <th>Produto</th>
-                                <th>Qtd</th>
+                                <th>Profissional</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
@@ -548,6 +549,21 @@
                     <select id="modal-sale-item" onchange="admin.handleSaleProductChange()" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
                         <option value="">Selecione um produto...</option>
                     </select>
+                </div>
+
+                <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div class="input-group-new">
+                        <label>Cliente (Opcional)</label>
+                        <select id="modal-sale-client" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
+                            <option value="">Consumidor Final</option>
+                        </select>
+                    </div>
+                    <div class="input-group-new">
+                        <label>Barbeiro/Atendente</label>
+                        <select id="modal-sale-professional" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
+                            <option value="">Nenhum (Sem comissão)</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">

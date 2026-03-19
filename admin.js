@@ -896,26 +896,42 @@ const admin = {
         container.innerHTML = this.sales.map(s => `
             <tr>
                 <td>${new Date(s.sale_date).toLocaleDateString('pt-BR')} ${new Date(s.sale_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>${s.client_name || '<span style="color: var(--text-muted)">Consumidor</span>'}</td>
                 <td><strong>${s.item_name}</strong></td>
-                <td>${s.quantity}</td>
+                <td>${s.professional_name || '<span style="color: var(--text-muted)">Nenhum</span>'}</td>
                 <td style="color: var(--primary); font-weight: 700;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
             </tr>
         `).join('');
     },
 
     async openSaleModal() {
-        if (!this.inventory.length) {
-            await this.loadInventory();
-        }
+        if (!this.inventory.length) await this.loadInventory();
+        if (!this.clients.length) await this.loadClients();
+        if (!this.professionals.length) await this.loadProfessionals();
+
         const select = document.getElementById('modal-sale-item');
         if (!select) return;
 
-        // Populate with available items
+        // Populate items
         select.innerHTML = '<option value="">Selecione um produto...</option>' + 
             this.inventory
                 .filter(i => i.quantity > 0)
                 .map(i => `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit || 'un'} disponíveis)</option>`)
                 .join('');
+        
+        // Populate clients
+        const clientSelect = document.getElementById('modal-sale-client');
+        if (clientSelect) {
+            clientSelect.innerHTML = '<option value="">Consumidor Final</option>' + 
+                this.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+
+        // Populate professionals
+        const proSelect = document.getElementById('modal-sale-professional');
+        if (proSelect) {
+            proSelect.innerHTML = '<option value="">Nenhum (Sem comissão)</option>' + 
+                this.professionals.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
         
         document.getElementById('modal-sale-qty').value = 1;
         document.getElementById('modal-sale-price-unit').value = '';
@@ -943,6 +959,8 @@ const admin = {
 
     async saveSale() {
         const inventoryId = document.getElementById('modal-sale-item').value;
+        const clientId = document.getElementById('modal-sale-client').value;
+        const professionalId = document.getElementById('modal-sale-professional').value;
         const quantity = parseInt(document.getElementById('modal-sale-qty').value);
         const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value);
         
@@ -963,6 +981,8 @@ const admin = {
                 body: JSON.stringify({
                     barberId: auth.user.id,
                     inventoryId,
+                    clientId: clientId || null,
+                    professionalId: professionalId || null,
                     quantity,
                     totalPrice
                 })

@@ -63,11 +63,16 @@ pool.on('connect', () => {
             id SERIAL PRIMARY KEY,
             barber_id INTEGER REFERENCES barbers(id),
             inventory_id INTEGER REFERENCES inventory(id),
+            client_id INTEGER REFERENCES clients(id),
+            professional_id INTEGER REFERENCES professionals(id),
             quantity INTEGER NOT NULL,
             total_price DECIMAL(10,2) NOT NULL,
             sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (sales):', e));
+    // Migration for existing table
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS client_id INTEGER REFERENCES clients(id)').catch(() => {});
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS professional_id INTEGER REFERENCES professionals(id)').catch(() => {});
 
 });
 
@@ -559,9 +564,11 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
     const { barberId } = req.params;
     try {
         const result = await pool.query(
-            `SELECT s.*, i.item_name 
+            `SELECT s.*, i.item_name, c.name as client_name, p.name as professional_name
              FROM sales s 
              JOIN inventory i ON s.inventory_id = i.id 
+             LEFT JOIN clients c ON s.client_id = c.id
+             LEFT JOIN professionals p ON s.professional_id = p.id
              WHERE s.barber_id = $1 
              ORDER BY s.sale_date DESC`,
             [barberId]
@@ -574,15 +581,15 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/sales', authenticateToken, async (req, res) => {
-    const { barberId, inventoryId, quantity, totalPrice } = req.body;
+    const { barberId, inventoryId, quantity, totalPrice, clientId, professionalId } = req.body;
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         
         // 1. Record the sale
         const saleResult = await client.query(
-            'INSERT INTO sales (barber_id, inventory_id, quantity, total_price) VALUES ($1, $2, $3, $4) RETURNING *',
-            [barberId, inventoryId, quantity, totalPrice]
+            'INSERT INTO sales (barber_id, inventory_id, client_id, professional_id, quantity, total_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [barberId, inventoryId, clientId || null, professionalId || null, quantity, totalPrice]
         );
 
         // 2. Decrement inventory
