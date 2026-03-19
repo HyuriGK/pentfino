@@ -341,7 +341,7 @@ app.delete('/api/clients/:id', authenticateToken, async (req, res) => {
 });
 
 // Services API
-app.get('/api/services/:barberId', authenticateToken, async (req, res) => {
+app.get('/api/services/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query('SELECT * FROM services WHERE barber_id = $1 ORDER BY name ASC', [barberId]);
@@ -394,7 +394,7 @@ app.delete('/api/services/:id', authenticateToken, async (req, res) => {
 });
 
 // Professionals API
-app.get('/api/professionals/:barberId', authenticateToken, async (req, res) => {
+app.get('/api/professionals/:barberId', async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query(`
