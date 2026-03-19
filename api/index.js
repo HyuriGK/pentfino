@@ -566,7 +566,7 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
         const result = await pool.query(
             `SELECT s.*, i.item_name, c.name as client_name, p.name as professional_name
              FROM sales s 
-             JOIN inventory i ON s.inventory_id = i.id 
+             LEFT JOIN inventory i ON s.inventory_id = i.id 
              LEFT JOIN clients c ON s.client_id = c.id
              LEFT JOIN professionals p ON s.professional_id = p.id
              WHERE s.barber_id = $1 
@@ -575,13 +575,16 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching sales:', err);
         res.status(500).send('Server Error');
     }
 });
 
 app.post('/api/sales', authenticateToken, async (req, res) => {
     const { barberId, inventoryId, quantity, totalPrice, clientId, professionalId } = req.body;
+    
+    if (!inventoryId || !quantity) return res.status(400).send('Dados incompletos');
+
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -589,21 +592,25 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
         // 1. Record the sale
         const saleResult = await client.query(
             'INSERT INTO sales (barber_id, inventory_id, client_id, professional_id, quantity, total_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [barberId, inventoryId, clientId || null, professionalId || null, quantity, totalPrice]
+            [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(totalPrice)]
         );
 
         // 2. Decrement inventory
-        await client.query(
-            'UPDATE inventory SET quantity = quantity - $1 WHERE id = $2',
-            [quantity, inventoryId]
+        const invUpdate = await client.query(
+            'UPDATE inventory SET quantity = quantity - $1 WHERE id = $2 AND barber_id = $3 RETURNING quantity',
+            [parseInt(quantity), inventoryId, barberId]
         );
+
+        if (invUpdate.rowCount === 0) {
+            throw new Error('Produto não encontrado ou estoque insuficiente');
+        }
 
         await client.query('COMMIT');
         res.json(saleResult.rows[0]);
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error(err);
-        res.status(500).send('Erro ao processar venda');
+        console.error('Sale error:', err);
+        res.status(500).send(err.message || 'Erro ao processar venda');
     } finally {
         client.release();
     }

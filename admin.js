@@ -898,6 +898,7 @@ const admin = {
                 <td>${new Date(s.sale_date).toLocaleDateString('pt-BR')} ${new Date(s.sale_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>${s.client_name || '<span style="color: var(--text-muted)">Consumidor</span>'}</td>
                 <td><strong>${s.item_name}</strong></td>
+                <td>${s.quantity}</td>
                 <td>${s.professional_name || '<span style="color: var(--text-muted)">Nenhum</span>'}</td>
                 <td style="color: var(--primary); font-weight: 700;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
             </tr>
@@ -993,7 +994,8 @@ const admin = {
             await this.loadSales();     // Refresh history
             auth.notify('Venda registrada com sucesso!', 'success');
         } catch (err) {
-            alert('Erro ao registrar venda');
+            console.error('Save sale error:', err);
+            alert(err.message || 'Erro ao registrar venda');
         }
     },
 
