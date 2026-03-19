@@ -554,9 +554,13 @@
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
                     <div class="input-group-new">
                         <label>Produto em Estoque</label>
-                        <select id="modal-sale-item" onchange="admin.handleSaleProductChange()" class="glass-select">
-                            <option value="">Selecione um produto...</option>
-                        </select>
+                        <div style="display: flex; gap: 8px;">
+                            <div id="modal-sale-item-display" class="glass" style="flex: 1; height: 50px; display: flex; align-items: center; padding: 0 15px; border: 1px solid var(--border); border-radius: 12px; color: var(--text-muted); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                Selecione um produto...
+                            </div>
+                            <button class="btn btn-ghost" onclick="admin.openSelectItem()" style="height: 50px; padding: 0 15px; border-radius: 12px; flex-shrink: 0;">Buscar</button>
+                        </div>
+                        <input type="hidden" id="modal-sale-item-id" value="">
                     </div>
                     <div class="input-group-new">
                         <label>Quantidade</label>
@@ -578,9 +582,13 @@
                     </div>
                     <div class="input-group-new">
                         <label>Barbeiro/Atendente</label>
-                        <select id="modal-sale-professional" onchange="admin.handleSaleProfessionalChange()" class="glass-select">
-                            <option value="">Nenhum (Sem comissão)</option>
-                        </select>
+                        <div style="display: flex; gap: 8px;">
+                            <div id="modal-sale-professional-display" class="glass" style="flex: 1; height: 50px; display: flex; align-items: center; padding: 0 15px; border: 1px solid var(--border); border-radius: 12px; color: var(--text-muted); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                Nenhum
+                            </div>
+                            <button class="btn btn-ghost" onclick="admin.openSelectProfessional()" style="height: 50px; padding: 0 15px; border-radius: 12px; flex-shrink: 0;">Buscar</button>
+                        </div>
+                        <input type="hidden" id="modal-sale-professional-id" value="">
                     </div>
                     <div class="input-group-new">
                         <label>Comissão Repasse (%)</label>
@@ -610,6 +618,45 @@
             <div class="modal-footer" style="margin-top: 35px; display: flex; gap: 15px;">
                 <button class="btn btn-ghost" onclick="admin.closeModal('sales')" style="flex: 1; height: 55px; border-radius: 12px; font-weight: 600;">Cancelar</button>
                 <button class="btn btn-primary" onclick="admin.saveSale()" style="flex: 2; height: 55px; border-radius: 12px; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Finalizar e Registrar Venda</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SELECT ITEM (PRODUCT) -->
+    <div id="modal-select-item" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 850px;">
+            <header class="modal-header">
+                <div>
+                    <h2 class="modal-title">Selecionar Produto</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Busque o produto em estoque.</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('select-item')">×</button>
+            </header>
+            
+            <div class="modal-body">
+                <div class="input-group-new" style="margin-bottom: 20px;">
+                    <div style="position: relative;">
+                        <input type="text" id="select-item-search" placeholder="Buscar produto..." onkeyup="admin.filterSelectItem(this.value)" style="padding-left: 45px;">
+                        <svg style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                </div>
+                
+                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.2);">
+                    <table class="data-table">
+                        <thead>
+                            <tr style="position: sticky; top: 0; background: #111; z-index: 10;">
+                                <th>Produto</th>
+                                <th>Categoria</th>
+                                <th>Preço</th>
+                                <th>Estoque</th>
+                                <th style="text-align: right;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="select-item-table-body">
+                            <!-- JS Populated -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -650,6 +697,47 @@
                 
                 <div style="margin-top: 20px; text-align: center;">
                     <button class="btn btn-ghost" onclick="admin.clearSelectedClient()" style="width: 100%;">Usar Consumidor Final (Nenhum)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SELECT PROFESSIONAL -->
+    <div id="modal-select-professional" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 700px;">
+            <header class="modal-header">
+                <div>
+                    <h2 class="modal-title">Selecionar Barbeiro/Atendente</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Atribua a venda a um profissional.</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('select-professional')">×</button>
+            </header>
+            
+            <div class="modal-body">
+                <div class="input-group-new" style="margin-bottom: 20px;">
+                    <div style="position: relative;">
+                        <input type="text" id="select-professional-search" placeholder="Buscar profissional..." onkeyup="admin.filterSelectProfessional(this.value)" style="padding-left: 45px;">
+                        <svg style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                </div>
+                
+                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.2);">
+                    <table class="data-table">
+                        <thead>
+                            <tr style="position: sticky; top: 0; background: #111; z-index: 10;">
+                                <th>Nome</th>
+                                <th>Profissão/Especialidade</th>
+                                <th style="text-align: right;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="select-professional-table-body">
+                            <!-- JS Populated -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-ghost" onclick="admin.clearSelectedProfessional()" style="width: 100%;">Nenhum (Sem Comissão)</button>
                 </div>
             </div>
         </div>

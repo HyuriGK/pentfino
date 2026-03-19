@@ -1018,15 +1018,11 @@ const admin = {
 
     async openSaleModal() {
         if (this.inventory.length === 0) await this.loadInventory();
-        const select = document.getElementById('modal-sale-item');
-        select.innerHTML = '<option value="">Selecione um produto...</option>' + 
-            this.inventory.map(i => `<option value="${i.id}">${i.item_name} (Estoque: ${i.quantity})</option>`).join('');
-
+        if (this.professionals.length === 0) await this.loadProfessionals();
+        
+        this.clearSelectedItem();
         this.clearSelectedClient();
-
-        const proSelect = document.getElementById('modal-sale-professional');
-        proSelect.innerHTML = '<option value="">Nenhum (Sem comissão)</option>' +
-            this.professionals.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        this.clearSelectedProfessional();
 
         document.getElementById('modal-sale-qty').value = 1;
         document.getElementById('modal-sale-price-unit').value = '';
@@ -1035,6 +1031,107 @@ const admin = {
         this.openModal('sales');
     },
 
+    // --- ITEM SELECTION ---
+    openSelectItem() {
+        this.renderSelectItemTable(this.inventory);
+        document.getElementById('select-item-search').value = '';
+        this.openModal('select-item');
+    },
+
+    renderSelectItemTable(items) {
+        const body = document.getElementById('select-item-table-body');
+        if (items.length === 0) {
+            body.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum produto encontrado.</td></tr>';
+            return;
+        }
+        body.innerHTML = items.map(i => `
+            <tr>
+                <td><strong>${i.item_name}</strong></td>
+                <td><span class="category-badge">${i.category || 'Geral'}</span></td>
+                <td style="color: var(--primary);">R$ ${parseFloat(i.unit_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td><span class="qty-badge">${i.quantity}</span></td>
+                <td style="text-align: right;">
+                    <button class="btn btn-primary btn-sm" onclick="admin.selectItem(${i.id}, '${i.item_name.replace(/'/g, "\\'")}', ${i.unit_price})">Selecionar</button>
+                </td>
+            </tr>
+        `).join('');
+    },
+
+    filterSelectItem(term) {
+        const filtered = this.inventory.filter(i => 
+            i.item_name.toLowerCase().includes(term.toLowerCase()) || 
+            (i.category && i.category.toLowerCase().includes(term.toLowerCase()))
+        );
+        this.renderSelectItemTable(filtered);
+    },
+
+    selectItem(id, name, price) {
+        document.getElementById('modal-sale-item-id').value = id;
+        document.getElementById('modal-sale-item-display').innerText = name;
+        document.getElementById('modal-sale-item-display').style.color = 'var(--primary)';
+        document.getElementById('modal-sale-price-unit').value = price;
+        this.calculateSaleTotal();
+        this.closeModal('select-item');
+    },
+
+    clearSelectedItem() {
+        document.getElementById('modal-sale-item-id').value = '';
+        document.getElementById('modal-sale-item-display').innerText = 'Selecione um produto...';
+        document.getElementById('modal-sale-item-display').style.color = 'var(--text-muted)';
+        document.getElementById('modal-sale-price-unit').value = '';
+        this.calculateSaleTotal();
+        if (document.getElementById('modal-select-item')) this.closeModal('select-item');
+    },
+
+    // --- PROFESSIONAL SELECTION ---
+    openSelectProfessional() {
+        this.renderSelectProfessionalTable(this.professionals);
+        document.getElementById('select-professional-search').value = '';
+        this.openModal('select-professional');
+    },
+
+    renderSelectProfessionalTable(pros) {
+        const body = document.getElementById('select-professional-table-body');
+        if (pros.length === 0) {
+            body.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum profissional encontrado.</td></tr>';
+            return;
+        }
+        body.innerHTML = pros.map(p => `
+            <tr>
+                <td><strong>${p.name}</strong></td>
+                <td>${p.specialty || '-'}</td>
+                <td style="text-align: right;">
+                    <button class="btn btn-primary btn-sm" onclick="admin.selectProfessional(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.commission_rate || 0})">Selecionar</button>
+                </td>
+            </tr>
+        `).join('');
+    },
+
+    filterSelectProfessional(term) {
+        const filtered = this.professionals.filter(p => 
+            p.name.toLowerCase().includes(term.toLowerCase()) || 
+            (p.specialty && p.specialty.toLowerCase().includes(term.toLowerCase()))
+        );
+        this.renderSelectProfessionalTable(filtered);
+    },
+
+    selectProfessional(id, name, rate) {
+        document.getElementById('modal-sale-professional-id').value = id;
+        document.getElementById('modal-sale-professional-display').innerText = name;
+        document.getElementById('modal-sale-professional-display').style.color = 'var(--primary)';
+        document.getElementById('modal-sale-commission').value = rate;
+        this.closeModal('select-professional');
+    },
+
+    clearSelectedProfessional() {
+        document.getElementById('modal-sale-professional-id').value = '';
+        document.getElementById('modal-sale-professional-display').innerText = 'Nenhum';
+        document.getElementById('modal-sale-professional-display').style.color = 'var(--text-muted)';
+        document.getElementById('modal-sale-commission').value = 0;
+        if (document.getElementById('modal-select-professional')) this.closeModal('select-professional');
+    },
+
+    // --- CLIENT SELECTION ---
     openSelectClient() {
         this.renderSelectClientTable(this.allClients);
         document.getElementById('select-client-search').value = '';
@@ -1080,25 +1177,6 @@ const admin = {
         if (document.getElementById('modal-select-client')) this.closeModal('select-client');
     },
 
-    handleSaleProductChange() {
-        const id = document.getElementById('modal-sale-item').value;
-        const item = this.inventory.find(i => String(i.id) === String(id));
-        if (item) {
-            document.getElementById('modal-sale-price-unit').value = item.unit_price;
-            this.calculateSaleTotal();
-        }
-    },
-
-    handleSaleProfessionalChange() {
-        const proId = document.getElementById('modal-sale-professional').value;
-        const pro = this.professionals.find(p => String(p.id) === String(proId));
-        if (pro) {
-            document.getElementById('modal-sale-commission').value = pro.commission_rate || 0;
-        } else {
-            document.getElementById('modal-sale-commission').value = 0;
-        }
-    },
-
     calculateSaleTotal() {
         const qty = parseInt(document.getElementById('modal-sale-qty').value) || 0;
         const price = parseFloat(document.getElementById('modal-sale-price-unit').value) || 0;
@@ -1107,9 +1185,9 @@ const admin = {
     },
 
     async saveSale() {
-        const itemId = document.getElementById('modal-sale-item').value;
+        const itemId = document.getElementById('modal-sale-item-id').value;
         const clientId = document.getElementById('modal-sale-client-id').value;
-        const professionalId = document.getElementById('modal-sale-professional').value;
+        const professionalId = document.getElementById('modal-sale-professional-id').value;
         const quantity = document.getElementById('modal-sale-qty').value;
         const commissionCustom = document.getElementById('modal-sale-commission').value;
 
