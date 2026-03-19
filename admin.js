@@ -325,7 +325,7 @@ const admin = {
         }
 
         if (tab === 'comissoes') {
-            this.loadCommissions();
+            this.loadSales().then(() => this.loadCommissions());
         }
     },
 
@@ -347,6 +347,7 @@ const admin = {
         let totalToProfessionals = 0;
 
         const currentYear = new Date().getFullYear();
+        const salesData = this.sales || [];
 
         const commData = this.professionals.map(p => {
             const profApts = (this.allAppointments || []).filter(a => {
@@ -355,20 +356,34 @@ const admin = {
                 return String(a.professional_id) === String(p.id) && a.status === 'completed' && isCorrectMonth;
             });
 
-            const generated = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
-            const shopShare = generated * (parseFloat(p.commission || 0) / 100);
-            const toProfessional = generated - shopShare;
+            const profSales = salesData.filter(s => {
+                const sDate = new Date(s.created_at);
+                const isCorrectMonth = sDate.getMonth() === this.selectedCommMonth && sDate.getFullYear() === currentYear;
+                return String(s.professional_id) === String(p.id) && isCorrectMonth;
+            });
 
-            totalRevenue += generated;
-            totalCommissions += shopShare;
+            const serviceGenerated = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
+            const salesGenerated = profSales.reduce((sum, s) => sum + parseFloat(s.total_price || 0), 0);
+            
+            const totalGenerated = serviceGenerated + salesGenerated;
+            
+            // Commission calculation
+            const serviceShopShare = serviceGenerated * (parseFloat(p.commission || 0) / 100);
+            const salesShopShare = profSales.reduce((sum, s) => sum + parseFloat(s.commission_value || 0), 0);
+            
+            const totalShopShare = serviceShopShare + salesShopShare;
+            const toProfessional = totalGenerated - totalShopShare;
+
+            totalRevenue += totalGenerated;
+            totalCommissions += totalShopShare;
             totalToProfessionals += toProfessional;
 
             return {
                 id: p.id,
                 name: p.name,
                 rate: p.commission || 0,
-                generated,
-                shopShare,
+                generated: totalGenerated,
+                shopShare: totalShopShare,
                 toProfessional
             };
         });
@@ -951,7 +966,7 @@ const admin = {
         const clientSelect = document.getElementById('modal-sale-client');
         if (clientSelect) {
             clientSelect.innerHTML = '<option value="">Consumidor Final</option>' + 
-                this.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                this.allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         }
 
         // Populate professionals
@@ -1018,8 +1033,9 @@ const admin = {
             });
 
             this.closeModal('sales');
-            await this.loadInventory(); // Refresh stock
             await this.loadSales();     // Refresh history
+            await this.loadInventory(); // Refresh stock
+            await this.loadData();      // Refresh dashboard revenue
             auth.notify('Venda registrada com sucesso!', 'success');
         } catch (err) {
             console.error('Save sale error:', err);

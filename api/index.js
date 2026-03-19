@@ -247,11 +247,21 @@ app.get('/api/stats/:barberId', authenticateToken, async (req, res) => {
             WHERE a.barber_id = $1 AND a.status = 'completed'
         `, [barberId]);
 
+        // Total from sales
+        const salesResult = await pool.query(`
+            SELECT COALESCE(SUM(total_price), 0) as revenue
+            FROM sales
+            WHERE barber_id = $1
+        `, [barberId]);
+
+        const serviceRev = parseFloat(svcResult.rows[0].revenue);
+        const salesRev = parseFloat(salesResult.rows[0].revenue);
+
         res.json({
-            revenue: parseFloat(svcResult.rows[0].revenue),
+            revenue: serviceRev + salesRev,
             count: parseInt(svcResult.rows[0].count),
-            serviceRevenue: parseFloat(svcResult.rows[0].revenue),
-            salesRevenue: 0
+            serviceRevenue: serviceRev,
+            salesRevenue: salesRev
         });
     } catch (err) {
         console.error(err);
@@ -589,10 +599,21 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
     try {
         await client.query('BEGIN');
         
+        let commissionRate = 0;
+        let commissionValue = 0;
+
+        if (professionalId) {
+            const profRes = await client.query('SELECT commission FROM professionals WHERE id = $1', [professionalId]);
+            if (profRes.rowCount > 0) {
+                commissionRate = parseFloat(profRes.rows[0].commission || 0);
+                commissionValue = parseFloat(totalPrice) * (commissionRate / 100);
+            }
+        }
+
         // 1. Record the sale (using item_id and price_at_sale)
         const saleResult = await client.query(
-            'INSERT INTO sales (barber_id, item_id, client_id, professional_id, quantity, price_at_sale, total_price) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-            [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(unitPrice), parseFloat(totalPrice)]
+            'INSERT INTO sales (barber_id, item_id, client_id, professional_id, quantity, price_at_sale, total_price, commission_rate, commission_value) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+            [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(unitPrice), parseFloat(totalPrice), commissionRate, commissionValue]
         );
 
         // 2. Decrement inventory
