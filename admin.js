@@ -985,6 +985,7 @@ const admin = {
                     clientId: clientId || null,
                     professionalId: professionalId || null,
                     quantity,
+                    unitPrice,
                     totalPrice
                 })
             });

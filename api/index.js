@@ -581,7 +581,7 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/sales', authenticateToken, async (req, res) => {
-    const { barberId, inventoryId, quantity, totalPrice, clientId, professionalId } = req.body;
+    const { barberId, inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId } = req.body;
     
     if (!inventoryId || !quantity) return res.status(400).send('Dados incompletos');
 
@@ -589,10 +589,10 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
     try {
         await client.query('BEGIN');
         
-        // 1. Record the sale (using item_id instead of inventory_id)
+        // 1. Record the sale (using item_id and price_at_sale)
         const saleResult = await client.query(
-            'INSERT INTO sales (barber_id, item_id, client_id, professional_id, quantity, total_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(totalPrice)]
+            'INSERT INTO sales (barber_id, item_id, client_id, professional_id, quantity, price_at_sale, total_price) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(unitPrice), parseFloat(totalPrice)]
         );
 
         // 2. Decrement inventory
