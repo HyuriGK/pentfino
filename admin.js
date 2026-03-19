@@ -306,6 +306,9 @@ const admin = {
         if (tab === 'clientes') {
             this.loadClients();
         }
+        if (tab === 'vendas') {
+            this.loadSales();
+        }
         if (tab === 'estoque') {
             this.loadInventory();
         }
@@ -869,6 +872,105 @@ const admin = {
             await this.loadInventory();
             auth.notify(id ? 'Produto atualizado!' : 'Produto adicionado!', 'success');
         } catch (err) { alert('Erro ao salvar item no estoque'); }
+    },
+
+    // Sales Logic
+    async loadSales() {
+        try {
+            const res = await auth.apiRequest(`/api/sales/${auth.user.id}?t=${Date.now()}`);
+            this.sales = await res.json();
+            this.renderSales();
+        } catch (err) { console.error('Erro ao carregar vendas'); }
+    },
+
+    renderSales() {
+        const container = document.getElementById('sales-history-body');
+        if (!container) return;
+
+        if (this.sales.length === 0) {
+            container.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Nenhuma venda registrada.</td></tr>';
+            return;
+        }
+
+        container.innerHTML = this.sales.map(s => `
+            <tr>
+                <td>${new Date(s.sale_date).toLocaleDateString('pt-BR')} ${new Date(s.sale_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td><strong>${s.item_name}</strong></td>
+                <td>${s.quantity}</td>
+                <td style="color: var(--primary); font-weight: 700;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            </tr>
+        `).join('');
+    },
+
+    openSaleModal() {
+        const select = document.getElementById('modal-sale-item');
+        if (!select) return;
+
+        // Populate with available items
+        select.innerHTML = '<option value="">Selecione um produto...</option>' + 
+            this.inventory
+                .filter(i => i.quantity > 0)
+                .map(i => `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit || 'un'} disponíveis)</option>`)
+                .join('');
+        
+        document.getElementById('modal-sale-qty').value = 1;
+        document.getElementById('modal-sale-price-unit').value = '';
+        document.getElementById('modal-sale-total').innerText = 'R$ 0,00';
+        
+        this.openModal('sales');
+    },
+
+    handleSaleProductChange() {
+        const id = document.getElementById('modal-sale-item').value;
+        const item = this.inventory.find(i => String(i.id) === String(id));
+        
+        if (item) {
+            document.getElementById('modal-sale-price-unit').value = item.unit_price;
+            this.calculateSaleTotal();
+        }
+    },
+
+    calculateSaleTotal() {
+        const qty = parseInt(document.getElementById('modal-sale-qty').value) || 0;
+        const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value) || 0;
+        const total = qty * unitPrice;
+        document.getElementById('modal-sale-total').innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    },
+
+    async saveSale() {
+        const inventoryId = document.getElementById('modal-sale-item').value;
+        const quantity = parseInt(document.getElementById('modal-sale-qty').value);
+        const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value);
+        
+        if (!inventoryId || isNaN(quantity) || quantity <= 0) {
+            return alert('Selecione um produto e uma quantidade válida');
+        }
+
+        const item = this.inventory.find(i => String(i.id) === String(inventoryId));
+        if (quantity > item.quantity) {
+            return alert(`Estoque insuficiente! Apenas ${item.quantity} unidades disponíveis.`);
+        }
+
+        const totalPrice = quantity * unitPrice;
+
+        try {
+            await auth.apiRequest('/api/sales', {
+                method: 'POST',
+                body: JSON.stringify({
+                    barberId: auth.user.id,
+                    inventoryId,
+                    quantity,
+                    totalPrice
+                })
+            });
+
+            this.closeModal('sales');
+            await this.loadInventory(); // Refresh stock
+            await this.loadSales();     // Refresh history
+            auth.notify('Venda registrada com sucesso!', 'success');
+        } catch (err) {
+            alert('Erro ao registrar venda');
+        }
     },
 
     // Modal Logic

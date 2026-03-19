@@ -57,6 +57,18 @@ pool.on('connect', () => {
     pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS photo_url TEXT').catch(() => {});
     pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS unit_price DECIMAL(10,2) DEFAULT 0').catch(() => {});
 
+    // Sales table migration
+    pool.query(`
+        CREATE TABLE IF NOT EXISTS sales (
+            id SERIAL PRIMARY KEY,
+            barber_id INTEGER REFERENCES barbers(id),
+            inventory_id INTEGER REFERENCES inventory(id),
+            quantity INTEGER NOT NULL,
+            total_price DECIMAL(10,2) NOT NULL,
+            sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `).catch(e => console.error('Migration error (sales):', e));
+
 });
 
 // API Routes
@@ -539,6 +551,54 @@ app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
+    }
+});
+
+// Sales API Endpoints
+app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
+    const { barberId } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT s.*, i.item_name 
+             FROM sales s 
+             JOIN inventory i ON s.inventory_id = i.id 
+             WHERE s.barber_id = $1 
+             ORDER BY s.sale_date DESC`,
+            [barberId]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+app.post('/api/sales', authenticateToken, async (req, res) => {
+    const { barberId, inventoryId, quantity, totalPrice } = req.body;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        
+        // 1. Record the sale
+        const saleResult = await client.query(
+            'INSERT INTO sales (barber_id, inventory_id, quantity, total_price) VALUES ($1, $2, $3, $4) RETURNING *',
+            [barberId, inventoryId, quantity, totalPrice]
+        );
+
+        // 2. Decrement inventory
+        await client.query(
+            'UPDATE inventory SET quantity = quantity - $1 WHERE id = $2',
+            [quantity, inventoryId]
+        );
+
+        await client.query('COMMIT');
+        res.json(saleResult.rows[0]);
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
+        res.status(500).send('Erro ao processar venda');
+    } finally {
+        client.release();
     }
 });
 
