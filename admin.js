@@ -895,7 +895,7 @@ const admin = {
 
         container.innerHTML = this.sales.map(s => `
             <tr>
-                <td>${new Date(s.sale_date).toLocaleDateString('pt-BR')} ${new Date(s.sale_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>${new Date(s.created_at).toLocaleDateString('pt-BR')} ${new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>${s.client_name || '<span style="color: var(--text-muted)">Consumidor</span>'}</td>
                 <td><strong>${s.item_name}</strong></td>
                 <td>${s.quantity}</td>

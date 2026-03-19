@@ -566,11 +566,11 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
         const result = await pool.query(
             `SELECT s.*, i.item_name, c.name as client_name, p.name as professional_name
              FROM sales s 
-             LEFT JOIN inventory i ON s.inventory_id = i.id 
+             LEFT JOIN inventory i ON s.item_id = i.id 
              LEFT JOIN clients c ON s.client_id = c.id
              LEFT JOIN professionals p ON s.professional_id = p.id
              WHERE s.barber_id = $1 
-             ORDER BY s.sale_date DESC`,
+             ORDER BY s.created_at DESC`,
             [barberId]
         );
         res.json(result.rows);
@@ -589,9 +589,9 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
     try {
         await client.query('BEGIN');
         
-        // 1. Record the sale
+        // 1. Record the sale (using item_id instead of inventory_id)
         const saleResult = await client.query(
-            'INSERT INTO sales (barber_id, inventory_id, client_id, professional_id, quantity, total_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            'INSERT INTO sales (barber_id, item_id, client_id, professional_id, quantity, total_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(totalPrice)]
         );
 
