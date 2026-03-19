@@ -603,7 +603,8 @@
                         <div class="glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dotted var(--border-bright); background: rgba(255, 255, 255, 0.02);">
                             <div>
                                 <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Preço por Unidade</span>
-                                <input type="number" id="modal-sale-price-unit" readonly style="background: transparent; border: none; padding: 0; height: auto; font-size: 1.8rem; font-weight: 800; color: var(--text-muted); width: 100%; pointer-events: none;">
+                                <div id="modal-sale-price-unit-display" style="font-size: 1.8rem; font-weight: 800; color: var(--text-muted); margin-top: -2px;">R$ 0,00</div>
+                                <input type="hidden" id="modal-sale-price-unit" value="0">
                             </div>
                         </div>
                     </div>

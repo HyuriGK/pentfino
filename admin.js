@@ -1025,7 +1025,10 @@ const admin = {
         this.clearSelectedProfessional();
 
         document.getElementById('modal-sale-qty').value = 1;
-        document.getElementById('modal-sale-price-unit').value = '';
+        document.getElementById('modal-sale-price-unit').value = 0;
+        if (document.getElementById('modal-sale-price-unit-display')) {
+            document.getElementById('modal-sale-price-unit-display').innerText = 'R$ 0,00';
+        }
         document.getElementById('modal-sale-total').innerText = 'R$ 0,00';
         document.getElementById('modal-sale-commission').value = 0;
         this.openModal('sales');
@@ -1070,6 +1073,9 @@ const admin = {
         document.getElementById('modal-sale-item-display').innerText = name;
         document.getElementById('modal-sale-item-display').style.color = 'var(--primary)';
         document.getElementById('modal-sale-price-unit').value = price;
+        if (document.getElementById('modal-sale-price-unit-display')) {
+            document.getElementById('modal-sale-price-unit-display').innerText = 'R$ ' + parseFloat(price).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        }
         this.calculateSaleTotal();
         this.closeModal('select-item');
     },
@@ -1078,7 +1084,10 @@ const admin = {
         document.getElementById('modal-sale-item-id').value = '';
         document.getElementById('modal-sale-item-display').innerText = 'Selecione um produto...';
         document.getElementById('modal-sale-item-display').style.color = 'var(--text-muted)';
-        document.getElementById('modal-sale-price-unit').value = '';
+        document.getElementById('modal-sale-price-unit').value = 0;
+        if (document.getElementById('modal-sale-price-unit-display')) {
+            document.getElementById('modal-sale-price-unit-display').innerText = 'R$ 0,00';
+        }
         this.calculateSaleTotal();
         if (document.getElementById('modal-select-item')) this.closeModal('select-item');
     },
