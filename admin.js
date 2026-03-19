@@ -368,8 +368,12 @@ const admin = {
             const totalGenerated = serviceGenerated + salesGenerated;
             
             // Commission calculation
+            // Service: % is Shop's part
             const serviceShopShare = serviceGenerated * (parseFloat(p.commission || 0) / 100);
-            const salesShopShare = profSales.reduce((sum, s) => sum + parseFloat(s.commission_value || 0), 0);
+            
+            // Sale: % in DB is Professional's part
+            const salesProfShare = profSales.reduce((sum, s) => sum + parseFloat(s.commission_value || 0), 0);
+            const salesShopShare = salesGenerated - salesProfShare;
             
             const totalShopShare = serviceShopShare + salesShopShare;
             const toProfessional = totalGenerated - totalShopShare;
@@ -430,37 +434,78 @@ const admin = {
         const currentYear = new Date().getFullYear();
         const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         
+        // Ensure sales are loaded
+        await this.loadSales();
+        
         const profApts = (this.allAppointments || []).filter(a => {
             const aDate = new Date(a.appointment_date);
             const isCorrectMonth = aDate.getMonth() === this.selectedCommMonth && aDate.getFullYear() === currentYear;
             return String(a.professional_id) === String(profId) && a.status === 'completed' && isCorrectMonth;
         });
 
-        const totalGen = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
-        const shopShare = totalGen * (parseFloat(prof.commission || 0) / 100);
-        const profShare = totalGen - shopShare;
+        const profSales = (this.sales || []).filter(s => {
+            const sDate = new Date(s.created_at);
+            const isCorrectMonth = sDate.getMonth() === this.selectedCommMonth && sDate.getFullYear() === currentYear;
+            return String(s.professional_id) === String(profId) && isCorrectMonth;
+        });
+
+        const svcGen = profApts.reduce((sum, a) => sum + parseFloat(a.service_price || 0), 0);
+        const slsGen = profSales.reduce((sum, s) => sum + parseFloat(s.total_price || 0), 0);
+        
+        const totalGen = svcGen + slsGen;
+        
+        // Service Shop Share: Prof. commission is Shop's part
+        const svcShopShare = svcGen * (parseFloat(prof.commission || 0) / 100);
+        
+        // Sales Shop Share: Prof. commission is Professional's part
+        // So Shop share = Total - commission_value
+        const slsProfShare = profSales.reduce((sum, s) => sum + parseFloat(s.commission_value || 0), 0);
+        const slsShopShare = slsGen - slsProfShare;
+        
+        const totalShopShare = svcShopShare + slsShopShare;
+        const totalProfShare = totalGen - totalShopShare;
 
         // Fill modal
         document.getElementById('prof-details-name').innerText = prof.name;
         document.getElementById('prof-details-month').innerText = `${monthNames[this.selectedCommMonth]} ${currentYear}`;
         document.getElementById('prof-details-total-gen').innerText = `R$ ${totalGen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('prof-details-shop-share').innerText = `R$ ${shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-        document.getElementById('prof-details-prof-share').innerText = `R$ ${profShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('prof-details-shop-share').innerText = `R$ ${totalShopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('prof-details-prof-share').innerText = `R$ ${totalProfShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
         const container = document.getElementById('prof-comm-details-table-body');
-        container.innerHTML = profApts.length > 0 ? profApts.map(a => {
-            const servicePrice = parseFloat(a.service_price || 0);
-            const serviceShopShare = servicePrice * (parseFloat(prof.commission || 0) / 100);
-            const serviceProfShare = servicePrice - serviceShopShare;
+        
+        // Combined list
+        const items = [
+            ...profApts.map(a => ({
+                date: new Date(a.appointment_date),
+                time: a.appointment_time,
+                client: a.client_name,
+                desc: a.service_name,
+                gen: parseFloat(a.service_price || 0),
+                shop: parseFloat(a.service_price || 0) * (parseFloat(prof.commission || 0) / 100),
+                type: 'Serviço'
+            })),
+            ...profSales.map(s => ({
+                date: new Date(s.created_at),
+                time: new Date(s.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                client: s.client_name || 'Consumidor',
+                desc: `Venda: ${s.item_name}`,
+                gen: parseFloat(s.total_price || 0),
+                shop: parseFloat(s.total_price || 0) - parseFloat(s.commission_value || 0),
+                type: 'Venda'
+            }))
+        ].sort((a, b) => b.date - a.date);
 
+        container.innerHTML = items.length > 0 ? items.map(i => {
+            const profPart = i.gen - i.shop;
             return `
                 <tr>
-                    <td>${new Date(a.appointment_date).toLocaleDateString('pt-BR')} ${a.appointment_time}</td>
-                    <td>${a.client_name}</td>
-                    <td style="color: var(--primary);">${a.service_name}</td>
-                    <td style="font-weight: 600;">R$ ${servicePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td style="color: var(--danger); font-weight: 600;">R$ ${serviceShopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td style="color: var(--success); font-weight: 700;">R$ ${serviceProfShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td>${i.date.toLocaleDateString('pt-BR')} ${i.time}</td>
+                    <td>${i.client}</td>
+                    <td style="color: var(--primary); font-size: 0.85rem;">[${i.type}] ${i.desc}</td>
+                    <td style="font-weight: 600;">R$ ${i.gen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td style="color: var(--danger); font-size: 0.85rem;">R$ ${i.shop.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td style="color: var(--success); font-weight: 700;">R$ ${profPart.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 </tr>
             `;
         }).join('') : '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum faturamento registrado para este mês.</td></tr>';
@@ -986,10 +1031,23 @@ const admin = {
     handleSaleProductChange() {
         const id = document.getElementById('modal-sale-item').value;
         const item = this.inventory.find(i => String(i.id) === String(id));
-        
         if (item) {
-            document.getElementById('modal-sale-price-unit').value = item.unit_price;
+            document.getElementById('modal-sale-price-unit').value = item.price;
             this.calculateSaleTotal();
+        }
+    },
+
+    handleSaleProfessionalChange() {
+        const id = document.getElementById('modal-sale-professional').value;
+        const commInput = document.getElementById('modal-sale-commission');
+        if (!id) {
+            commInput.value = 0;
+            return;
+        }
+        const prof = this.professionals.find(p => String(p.id) === String(id));
+        if (prof) {
+            // Suggest the same percentage as services, but for sales (user can override)
+            commInput.value = prof.commission || 0;
         }
     },
 
@@ -1006,6 +1064,7 @@ const admin = {
         const professionalId = document.getElementById('modal-sale-professional').value;
         const quantity = parseInt(document.getElementById('modal-sale-qty').value);
         const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value);
+        const commissionRate = parseFloat(document.getElementById('modal-sale-commission').value || 0);
         
         if (!inventoryId || isNaN(quantity) || quantity <= 0) {
             return alert('Selecione um produto e uma quantidade válida');
@@ -1028,7 +1087,8 @@ const admin = {
                     professionalId: professionalId || null,
                     quantity,
                     unitPrice,
-                    totalPrice
+                    totalPrice,
+                    commissionRate
                 })
             });
 
@@ -1039,7 +1099,7 @@ const admin = {
             auth.notify('Venda registrada com sucesso!', 'success');
         } catch (err) {
             console.error('Save sale error:', err);
-            alert(err.message || 'Erro ao registrar venda');
+            alert('Erro ao registrar venda');
         }
     },
 

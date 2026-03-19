@@ -561,7 +561,7 @@
                     </div>
                     <div class="input-group-new">
                         <label>Barbeiro/Atendente</label>
-                        <select id="modal-sale-professional" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
+                        <select id="modal-sale-professional" onchange="admin.handleSaleProfessionalChange()" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
                             <option value="">Nenhum (Sem comissão)</option>
                         </select>
                     </div>
@@ -573,9 +573,14 @@
                         <input type="number" id="modal-sale-qty" min="1" value="1" oninput="admin.calculateSaleTotal()" placeholder="0">
                     </div>
                     <div class="input-group-new">
-                        <label>Preço Unitário (R$)</label>
-                        <input type="number" id="modal-sale-price-unit" readonly class="glass" style="opacity: 0.6;">
+                        <label>Comissão Repasse (%)</label>
+                        <input type="number" id="modal-sale-commission" min="0" max="100" value="0" placeholder="0">
                     </div>
+                </div>
+
+                <div class="input-group-new" style="margin-top: 15px;">
+                    <label>Preço Unitário (R$)</label>
+                    <input type="number" id="modal-sale-price-unit" readonly class="glass" style="opacity: 0.6;">
                 </div>
 
                 <div class="input-group-new" style="margin-top: 20px;">

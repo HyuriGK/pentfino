@@ -591,7 +591,7 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/sales', authenticateToken, async (req, res) => {
-    const { barberId, inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId } = req.body;
+    const { barberId, inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId, commissionRate: reqCommRate } = req.body;
     
     if (!inventoryId || !quantity) return res.status(400).send('Dados incompletos');
 
@@ -599,15 +599,18 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
     try {
         await client.query('BEGIN');
         
-        let commissionRate = 0;
+        let commissionRate = reqCommRate !== undefined ? parseFloat(reqCommRate) : 0;
         let commissionValue = 0;
 
         if (professionalId) {
-            const profRes = await client.query('SELECT commission FROM professionals WHERE id = $1', [professionalId]);
-            if (profRes.rowCount > 0) {
-                commissionRate = parseFloat(profRes.rows[0].commission || 0);
-                commissionValue = parseFloat(totalPrice) * (commissionRate / 100);
+            // If commissionRate wasn't provided in body, fetch from professional
+            if (reqCommRate === undefined) {
+                const profRes = await client.query('SELECT commission FROM professionals WHERE id = $1', [professionalId]);
+                if (profRes.rowCount > 0) {
+                    commissionRate = parseFloat(profRes.rows[0].commission || 0);
+                }
             }
+            commissionValue = parseFloat(totalPrice) * (commissionRate / 100);
         }
 
         // 1. Record the sale (using item_id and price_at_sale)
