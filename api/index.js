@@ -591,7 +591,8 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/sales', authenticateToken, async (req, res) => {
-    const { barberId, inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId, commissionRate: reqCommRate } = req.body;
+    const { inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId, commissionRate: reqCommRate } = req.body;
+    const barberId = req.body.barberId || req.user.id;
     
     if (!inventoryId || !quantity) return res.status(400).send('Dados incompletos');
 

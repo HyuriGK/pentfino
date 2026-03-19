@@ -1185,23 +1185,29 @@ const admin = {
     },
 
     async saveSale() {
-        const itemId = document.getElementById('modal-sale-item-id').value;
+        const inventoryId = document.getElementById('modal-sale-item-id').value;
         const clientId = document.getElementById('modal-sale-client-id').value;
         const professionalId = document.getElementById('modal-sale-professional-id').value;
-        const quantity = document.getElementById('modal-sale-qty').value;
-        const commissionCustom = document.getElementById('modal-sale-commission').value;
+        const quantity = parseInt(document.getElementById('modal-sale-qty').value) || 0;
+        const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value) || 0;
+        const commissionRate = parseFloat(document.getElementById('modal-sale-commission').value) || 0;
+        
+        if (!inventoryId || quantity <= 0) return alert('Selecione um produto e a quantidade.');
 
-        if (!itemId || !quantity) return alert('Selecione um produto e a quantidade.');
+        const totalPrice = quantity * unitPrice;
 
         try {
             await auth.apiRequest('/api/sales', {
                 method: 'POST',
                 body: JSON.stringify({ 
-                    itemId, 
+                    barberId: auth.user.id,
+                    inventoryId, 
                     clientId: clientId || null, 
                     professionalId: professionalId || null, 
                     quantity,
-                    commissionCustom
+                    unitPrice,
+                    totalPrice,
+                    commissionRate
                 })
             });
             await this.loadSales();
