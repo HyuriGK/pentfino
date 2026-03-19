@@ -195,6 +195,8 @@ const auth = {
 const admin = {
     pending: [],
     history: [],
+    inventory: [],
+    sales: [],
     clients: [],
     allClients: [], // For filtering
 
@@ -206,7 +208,7 @@ const admin = {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         await this.loadData();
         await this.loadClients();
-
+        await this.loadInventory();
         await this.loadProfessionals();
         await this.loadServices();
 
@@ -278,7 +280,7 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'profissionais', 'servicos', 'comissoes'];
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -303,6 +305,9 @@ const admin = {
         
         if (tab === 'clientes') {
             this.loadClients();
+        }
+        if (tab === 'estoque') {
+            this.loadInventory();
         }
 
 
@@ -707,6 +712,164 @@ const admin = {
     },
 
 
+
+    // Inventory Logic (REVOLUTIONARY)
+    async loadInventory() {
+        try {
+            const res = await auth.apiRequest(`/api/inventory/${auth.user.id}?t=${Date.now()}`);
+            const data = await res.json();
+            this.inventory = data;
+            this.renderInventory();
+        } catch (err) { console.error('Erro ao carregar estoque'); }
+    },
+
+    renderInventory() {
+        const container = document.getElementById('inventory-grid');
+        if (!container) return;
+
+        if (this.inventory.length === 0) {
+            container.innerHTML = `
+                <div class="glass" style="grid-column: 1/-1; padding: 4rem; text-align: center; border: 2px dashed var(--border);">
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Nenhum produto cadastrado no estoque.</p>
+                    <button class="btn btn-primary" onclick="admin.openModal('inventory')" style="margin-top: 1.5rem; display: inline-flex;">Começar agora</button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.inventory.map(i => {
+            const isLow = i.quantity <= i.min_quantity;
+            const badgeClass = isLow ? 'badge-low' : 'badge-ok';
+            const badgeText = isLow ? 'Estoque Baixo' : 'Em Estoque';
+            
+            const maxVal = Math.max(i.min_quantity * 3, i.quantity);
+            const progress = (i.quantity / maxVal) * 100;
+            
+            const photo = i.photo_url || 'https://images.unsplash.com/photo-1512690196236-d5a23223049b?q=80&w=400&auto=format&fit=crop';
+            // Escape single quotes for the onclick handler
+            const itemNameEscaped = i.item_name.replace(/'/g, "\\'");
+
+            return `
+                <div class="inventory-card">
+                    <div class="inventory-card-actions">
+                        <button class="card-action-btn" onclick="admin.openEditInventory(${i.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="card-action-btn delete" onclick="admin.deleteInventory(${i.id}, '${itemNameEscaped}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </div>
+                    
+                    <span class="inventory-card-badge ${badgeClass}">${badgeText}</span>
+                    
+                    <div class="inventory-card-img">
+                        <img src="${photo}" alt="${i.item_name}" onerror="this.src='https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=400&auto=format&fit=crop'">
+                    </div>
+                    
+                    <div class="inventory-card-body">
+                        <h3 class="inventory-card-title">${i.item_name}</h3>
+                        <p class="inventory-card-desc">${i.description || 'Nenhuma descrição disponível para este produto.'}</p>
+                        
+                        <div class="inventory-card-price">
+                            R$ ${parseFloat(i.unit_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </div>
+
+                        <div class="inventory-card-qty-control">
+                            <button class="qty-btn" onclick="admin.updateQty(${i.id}, -1)">-</button>
+                            <div class="qty-value">${i.quantity} <small>${i.unit || 'un'}</small></div>
+                            <button class="qty-btn" onclick="admin.updateQty(${i.id}, 1)">+</button>
+                        </div>
+                        
+                        <div class="stock-progress-container">
+                            <div class="stock-progress-bar" style="width: ${progress}%; background: ${isLow ? '#ff4444' : '#00ff88'}"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    openEditInventory(id) {
+        const item = this.inventory.find(i => String(i.id) === String(id));
+        if (!item) return;
+
+        document.getElementById('modal-inv-edit-id').value = id;
+        document.getElementById('modal-inv-name').value = item.item_name;
+        document.getElementById('modal-inv-desc').value = item.description || '';
+        document.getElementById('modal-inv-photo').value = item.photo_url || '';
+        document.getElementById('modal-inv-qty').value = item.quantity;
+        document.getElementById('modal-inv-unit').value = item.unit || 'un';
+        document.getElementById('modal-inv-min').value = item.min_quantity;
+        document.getElementById('modal-inv-price').value = item.unit_price;
+
+        const modal = document.getElementById('modal-inventory');
+        modal.querySelector('.modal-title').innerText = 'Editar Produto';
+        modal.querySelector('.btn-primary').innerText = 'Salvar Alterações';
+
+        this.openModal('inventory');
+    },
+
+    async deleteInventory(id, name) {
+        this.openDeleteConfirm(`Deseja remover <strong>${name}</strong> do seu estoque permanentemente?`, async () => {
+            try {
+                await auth.apiRequest(`/api/inventory/${id}`, { method: 'DELETE' });
+                await this.loadInventory();
+                this.closeModal('delete-confirm');
+            } catch (err) { alert('Erro ao excluir item do estoque'); }
+        });
+    },
+
+    async updateQty(id, change) {
+        const item = this.inventory.find(i => i.id === id);
+        if (!item) return;
+        
+        const newQty = item.quantity + change;
+        if (newQty < 0) return;
+
+        try {
+            await auth.apiRequest(`/api/inventory/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ quantity: newQty })
+            });
+            await this.loadInventory();
+        } catch (err) { console.error('Erro ao atualizar quantidade'); }
+    },
+
+    async saveInventory() {
+        const id = document.getElementById('modal-inv-edit-id').value;
+        const itemName = document.getElementById('modal-inv-name').value;
+        const description = document.getElementById('modal-inv-desc').value;
+        const photoUrl = document.getElementById('modal-inv-photo').value;
+        const quantity = parseInt(document.getElementById('modal-inv-qty').value);
+        const unit = document.getElementById('modal-inv-unit').value || 'un';
+        const minQuantity = parseInt(document.getElementById('modal-inv-min').value);
+        const unitPrice = parseFloat(document.getElementById('modal-inv-price').value);
+
+        if(!itemName || isNaN(quantity)) return alert('Nome e Quantidade são obrigatórios');
+
+        try {
+            const method = id ? 'PATCH' : 'POST';
+            const url = id ? `/api/inventory/${id}` : '/api/inventory';
+            
+            await auth.apiRequest(url, {
+                method,
+                body: JSON.stringify({ 
+                    barberId: auth.user.id, 
+                    itemName, 
+                    description,
+                    photoUrl,
+                    quantity, 
+                    unit, 
+                    minQuantity: minQuantity || 0,
+                    unitPrice: unitPrice || 0
+                })
+            });
+
+            this.closeModal('inventory');
+            await this.loadInventory();
+            auth.notify(id ? 'Produto atualizado!' : 'Produto adicionado!', 'success');
+        } catch (err) { alert('Erro ao salvar item no estoque'); }
+    },
 
     // Modal Logic
     async openModal(type) {

@@ -124,6 +124,18 @@
                     <span class="nav-text">Clientes</span>
                 </div>
 
+                <div class="nav-item" onclick="admin.showTab('estoque')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                        </path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    <span class="nav-text">Estoque</span>
+                </div>
+
                 <div class="nav-item" onclick="admin.showTab('profissionais')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -282,6 +294,22 @@
 
 
 
+
+            <!-- TAB ESTOQUE (REVOLUTIONARY) -->
+            <div id="tab-estoque" class="hidden">
+                <div class="list-header">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+                            Vitrine & Estoque</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Gerencie seus produtos com visual premium e controle total de estoque.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="admin.openModal('inventory')">+ Novo Produto</button>
+                </div>
+
+                <div id="inventory-grid" class="inventory-grid" style="margin-top: 2.5rem;">
+                    <!-- Card Grid Injected by JS -->
+                </div>
+            </div>
 
             <!-- TAB PROFISSIONAIS -->
             <div id="tab-profissionais" class="hidden">
@@ -469,6 +497,57 @@
                 <input autocomplete="off" type="text" id="modal-svc-duration" placeholder="Ex: 30 min">
             </div>
             <button class="btn btn-primary btn-full" onclick="admin.saveService()">Adicionar Serviço</button>
+        </div>
+    </div>
+
+    <!-- MODAL NEW INVENTORY ITEM (REVOLUTIONARY) -->
+    <div id="modal-inventory" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Novo Produto</h2>
+                <button class="btn-icon-close" onclick="admin.closeModal('inventory')">×</button>
+            </header>
+            
+            <input type="hidden" id="modal-inv-edit-id">
+            
+            <div class="input-group-new">
+                <label>Nome do Produto</label>
+                <input autocomplete="off" type="text" id="modal-inv-name" placeholder="Ex: Pomada Efeito Matte">
+            </div>
+
+            <div class="input-group-new">
+                <label>Descrição Curta</label>
+                <textarea id="modal-inv-desc" placeholder="Descreva as qualidades do produto..." style="width: 100%; height: 80px; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright); outline: none; resize: none;"></textarea>
+            </div>
+
+            <div class="input-group-new">
+                <label>Link da Foto (URL)</label>
+                <input autocomplete="off" type="text" id="modal-inv-photo" placeholder="https://exemplo.com/foto.jpg">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="input-group-new">
+                    <label>Quantidade</label>
+                    <input autocomplete="off" type="number" id="modal-inv-qty" placeholder="0">
+                </div>
+                <div class="input-group-new">
+                    <label>Unidade</label>
+                    <input autocomplete="off" type="text" id="modal-inv-unit" placeholder="Ex: un, ml, par">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="input-group-new">
+                    <label>Preço de Venda (R$)</label>
+                    <input autocomplete="off" type="number" id="modal-inv-price" placeholder="R$ 0,00" step="0.01">
+                </div>
+                <div class="input-group-new">
+                    <label>Mínimo (Alerta)</label>
+                    <input autocomplete="off" type="number" id="modal-inv-min" placeholder="5">
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-full" style="margin-top: 12px;" onclick="admin.saveInventory()">Salvar no Estoque</button>
         </div>
     </div>
 

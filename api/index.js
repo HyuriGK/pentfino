@@ -38,6 +38,24 @@ pool.on('connect', () => {
     console.log('✅ Connected to Neon PostgreSQL');
     // Ensure commission column exists (one-off migration)
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
+    pool.query(`
+        CREATE TABLE IF NOT EXISTS inventory (
+            id SERIAL PRIMARY KEY,
+            barber_id INTEGER REFERENCES barbers(id),
+            item_name VARCHAR(255) NOT NULL,
+            description TEXT,
+            photo_url TEXT,
+            quantity INTEGER DEFAULT 0,
+            unit VARCHAR(50) DEFAULT 'un',
+            min_quantity INTEGER DEFAULT 5,
+            unit_price DECIMAL(10,2) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `).catch(e => console.error('Migration error (inventory):', e));
+    // Ensure new columns exist if table was already there
+    pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS description TEXT').catch(() => {});
+    pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS photo_url TEXT').catch(() => {});
+    pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS unit_price DECIMAL(10,2) DEFAULT 0').catch(() => {});
 
 });
 
@@ -464,10 +482,65 @@ app.post('/api/clients', async (req, res) => {
     }
 });
 
+// Inventory API (Revolutionary)
+app.get('/api/inventory/:barberId', authenticateToken, async (req, res) => {
+    try {
+        const { barberId } = req.params;
+        const result = await pool.query('SELECT * FROM inventory WHERE barber_id = $1 ORDER BY item_name ASC', [barberId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
 
+app.post('/api/inventory', authenticateToken, async (req, res) => {
+    const { barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO inventory (barber_id, item_name, description, photo_url, quantity, unit, min_quantity, unit_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+            [barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice || 0]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
 
+app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const { itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice } = req.body;
+    try {
+        const result = await pool.query(
+            `UPDATE inventory SET 
+                item_name = COALESCE($1, item_name), 
+                description = COALESCE($2, description),
+                photo_url = COALESCE($3, photo_url),
+                quantity = COALESCE($4, quantity), 
+                unit = COALESCE($5, unit), 
+                min_quantity = COALESCE($6, min_quantity), 
+                unit_price = COALESCE($7, unit_price) 
+            WHERE id = $8 RETURNING *`,
+            [itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, id]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
 
-
+app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM inventory WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
 
 if (require.main === module) {
     app.listen(port, () => {
