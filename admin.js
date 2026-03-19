@@ -211,6 +211,7 @@ const admin = {
         await this.loadInventory();
         await this.loadProfessionals();
         await this.loadServices();
+        await this.loadSales();
 
         this.startInsights();
     },
@@ -280,11 +281,15 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes'];
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes', 'billing'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
         });
+
+        if (tab === 'billing') {
+            this.loadBillingData();
+        }
 
         // Toggle "Link Público" button - only show on home tab
         const linkBtn = document.getElementById('public-link-btn');
@@ -1001,6 +1006,123 @@ const admin = {
                 </td>
             </tr>
         `).join('');
+    },
+
+    async loadBillingData() {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        
+        const monthHeader = document.getElementById('billing-chart-month');
+        if (monthHeader) {
+            monthHeader.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+        }
+
+        await this.loadSales(); // Ensure sales are up to date
+
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const dailyData = Array(daysInMonth).fill(0);
+
+        let totalMonth = 0;
+
+        // Sum Appointments (Services)
+        (this.allAppointments || []).forEach(a => {
+            const d = new Date(a.appointment_date);
+            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear && a.status === 'completed') {
+                const day = d.getDate();
+                const val = parseFloat(a.service_price || 0);
+                dailyData[day - 1] += val;
+                totalMonth += val;
+            }
+        });
+
+        // Sum Sales (Products)
+        (this.sales || []).forEach(s => {
+            const d = new Date(s.created_at);
+            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                const day = d.getDate();
+                const val = parseFloat(s.total_price || 0);
+                dailyData[day - 1] += val;
+                totalMonth += val;
+            }
+        });
+
+        // Update KPIs
+        const goal = 15000;
+        const remaining = Math.max(0, goal - totalMonth);
+        const percent = Math.min(100, (totalMonth / goal) * 100);
+
+        const totalMonthEl = document.getElementById('billing-total-month');
+        if (totalMonthEl) totalMonthEl.innerText = `R$ ${totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        
+        const remainingEl = document.getElementById('billing-remaining');
+        if (remainingEl) {
+            remainingEl.innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            if (totalMonth >= goal) {
+                remainingEl.style.color = 'var(--success)';
+                remainingEl.innerText = 'Meta Atingida! 🎉';
+            }
+        }
+        
+        const statusEl = document.getElementById('billing-goal-status');
+        if (statusEl) statusEl.innerText = `${percent.toFixed(1)}% da meta atingida`;
+
+        // Render Chart
+        this.renderBillingChart(dailyData);
+    },
+
+    renderBillingChart(data) {
+        const canvas = document.getElementById('billingDailyChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (this.billingChart) {
+            this.billingChart.destroy();
+        }
+
+        const labels = data.map((_, i) => i + 1);
+
+        this.billingChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Faturamento Diário',
+                    data: data,
+                    backgroundColor: 'rgba(0, 255, 136, 0.4)',
+                    borderColor: 'var(--primary)',
+                    borderWidth: 2,
+                    borderRadius: 5,
+                    hoverBackgroundColor: 'var(--primary)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `R$ ${context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: {
+                            color: 'var(--text-muted)',
+                            callback: (val) => `R$ ${val}`
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'var(--text-muted)' }
+                    }
+                }
+            }
+        });
     },
 
     async deleteSale(id, itemName) {

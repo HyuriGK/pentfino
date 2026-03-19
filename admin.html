@@ -113,6 +113,11 @@
                     </svg>
                     <span class="nav-text">Agenda</span>
                 </div>
+                <div class="nav-item" onclick="admin.showTab('billing')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+                    <span class="nav-text">Faturamento</span>
+                </div>
+
                 <div class="nav-item" onclick="admin.showTab('clientes')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -255,6 +260,41 @@
                 </div>
             </div>
 
+            <div id="tab-billing" class="hidden">
+                <div class="list-header" style="margin-bottom: 2rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Acompanhamento de Faturamento</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Monitore o resultado diário e mensal da sua barbearia.</p>
+                    </div>
+                </div>
+
+                <div class="billing-grid">
+                    <div class="stat-card glass billing-card" style="border-top: 2px solid var(--primary);">
+                        <div class="stat-label">Meta Mensal</div>
+                        <div class="stat-value" id="billing-goal" style="font-size: 2.2rem;">R$ 15.000</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">Definido pelo gestor</div>
+                    </div>
+                    <div class="stat-card glass billing-card" style="border-top: 2px solid var(--success);">
+                        <div class="stat-label">Faturamento Total (Mês)</div>
+                        <div class="stat-value" id="billing-total-month" style="color: var(--success); font-size: 2.2rem;">R$ 0,00</div>
+                        <div id="billing-goal-status" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">0% da meta atingida</div>
+                    </div>
+                    <div class="stat-card glass billing-card" style="border-top: 2px solid var(--danger);">
+                        <div class="stat-label">Faltam para Meta</div>
+                        <div class="stat-value" id="billing-remaining" style="color: var(--danger); font-size: 2.2rem;">R$ 15.000</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">Restante do mês</div>
+                    </div>
+                </div>
+
+                <div class="billing-chart-container glass">
+                    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;">Evolução Diária de Receita</h3>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Mês Atual: <span id="billing-chart-month">Novembro</span></div>
+                    </div>
+                    <canvas id="billingDailyChart"></canvas>
+                </div>
+            </div>
+
             <div id="tab-agenda" class="hidden">
                 <div class="list-header" style="margin-bottom: 2rem;">
                     <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
@@ -314,7 +354,7 @@
                 </div>
                 
                 <div class="sales-history-container glass" style="margin-top: 2rem;">
-                    <table class="data-table">
+                    <table class="data-table data-table-compact">
                         <thead>
                             <tr>
                                 <th>Data</th>
@@ -461,7 +501,6 @@
         <div class="modal-content">
             <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Cliente</h2>
-                <button class="btn-icon-close" onclick="admin.closeModal('client')">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome Completo</label>
@@ -486,7 +525,6 @@
         <div class="modal-content">
             <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Profissional</h2>
-                <button class="btn-icon-close" onclick="admin.closeModal('professional')">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome do Profissional</label>
@@ -520,7 +558,6 @@
         <div class="modal-content">
             <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Serviço</h2>
-                <button class="btn-icon-close" onclick="admin.closeModal('service')">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome do Serviço</label>
@@ -546,7 +583,6 @@
                     <h2 class="modal-title">Registrar Venda</h2>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Gerencie a saída de produtos e comissões.</p>
                 </div>
-                <button class="btn-icon-close" onclick="admin.closeModal('sales')">×</button>
             </header>
             
             <div class="modal-body" style="padding: 10px 0;">
@@ -639,7 +675,6 @@
                     <h2 class="modal-title">Selecionar Produto</h2>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Busque o produto em estoque.</p>
                 </div>
-                <button class="btn-icon-close" onclick="admin.closeModal('select-item')">×</button>
             </header>
             
             <div class="modal-body">
@@ -678,7 +713,6 @@
                     <h2 class="modal-title">Selecionar Cliente</h2>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Busque o cliente pelo nome ou telefone.</p>
                 </div>
-                <button class="btn-icon-close" onclick="admin.closeModal('select-client')">×</button>
             </header>
             
             <div class="modal-body">
@@ -719,7 +753,6 @@
                     <h2 class="modal-title">Selecionar Barbeiro/Atendente</h2>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Atribua a venda a um profissional.</p>
                 </div>
-                <button class="btn-icon-close" onclick="admin.closeModal('select-professional')">×</button>
             </header>
             
             <div class="modal-body">

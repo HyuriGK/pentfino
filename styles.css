@@ -1934,3 +1934,39 @@ aside nav {
 }
 
 
+
+/* Compact Data Table */
+.data-table-compact th, .data-table-compact td {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+}
+
+.data-table-compact tr {
+    height: 40px;
+}
+
+/* Billing Dashboard */
+.billing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 3rem;
+}
+
+.billing-card {
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.billing-chart-container {
+    padding: 2.5rem;
+    background: rgba(10, 10, 10, 0.4);
+    border: 1px solid var(--border-bright);
+    border-radius: 20px;
+}
+
+#billingDailyChart {
+    max-height: 450px !important;
+}
+
