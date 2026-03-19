@@ -1017,39 +1017,67 @@ const admin = {
     },
 
     async openSaleModal() {
-        if (!this.inventory.length) await this.loadInventory();
-        if (!this.clients.length) await this.loadClients();
-        if (!this.professionals.length) await this.loadProfessionals();
-
+        if (this.inventory.length === 0) await this.loadInventory();
         const select = document.getElementById('modal-sale-item');
-        if (!select) return;
-
-        // Populate items
         select.innerHTML = '<option value="">Selecione um produto...</option>' + 
-            this.inventory
-                .filter(i => i.quantity > 0)
-                .map(i => `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit || 'un'} disponíveis)</option>`)
-                .join('');
-        
-        // Populate clients
-        const clientSelect = document.getElementById('modal-sale-client');
-        if (clientSelect) {
-            clientSelect.innerHTML = '<option value="">Consumidor Final</option>' + 
-                this.allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        }
+            this.inventory.map(i => `<option value="${i.id}">${i.item_name} (Estoque: ${i.quantity})</option>`).join('');
 
-        // Populate professionals
+        this.clearSelectedClient();
+
         const proSelect = document.getElementById('modal-sale-professional');
-        if (proSelect) {
-            proSelect.innerHTML = '<option value="">Nenhum (Sem comissão)</option>' + 
-                this.professionals.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-        }
-        
+        proSelect.innerHTML = '<option value="">Nenhum (Sem comissão)</option>' +
+            this.professionals.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
         document.getElementById('modal-sale-qty').value = 1;
         document.getElementById('modal-sale-price-unit').value = '';
         document.getElementById('modal-sale-total').innerText = 'R$ 0,00';
-        
+        document.getElementById('modal-sale-commission').value = 0;
         this.openModal('sales');
+    },
+
+    openSelectClient() {
+        this.renderSelectClientTable(this.allClients);
+        document.getElementById('select-client-search').value = '';
+        this.openModal('select-client');
+    },
+
+    renderSelectClientTable(clients) {
+        const body = document.getElementById('select-client-table-body');
+        if (clients.length === 0) {
+            body.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum cliente encontrado.</td></tr>';
+            return;
+        }
+        body.innerHTML = clients.map(c => `
+            <tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.phone || '-'}</td>
+                <td style="text-align: right;">
+                    <button class="btn btn-primary btn-sm" onclick="admin.selectClient(${c.id}, '${c.name.replace(/'/g, "\\'")}')">Selecionar</button>
+                </td>
+            </tr>
+        `).join('');
+    },
+
+    filterSelectClient(term) {
+        const filtered = this.allClients.filter(c => 
+            c.name.toLowerCase().includes(term.toLowerCase()) || 
+            (c.phone && c.phone.includes(term))
+        );
+        this.renderSelectClientTable(filtered);
+    },
+
+    selectClient(id, name) {
+        document.getElementById('modal-sale-client-id').value = id;
+        document.getElementById('modal-sale-client-display').innerText = name;
+        document.getElementById('modal-sale-client-display').style.color = 'var(--primary)';
+        this.closeModal('select-client');
+    },
+
+    clearSelectedClient() {
+        document.getElementById('modal-sale-client-id').value = '';
+        document.getElementById('modal-sale-client-display').innerText = 'Consumidor Final';
+        document.getElementById('modal-sale-client-display').style.color = 'var(--text-muted)';
+        if (document.getElementById('modal-select-client')) this.closeModal('select-client');
     },
 
     handleSaleProductChange() {
@@ -1062,69 +1090,48 @@ const admin = {
     },
 
     handleSaleProfessionalChange() {
-        const id = document.getElementById('modal-sale-professional').value;
-        const commInput = document.getElementById('modal-sale-commission');
-        if (!id) {
-            commInput.value = 0;
-            return;
-        }
-        const prof = this.professionals.find(p => String(p.id) === String(id));
-        if (prof) {
-            // Suggest the same percentage as services, but for sales (user can override)
-            commInput.value = prof.commission || 0;
+        const proId = document.getElementById('modal-sale-professional').value;
+        const pro = this.professionals.find(p => String(p.id) === String(proId));
+        if (pro) {
+            document.getElementById('modal-sale-commission').value = pro.commission_rate || 0;
+        } else {
+            document.getElementById('modal-sale-commission').value = 0;
         }
     },
 
     calculateSaleTotal() {
         const qty = parseInt(document.getElementById('modal-sale-qty').value) || 0;
-        const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value) || 0;
-        const total = qty * unitPrice;
+        const price = parseFloat(document.getElementById('modal-sale-price-unit').value) || 0;
+        const total = qty * price;
         document.getElementById('modal-sale-total').innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     },
 
     async saveSale() {
-        const inventoryId = document.getElementById('modal-sale-item').value;
-        const clientId = document.getElementById('modal-sale-client').value;
+        const itemId = document.getElementById('modal-sale-item').value;
+        const clientId = document.getElementById('modal-sale-client-id').value;
         const professionalId = document.getElementById('modal-sale-professional').value;
-        const quantity = parseInt(document.getElementById('modal-sale-qty').value);
-        const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value);
-        const commissionRate = parseFloat(document.getElementById('modal-sale-commission').value || 0);
-        
-        if (!inventoryId || isNaN(quantity) || quantity <= 0) {
-            return alert('Selecione um produto e uma quantidade válida');
-        }
+        const quantity = document.getElementById('modal-sale-qty').value;
+        const commissionCustom = document.getElementById('modal-sale-commission').value;
 
-        const item = this.inventory.find(i => String(i.id) === String(inventoryId));
-        if (quantity > item.quantity) {
-            return alert(`Estoque insuficiente! Apenas ${item.quantity} unidades disponíveis.`);
-        }
-
-        const totalPrice = quantity * unitPrice;
+        if (!itemId || !quantity) return alert('Selecione um produto e a quantidade.');
 
         try {
             await auth.apiRequest('/api/sales', {
                 method: 'POST',
-                body: JSON.stringify({
-                    barberId: auth.user.id,
-                    inventoryId,
-                    clientId: clientId || null,
-                    professionalId: professionalId || null,
+                body: JSON.stringify({ 
+                    itemId, 
+                    clientId: clientId || null, 
+                    professionalId: professionalId || null, 
                     quantity,
-                    unitPrice,
-                    totalPrice,
-                    commissionRate
+                    commissionCustom
                 })
             });
-
+            await this.loadSales();
+            await this.loadInventory();
+            await this.loadData();
             this.closeModal('sales');
-            await this.loadSales();     // Refresh history
-            await this.loadInventory(); // Refresh stock
-            await this.loadData();      // Refresh dashboard revenue
             auth.notify('Venda registrada com sucesso!', 'success');
-        } catch (err) {
-            console.error('Save sale error:', err);
-            alert('Erro ao registrar venda');
-        }
+        } catch (err) { alert('Erro ao registrar venda: ' + err.message); }
     },
 
     // Modal Logic
