@@ -1048,7 +1048,7 @@ const admin = {
         const id = document.getElementById('modal-sale-item').value;
         const item = this.inventory.find(i => String(i.id) === String(id));
         if (item) {
-            document.getElementById('modal-sale-price-unit').value = item.price;
+            document.getElementById('modal-sale-price-unit').value = item.unit_price;
             this.calculateSaleTotal();
         }
     },
