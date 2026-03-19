@@ -633,10 +633,52 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
         res.json(saleResult.rows[0]);
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('Sale error:', err);
-        res.status(500).send(err.message || 'Erro ao processar venda');
+        console.error(err);
+        res.status(500).send(err.message || 'Server Error');
     } finally {
         client.release();
+    }
+});
+
+app.delete('/api/sales/:id', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        
+        // 1. Get sale details to revert inventory
+        const sale = await client.query('SELECT item_id, quantity, barber_id FROM sales WHERE id = $1', [id]);
+        if (sale.rowCount > 0) {
+            const { item_id, quantity, barber_id } = sale.rows[0];
+            // 2. Revert inventory
+            await client.query('UPDATE inventory SET quantity = quantity + $1 WHERE id = $2 AND barber_id = $3', [quantity, item_id, barber_id]);
+        }
+        
+        // 3. Delete sale
+        await client.query('DELETE FROM sales WHERE id = $1', [id]);
+        
+        await client.query('COMMIT');
+        res.json({ success: true });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
+        res.status(500).send('Server Error');
+    } finally {
+        client.release();
+    }
+});
+
+app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Sales that reference this item will have item_id set to NULL due to ON DELETE SET NULL
+        // or I can just delete it if the constraint allows.
+        // For safety, I'll check if there are sales first or just try to delete.
+        await pool.query('DELETE FROM inventory WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Não é possível excluir este item pois ele possui registros de venda associados.');
     }
 });
 

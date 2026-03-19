@@ -988,8 +988,24 @@ const admin = {
                 <td>${s.quantity}</td>
                 <td>${s.professional_name || '<span style="color: var(--text-muted)">Nenhum</span>'}</td>
                 <td style="color: var(--primary); font-weight: 700;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td>
+                    <button class="btn btn-ghost" style="color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteSale(${s.id}, '${s.item_name.replace(/'/g, "\\'")}')">×</button>
+                </td>
             </tr>
         `).join('');
+    },
+
+    async deleteSale(id, itemName) {
+        this.openDeleteConfirm(`Deseja excluir o registro da venda de <strong>${itemName}</strong>? O estoque será restaurado automaticamente.`, async () => {
+            try {
+                await auth.apiRequest(`/api/sales/${id}`, { method: 'DELETE' });
+                await this.loadSales();
+                await this.loadInventory();
+                await this.loadData();
+                this.closeModal('delete-confirm');
+                auth.notify('Venda excluída e estoque restaurado.', 'success');
+            } catch (err) { alert('Erro ao excluir venda'); }
+        });
     },
 
     async openSaleModal() {
