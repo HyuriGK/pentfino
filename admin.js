@@ -982,12 +982,20 @@ const admin = {
 
         container.innerHTML = this.sales.map(s => `
             <tr>
-                <td>${new Date(s.created_at).toLocaleDateString('pt-BR')} ${new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
-                <td>${s.client_name || '<span style="color: var(--text-muted)">Consumidor</span>'}</td>
-                <td><strong>${s.item_name}</strong></td>
-                <td>${s.quantity}</td>
-                <td>${s.professional_name || '<span style="color: var(--text-muted)">Nenhum</span>'}</td>
-                <td style="color: var(--primary); font-weight: 700;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td style="color: var(--text-muted); font-size: 0.8rem;">
+                    ${new Date(s.created_at).toLocaleDateString('pt-BR')}<br>
+                    <small>${new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                </td>
+                <td style="font-weight: 500;">${s.client_name || '<span style="color: var(--text-muted); font-style: italic;">Consumidor</span>'}</td>
+                <td><strong style="color: #fff;">${s.item_name}</strong></td>
+                <td><span class="qty-badge" style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);">${s.quantity}</span></td>
+                <td>
+                    ${s.professional_name 
+                        ? `<span class="svc-tag" style="background: rgba(0, 255, 136, 0.1); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2);">${s.professional_name}</span>`
+                        : '<span style="color: var(--text-muted)">-</span>'
+                    }
+                </td>
+                <td style="color: var(--primary); font-weight: 800; font-size: 1.1rem;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td>
                     <button class="btn btn-ghost" style="color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteSale(${s.id}, '${s.item_name.replace(/'/g, "\\'")}')">×</button>
                 </td>

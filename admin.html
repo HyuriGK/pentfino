@@ -302,10 +302,10 @@
 
             <!-- Tab Vendas -->
             <div id="tab-vendas" class="hidden">
-                <div class="tab-header">
+                <div class="list-header">
                     <div>
-                        <h1>Vendas</h1>
-                        <p>Gerencie suas vendas de produtos do estoque</p>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Vendas</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Gerencie suas vendas de produtos do estoque</p>
                     </div>
                     <button class="btn btn-primary" onclick="admin.openSaleModal()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -540,35 +540,41 @@
 
     <!-- Modal Venda -->
     <div id="modal-sales" class="modal-overlay hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 class="modal-title">Registrar Venda</h2>
-                <button class="btn-close" onclick="admin.closeModal('sales')">&times;</button>
-            </div>
-            <div class="modal-body">
+        <div class="modal-content" style="max-width: 600px;">
+            <header class="modal-header">
+                <div>
+                    <h2 class="modal-title">Registrar Venda</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Selecione o produto, cliente e finalize a venda.</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('sales')">×</button>
+            </header>
+            
+            <div class="modal-body" style="padding: 10px 0;">
                 <div class="input-group-new">
                     <label>Produto em Estoque</label>
-                    <select id="modal-sale-item" onchange="admin.handleSaleProductChange()" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
-                        <option value="">Selecione um produto...</option>
-                    </select>
+                    <div style="position: relative;">
+                        <select id="modal-sale-item" onchange="admin.handleSaleProductChange()" class="glass-select">
+                            <option value="">Selecione um produto...</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div class="form-row-2" style="margin-top: 20px;">
                     <div class="input-group-new">
                         <label>Cliente (Opcional)</label>
-                        <select id="modal-sale-client" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
+                        <select id="modal-sale-client" class="glass-select">
                             <option value="">Consumidor Final</option>
                         </select>
                     </div>
                     <div class="input-group-new">
                         <label>Barbeiro/Atendente</label>
-                        <select id="modal-sale-professional" onchange="admin.handleSaleProfessionalChange()" class="glass" style="width: 100%; padding: 12px; height: 50px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); border-radius: 12px;">
+                        <select id="modal-sale-professional" onchange="admin.handleSaleProfessionalChange()" class="glass-select">
                             <option value="">Nenhum (Sem comissão)</option>
                         </select>
                     </div>
                 </div>
                 
-                <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div class="form-row-2" style="margin-top: 20px;">
                     <div class="input-group-new">
                         <label>Quantidade</label>
                         <input type="number" id="modal-sale-qty" min="1" value="1" oninput="admin.calculateSaleTotal()" placeholder="0">
@@ -579,19 +585,25 @@
                     </div>
                 </div>
 
-                <div class="input-group-new" style="margin-top: 15px;">
+                <div class="input-group-new" style="margin-top: 20px;">
                     <label>Preço Unitário (R$)</label>
-                    <input type="number" id="modal-sale-price-unit" readonly class="glass" style="opacity: 0.6;">
+                    <input type="number" id="modal-sale-price-unit" readonly style="background: rgba(255,255,255,0.03); color: var(--text-muted); border-style: dashed;">
                 </div>
 
-                <div class="input-group-new" style="margin-top: 20px;">
-                    <label>Total da Venda</label>
-                    <div id="modal-sale-total" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">R$ 0,00</div>
+                <div class="sale-total-display glass" style="margin-top: 25px; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-bright);">
+                    <div>
+                        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Total da Venda</span>
+                        <div id="modal-sale-total" style="font-size: 2rem; font-weight: 800; color: var(--primary); margin-top: 4px;">R$ 0,00</div>
+                    </div>
+                    <div style="opacity: 0.2;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-ghost" onclick="admin.closeModal('sales')">Cancelar</button>
-                <button class="btn btn-primary" onclick="admin.saveSale()">Confirmar Venda</button>
+
+            <div class="modal-footer" style="margin-top: 30px; display: flex; gap: 12px;">
+                <button class="btn btn-ghost btn-full" onclick="admin.closeModal('sales')">Cancelar</button>
+                <button class="btn btn-primary btn-full" onclick="admin.saveSale()">Confirmar Venda</button>
             </div>
         </div>
     </div>

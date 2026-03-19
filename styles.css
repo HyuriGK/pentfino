@@ -1760,121 +1760,164 @@ aside nav {
 }
 
 .inventory-card-title {
-    font-family: " Outfit\, sans-serif;
- font-size: 1.25rem;
- font-weight: 700;
- margin-bottom: 8px;
- color: #fff;
+    font-family: "Outfit", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
 }
 
 .inventory-card-desc {
- font-size: 0.85rem;
- color: var(--text-muted);
- line-height: 1.5;
- margin-bottom: 1.5rem;
- display: -webkit-box;
- -webkit-line-clamp: 2;
- -webkit-box-orient: vertical;
- overflow: hidden;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .inventory-card-price {
- font-size: 1.5rem;
- font-weight: 800;
- color: var(--primary);
- margin-top: auto;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-top: auto;
 }
 
 .inventory-card-qty-control {
- display: flex;
- align-items: center;
- gap: 12px;
- margin-top: 1.5rem;
- padding-top: 1.5rem;
- border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
 }
 
 .qty-btn {
- width: 32px;
- height: 32px;
- border-radius: 8px;
- border: 1px solid var(--border-bright);
- background: transparent;
- color: #fff;
- cursor: pointer;
- display: flex;
- align-items: center;
- justify-content: center;
- transition: var(--transition);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border-bright);
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
 }
 
 .qty-btn:hover {
- background: var(--primary);
- color: #000;
- border-color: var(--primary);
+    background: var(--primary);
+    color: #000;
+    border-color: var(--primary);
 }
 
 .qty-value {
- font-weight: 700;
- font-size: 1rem;
- min-width: 30px;
- text-align: center;
+    font-weight: 700;
+    font-size: 1rem;
+    min-width: 30px;
+    text-align: center;
 }
 
 .inventory-card-actions {
- position: absolute;
- top: 16px;
- left: 16px;
- display: flex;
- gap: 8px;
- opacity: 0;
- transform: translateY(-10px);
- transition: var(--transition);
- z-index: 2;
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    z-index: 2;
 }
 
 .inventory-card:hover .inventory-card-actions {
- opacity: 1;
- transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .card-action-btn {
- width: 36px;
- height: 36px;
- border-radius: 10px;
- background: rgba(0,0,0,0.6);
- backdrop-filter: blur(10px);
- border: 1px solid rgba(255,255,255,0.1);
- color: #fff;
- display: flex;
- align-items: center;
- justify-content: center;
- cursor: pointer;
- transition: var(--transition);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
 }
 
 .card-action-btn:hover {
- background: var(--primary);
- color: #000;
+    background: var(--primary);
+    color: #000;
 }
 
 .card-action-btn.delete:hover {
- background: var(--danger);
- color: #fff;
+    background: var(--danger);
+    color: #fff;
 }
 
 .stock-progress-container {
- width: 100%;
- height: 4px;
- background: rgba(255,255,255,0.05);
- margin-top: 1rem;
- border-radius: 2px;
- overflow: hidden;
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    margin-top: 1rem;
+    border-radius: 2px;
+    overflow: hidden;
 }
 
 .stock-progress-bar {
- height: 100%;
- background: var(--primary);
- transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Sales UI Improvements */
+.glass-select {
+    width: 100%;
+    padding: 12px 16px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    appearance: none;
+}
+
+.glass-select:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.sale-total-display {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sale-total-display:hover {
+    border-color: var(--primary) !important;
+    transform: translateY(-2px);
+}
+
+.btn-full {
+    width: 100%;
+    justify-content: center;
+}
+
 
