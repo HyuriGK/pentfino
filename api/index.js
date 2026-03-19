@@ -38,25 +38,7 @@ pool.on('connect', () => {
     console.log('✅ Connected to Neon PostgreSQL');
     // Ensure commission column exists (one-off migration)
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
-    pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS unit_price DECIMAL(10,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
-    pool.query(`
-        CREATE TABLE IF NOT EXISTS sales (
-            id SERIAL PRIMARY KEY,
-            barber_id INTEGER REFERENCES barbers(id),
-            item_id INTEGER REFERENCES inventory(id),
-            professional_id INTEGER REFERENCES professionals(id),
-            quantity INTEGER NOT NULL,
-            price_at_sale DECIMAL(10,2) NOT NULL,
-            total_price DECIMAL(10,2) NOT NULL,
-            has_commission BOOLEAN DEFAULT TRUE,
-            commission_rate DECIMAL(5,2) DEFAULT 0,
-            commission_value DECIMAL(10,2) DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    `).catch(e => console.error('Migration error (sales):', e));
-    // Migration to add columns if table already exists
-    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5,2) DEFAULT 0').catch(() => {});
-    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_value DECIMAL(10,2) DEFAULT 0').catch(() => {});
+
 });
 
 // API Routes
@@ -230,21 +212,13 @@ app.get('/api/stats/:barberId', authenticateToken, async (req, res) => {
             WHERE a.barber_id = $1 AND a.status = 'completed'
         `, [barberId]);
 
-        // Total from sales
-        const salesResult = await pool.query(`
-            SELECT COALESCE(SUM(total_price), 0) as revenue, COUNT(*) as count 
-            FROM sales 
-            WHERE barber_id = $1
-        `, [barberId]);
-
         res.json({
-            revenue: parseFloat(svcResult.rows[0].revenue) + parseFloat(salesResult.rows[0].revenue),
-            count: parseInt(svcResult.rows[0].count) + parseInt(salesResult.rows[0].count),
+            revenue: parseFloat(svcResult.rows[0].revenue),
+            count: parseInt(svcResult.rows[0].count),
             serviceRevenue: parseFloat(svcResult.rows[0].revenue),
-            salesRevenue: parseFloat(salesResult.rows[0].revenue)
+            salesRevenue: 0
         });
     } catch (err) {
-
         console.error(err);
         res.status(500).send('Server Error');
     }
@@ -490,114 +464,10 @@ app.post('/api/clients', async (req, res) => {
     }
 });
 
-// Inventory API
-app.get('/api/inventory/:barberId', authenticateToken, async (req, res) => {
-    try {
-        const { barberId } = req.params;
-        const result = await pool.query('SELECT * FROM inventory WHERE barber_id = $1 ORDER BY item_name ASC', [barberId]);
-        res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-
-app.post('/api/inventory', authenticateToken, async (req, res) => {
-    const { barberId, itemName, quantity, unit, minQuantity, unitPrice } = req.body;
-    console.log(`[API] Criando novo item no estoque para BarberID: ${barberId}, Item: ${itemName}`);
-    try {
-        const result = await pool.query(
-            'INSERT INTO inventory (barber_id, item_name, quantity, unit, min_quantity, unit_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [barberId, itemName, quantity, unit, minQuantity, unitPrice || 0]
-        );
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-
-app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
-    const id = parseInt(req.params.id);
-    const { itemName, quantity, unit, minQuantity, unitPrice } = req.body;
-    console.log(`[API] Processando PATCH para ID: ${id} (${typeof id}). Item: ${itemName || 'qty-only'}`);
-    
-    if (isNaN(id)) return res.status(400).send('Invalid ID');
-    try {
-        if (itemName !== undefined) {
-            await pool.query(
-                'UPDATE inventory SET item_name = $1, quantity = $2, unit = $3, min_quantity = $4, unit_price = $5 WHERE id = $6',
-                [itemName, quantity, unit, minQuantity, unitPrice, id]
-            );
-        } else {
-            await pool.query('UPDATE inventory SET quantity = $1 WHERE id = $2', [quantity, id]);
-        }
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-
-app.post('/api/sales', authenticateToken, async (req, res) => {
-    const { barberId, itemId, professionalId, quantity, price, hasCommission, commissionRate } = req.body;
-    try {
-        await pool.query('BEGIN');
-        
-        // 1. Record the sale
-        const totalPrice = parseFloat(price) * parseInt(quantity);
-        const commRate = parseFloat(commissionRate || 0);
-        const commValue = hasCommission ? (totalPrice * (commRate / 100)) : 0;
-
-        const saleRes = await pool.query(
-            'INSERT INTO sales (barber_id, item_id, professional_id, quantity, price_at_sale, total_price, has_commission, commission_rate, commission_value) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-            [barberId, itemId, professionalId || null, quantity, price, totalPrice, hasCommission, commRate, commValue]
-        );
-
-        // 2. Decrement inventory
-        await pool.query(
-            'UPDATE inventory SET quantity = quantity - $1 WHERE id = $2',
-            [quantity, itemId]
-        );
-
-        await pool.query('COMMIT');
-        res.json(saleRes.rows[0]);
-    } catch (err) {
-        await pool.query('ROLLBACK');
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-
-app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
-    try {
-        const { barberId } = req.params;
-        const result = await pool.query(`
-            SELECT s.*, i.item_name, p.name as professional_name
-            FROM sales s
-            JOIN inventory i ON s.item_id = i.id
-            LEFT JOIN professionals p ON s.professional_id = p.id
-            WHERE s.barber_id = $1
-            ORDER BY s.created_at DESC
-        `, [barberId]);
-        res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
 
 
-app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
-    const { id } = req.params;
-    try {
-        await pool.query('DELETE FROM inventory WHERE id = $1', [id]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
+
+
 
 if (require.main === module) {
     app.listen(port, () => {

@@ -197,8 +197,7 @@ const admin = {
     history: [],
     clients: [],
     allClients: [], // For filtering
-    inventory: [],
-    sales: [],
+
     professionals: [],
     services: [],
     editingInventoryId: null,
@@ -207,10 +206,10 @@ const admin = {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         await this.loadData();
         await this.loadClients();
-        await this.loadInventory();
+
         await this.loadProfessionals();
         await this.loadServices();
-        await this.loadSales();
+
         this.startInsights();
     },
 
@@ -279,7 +278,7 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes'];
+        const tabs = ['home', 'agenda', 'clientes', 'profissionais', 'servicos', 'comissoes'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -306,13 +305,7 @@ const admin = {
             this.loadClients();
         }
 
-        if (tab === 'estoque') {
-            this.loadInventory();
-        }
 
-        if (tab === 'vendas') {
-            this.loadSales();
-        }
 
         if (tab === 'profissionais') {
             this.loadProfessionals();
@@ -713,156 +706,13 @@ const admin = {
         this.renderClients(filtered);
     },
 
-    // Inventory Logic
-    async loadInventory() {
-        try {
-            const res = await auth.apiRequest(`/api/inventory/${auth.user.id}?t=${Date.now()}`);
-            const data = await res.json();
-            this.inventory = data;
-            
-            // Redundancy for sales modal
-            window.__BARBER_DEBUG__.lastInventoryContent = data;
-            window.__BARBER_DEBUG__.inventoryCount = data.length;
-            window.__BARBER_DEBUG__.lastInventoryLoad = new Date().toLocaleTimeString();
-            
-            this.renderInventory();
-        } catch (err) { console.error('Erro ao carregar estoque'); }
-    },
 
-    renderInventory() {
-        const container = document.getElementById('inventory-table-body');
-        if (!container) return;
-        container.innerHTML = this.inventory.map(i => {
-            const statusClass = i.quantity <= i.min_quantity ? 'status-danger' : 'status-ok';
-            const statusText = i.quantity <= i.min_quantity ? 'Baixo Estoque' : 'Em estoque';
-            
-            return `
-                <tr>
-                    <td><strong style="color:#fff">${i.item_name}</strong></td>
-                    <td style="font-weight: 600;">${i.quantity} <small>${i.unit}</small></td>
-                    <td>R$ ${parseFloat(i.unit_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                    <td>
-                        <div style="display:flex; gap:8px; align-items: center; justify-content: flex-start;">
-                            <button class="btn btn-ghost" style="height: 32px; color: var(--primary); font-size: 0.75rem; padding: 0 12px; border: 1px solid rgba(var(--primary-rgb), 0.2); border-radius: 8px; font-weight: 600; text-transform: uppercase;" onclick="admin.openEditInventory(${i.id})">EDITAR</button>
-                            <button class="btn btn-ghost" style="color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px;" onclick="admin.deleteInventory(${i.id}, '${i.item_name.replace(/'/g, "\\'")}')">×</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    },
-
-    openEditInventory(id) {
-        const item = admin.inventory.find(i => String(i.id) === String(id));
-        if (!item) {
-            console.error('[ERRO] Item não encontrado no inventário local:', id);
-            return;
-        }
-
-        // Store ID in FOUR places to make it impossible to lose
-        admin.editingInventoryId = id;
-        document.getElementById('modal-inv-edit-id').value = id;
-        
-        const modal = document.getElementById('modal-inventory');
-        modal.setAttribute('data-edit-id', id);
-        
-        const saveBtn = modal.querySelector('.btn-primary');
-        saveBtn.setAttribute('data-edit-id', id);
-        saveBtn.innerText = 'Salvar Alterações';
-        
-        modal.querySelector('.modal-title').innerText = 'Editar Item';
-        
-        // Show Debug Info
-        const debugDiv = document.getElementById('modal-inv-debug');
-        const debugId = document.getElementById('modal-inv-debug-id');
-        if (debugDiv && debugId) {
-            debugDiv.style.display = 'block';
-            debugId.innerText = id;
-        }
-
-        document.getElementById('modal-inv-name').value = item.item_name;
-        document.getElementById('modal-inv-qty').value = item.quantity;
-        document.getElementById('modal-inv-unit').value = item.unit;
-        document.getElementById('modal-inv-min').value = item.min_quantity;
-        document.getElementById('modal-inv-price').value = item.unit_price || 0;
-
-        console.log('[EDIT] Abrindo edição para ID:', id, 'Nome:', item.item_name);
-        admin.openModal('inventory');
-    },
-
-    async deleteInventory(id, name) {
-        this.openDeleteConfirm(`Deseja remover <strong>${name}</strong> do seu estoque?`, async () => {
-            try {
-                await auth.apiRequest(`/api/inventory/${id}`, { method: 'DELETE' });
-                this.loadInventory();
-                this.closeModal('delete-confirm');
-            } catch (err) { alert('Erro ao excluir item do estoque'); }
-        });
-    },
-
-    async updateQty(id, newQty) {
-        if (newQty < 0) return;
-        try {
-            await auth.apiRequest(`/api/inventory/${id}`, {
-                method: 'PATCH',
-                body: JSON.stringify({ quantity: newQty })
-            });
-            this.loadInventory();
-        } catch (err) { alert('Erro ao atualizar quantidade'); }
-    },
 
     // Modal Logic
     async openModal(type) {
         console.log(`[DEBUG] Abrindo modal do tipo: ${type}`);
         try {
-            if (type === 'inventory' && (admin.editingInventoryId === null || admin.editingInventoryId === undefined)) {
-                // Reset for "New Item"
-                const modal = document.getElementById('modal-inventory');
-                if (modal) {
-                    const title = modal.querySelector('.modal-title');
-                    const btn = modal.querySelector('.btn-primary');
-                    if (title) title.innerText = 'Novo Item';
-                    if (btn) btn.innerText = 'Adicionar ao Estoque';
-                    
-                    document.getElementById('modal-inv-name').value = '';
-                    document.getElementById('modal-inv-qty').value = '';
-                    document.getElementById('modal-inv-unit').value = 'un';
-                    document.getElementById('modal-inv-min').value = '5';
-                    document.getElementById('modal-inv-price').value = '';
-                    document.getElementById('modal-inv-edit-id').value = '';
-                    
-                    const debugDiv = document.getElementById('modal-inv-debug');
-                    if (debugDiv) debugDiv.style.display = 'none';
-                }
-            }
 
-            if (type === 'sale') {
-                const modalSale = document.getElementById('modal-sale');
-                if (!modalSale) {
-                    alert('Erro crítico: Modal de venda não encontrado no HTML');
-                    return;
-                }
-                
-                modalSale.classList.remove('hidden');
-                document.body.classList.add('modal-open');
-                
-                const statusEl = document.getElementById('modal-sale-item-status');
-                if (statusEl) statusEl.innerText = 'Iniciando sincronização...';
-                
-                try {
-                    await admin.loadInventory();
-                    if (statusEl) statusEl.innerText = 'Estoque carregado. Carregando profissionais...';
-                    await admin.loadProfessionals();
-                    if (statusEl) statusEl.innerText = 'Dados carregados. Preparando campos...';
-                    admin.prepareSaleModal();
-                } catch (err) {
-                    console.error('[SALE] Erro no fluxo do modal:', err);
-                    if (statusEl) statusEl.innerText = 'Erro: ' + err.message;
-                    alert('Erro ao carregar dados de venda: ' + err.message);
-                }
-                return;
-            }
 
             const genericModal = document.getElementById(`modal-${type}`);
             if (genericModal) {
@@ -878,16 +728,7 @@ const admin = {
     },
 
     closeModal(type) {
-        if (type === 'inventory') {
-            admin.editingInventoryId = null;
-            document.getElementById('modal-inv-edit-id').value = '';
-            const modal = document.getElementById('modal-inventory');
-            if (modal) {
-                modal.removeAttribute('data-edit-id');
-                const btn = modal.querySelector('.btn-primary');
-                if (btn) btn.removeAttribute('data-edit-id');
-            }
-        }
+
         document.getElementById(`modal-${type}`).classList.add('hidden');
         const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
         if (!isOpen) {
@@ -895,183 +736,7 @@ const admin = {
         }
     },
 
-    async saveInventory(e) {
-        if (e) { e.preventDefault(); e.stopPropagation(); }
-        
-        if (admin.isSaving) return;
-        admin.isSaving = true;
 
-        const btn = document.querySelector('#modal-inventory .btn-primary');
-        const modal = document.getElementById('modal-inventory');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerText = 'PROCESSANDO...';
-        }
-
-        try {
-            const name = document.getElementById('modal-inv-name').value;
-            const qty = parseInt(document.getElementById('modal-inv-qty').value);
-            const unit = document.getElementById('modal-inv-unit').value;
-            const min = parseInt(document.getElementById('modal-inv-min').value);
-            const price = parseFloat(document.getElementById('modal-inv-price').value || 0);
-            
-            // Read ID from FOUR sources (belt and suspenders)
-            const src1 = admin.editingInventoryId;
-            const src2 = document.getElementById('modal-inv-edit-id').value;
-            const src3 = btn ? btn.getAttribute('data-edit-id') : null;
-            const src4 = modal ? modal.getAttribute('data-edit-id') : null;
-            
-            const rawId = src1 || src2 || src3 || src4;
-            const finalId = (rawId !== null && rawId !== undefined && rawId !== '') ? parseInt(rawId) : null;
-            
-            console.log('[SAVE] Analysis:', { src1, src2, src3, src4, rawId, finalId });
-
-            if (finalId !== null && !isNaN(finalId)) {
-                // UPDATE MODE
-                console.log('[SAVE] Iniciando PATCH para ID:', finalId);
-                const res = await auth.apiRequest(`/api/inventory/${finalId}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
-                });
-                if (!res.ok) throw new Error(`Erro na atualização (Status ${res.status})`);
-                auth.notify('Estoque atualizado!', 'success');
-            } else {
-                // CREATE MODE
-                console.log('[SAVE] Iniciando POST (Novo Item)');
-                const res = await auth.apiRequest('/api/inventory', {
-                    method: 'POST',
-                    body: JSON.stringify({ barberId: auth.user.id, itemName: name, quantity: qty, unit, minQuantity: min, unitPrice: price })
-                });
-                if (!res.ok) throw new Error(`Erro na criação (Status ${res.status})`);
-                auth.notify('Item adicionado!', 'success');
-            }
-            
-            // Clean up all ID sources
-            admin.editingInventoryId = null;
-            document.getElementById('modal-inv-edit-id').value = '';
-            if (btn) btn.removeAttribute('data-edit-id');
-            if (modal) modal.removeAttribute('data-edit-id');
-            admin.closeModal('inventory');
-            await admin.loadInventory();
-        } catch (err) {
-            console.error('[CRITICAL] Erro no salvamento:', err);
-            alert('Erro ao salvar no banco de dados. Verifique sua conexão.');
-        } finally {
-            admin.isSaving = false;
-            if (btn) btn.disabled = false;
-        }
-    },
-
-    // Sales Content
-    async loadSales() {
-        try {
-            const res = await auth.apiRequest(`/api/sales/${auth.user.id}`);
-            this.sales = await res.json();
-            this.renderSales();
-        } catch (err) { console.error('Erro ao carregar vendas'); }
-    },
-
-    renderSales() {
-        const container = document.getElementById('sales-table-body');
-        if (!container) return;
-
-        if (this.sales.length === 0) {
-            container.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhuma venda registrada até o momento.</td></tr>';
-            return;
-        }
-
-        container.innerHTML = this.sales.map(s => `
-            <tr>
-                <td>${new Date(s.created_at).toLocaleDateString('pt-BR')} ${new Date(s.created_at).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })}</td>
-                <td><strong style="color:var(--primary)">${s.item_name}</strong></td>
-                <td>${s.quantity}</td>
-                <td style="font-weight: 600;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td>${s.professional_name || '<small style="opacity:0.5">Venda Direta</small>'}</td>
-                <td>${s.has_commission ? '<span class="svc-tag" style="color:var(--success)">S</span>' : '<span class="svc-tag" style="color:var(--text-muted)">N</span>'}</td>
-            </tr>
-        `).join('');
-    },
-
-    prepareSaleModal() {
-        const itemSelect = document.getElementById('modal-sale-item');
-        const profSelect = document.getElementById('modal-sale-prof');
-        const statusLabel = document.getElementById('modal-sale-item-status');
-        const commRateInput = document.getElementById('modal-sale-comm-rate');
-        
-        if (!itemSelect) return;
-
-        // Use global window access if local fails
-        const items = admin.inventory || window.__BARBER_DEBUG__.lastInventoryContent || [];
-        console.log('[SALE] Populando modal de venda. Itens:', items.length);
-
-        if (items.length === 0) {
-            itemSelect.innerHTML = '<option value="">(Nenhum produto em estoque)</option>';
-            if (statusLabel) statusLabel.innerText = 'Aviso: Lista de estoque está vazia no sistema.';
-        } else {
-            let options = '<option value="">Selecione um produto...</option>';
-            items.forEach(i => {
-                options += `<option value="${i.id}">${i.item_name} (${i.quantity} ${i.unit})</option>`;
-            });
-            itemSelect.innerHTML = options;
-            if (statusLabel) statusLabel.innerText = `${items.length} itens prontos para venda.`;
-        }
-        
-        // Populate Professionals
-        if (profSelect) {
-            let profOptions = '<option value="">Nenhum (Venda Direta)</option>';
-            (admin.professionals || []).forEach(p => {
-                profOptions += `<option value="${p.id}" data-commission="${p.commission}">${p.name}</option>`;
-            });
-            profSelect.innerHTML = profOptions;
-            
-            profSelect.onchange = (e) => {
-                const selected = e.target.options[e.target.selectedIndex];
-                const comm = selected.dataset.commission || 0;
-                if (commRateInput) commRateInput.value = comm;
-            };
-        }
-
-        // Reset fields
-        if (document.getElementById('modal-sale-qty')) document.getElementById('modal-sale-qty').value = 1;
-        if (document.getElementById('modal-sale-commission')) document.getElementById('modal-sale-commission').checked = true;
-        if (document.getElementById('modal-sale-comm-rate-group')) document.getElementById('modal-sale-comm-rate-group').style.display = 'block';
-        if (commRateInput) commRateInput.value = 0;
-    },
-
-    async saveSale() {
-        const itemId = document.getElementById('modal-sale-item').value;
-        const profId = document.getElementById('modal-sale-prof').value;
-        const qty = parseInt(document.getElementById('modal-sale-qty').value);
-        const hasComm = document.getElementById('modal-sale-commission').checked;
-        const commRate = parseFloat(document.getElementById('modal-sale-comm-rate').value || 0);
-
-        if (!itemId || isNaN(qty) || qty <= 0) return alert('Selecione um produto e a quantidade');
-
-        const item = this.inventory.find(i => String(i.id) === String(itemId));
-        if (item && qty > item.quantity) {
-            return auth.notify(`Estoque insuficiente! Você tem apenas ${item.quantity} ${item.unit}.`, 'error');
-        }
-
-        try {
-            await auth.apiRequest('/api/sales', {
-                method: 'POST',
-                body: JSON.stringify({
-                    barberId: auth.user.id,
-                    itemId,
-                    professionalId: profId || null,
-                    quantity: qty,
-                    price: item.unit_price,
-                    hasCommission: hasComm,
-                    commissionRate: commRate
-                })
-            });
-            auth.notify('Venda registrada com sucesso!', 'success');
-            this.closeModal('sale');
-            this.loadSales();
-            this.loadInventory();
-            this.loadData(); // Update dashboard stats
-        } catch (err) { alert('Erro ao registrar venda'); }
-    },
 
     // Professionals Management
     async loadProfessionals() {
@@ -1289,32 +954,7 @@ const admin = {
         } catch (err) { alert('Erro ao salvar serviço'); }
     },
 
-    // Inventory Helpers
-    async saveInventory() {
-        const itemName = document.getElementById('modal-inv-name').value;
-        const quantity = document.getElementById('modal-inv-qty').value;
-        const unit = document.getElementById('modal-inv-unit').value;
-        const minQuantity = document.getElementById('modal-inv-min').value;
-        const unitPrice = document.getElementById('modal-inv-price').value;
 
-        if(!itemName || !quantity) return alert('Nome e Quantidade são obrigatórios');
-
-        try {
-            await auth.apiRequest('/api/inventory', {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    barberId: auth.user.id, 
-                    itemName, 
-                    quantity, 
-                    unit, 
-                    minQuantity: minQuantity || 0,
-                    unitPrice: unitPrice || 0
-                })
-            });
-            this.closeModal('inventory');
-            this.loadInventory();
-        } catch (err) { alert('Erro ao salvar item no estoque'); }
-    },
 
     openModal(type) {
         if (type === 'professional') {
@@ -1351,13 +991,7 @@ const admin = {
             document.getElementById('modal-svc-price').value = '';
             document.getElementById('modal-svc-duration').value = '';
         }
-        if (type === 'inventory') {
-            document.getElementById('modal-inv-name').value = '';
-            document.getElementById('modal-inv-qty').value = '';
-            document.getElementById('modal-inv-unit').value = '';
-            document.getElementById('modal-inv-min').value = '';
-            document.getElementById('modal-inv-price').value = '';
-        }
+
         document.getElementById(`modal-${type}`).classList.add('hidden');
         const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
         if (!isOpen) {
