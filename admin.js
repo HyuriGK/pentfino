@@ -715,6 +715,33 @@ const admin = {
         this.renderClients(filtered);
     },
 
+    async saveClient() {
+        const name = document.getElementById('modal-client-name').value;
+        const phone = document.getElementById('modal-client-phone').value;
+        const notes = document.getElementById('modal-client-notes').value;
+
+        if (!name) return alert('O nome do cliente é obrigatório');
+
+        try {
+            await auth.apiRequest('/api/clients', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    barberId: auth.user.id, 
+                    name, 
+                    phone, 
+                    notes 
+                })
+            });
+
+            this.closeModal('client');
+            await this.loadClients();
+            auth.notify('Cliente cadastrado com sucesso!', 'success');
+        } catch (err) { 
+            console.error('Erro ao salvar cliente:', err);
+            alert('Erro ao cadastrar cliente'); 
+        }
+    },
+
 
 
     // Inventory Logic (REVOLUTIONARY)
@@ -1273,6 +1300,11 @@ const admin = {
             document.getElementById('modal-prof-phone').value = '';
             document.getElementById('modal-prof-photo').value = '';
             document.getElementById('modal-prof-commission').value = '';
+        }
+        if (type === 'client') {
+            document.getElementById('modal-client-name').value = '';
+            document.getElementById('modal-client-phone').value = '';
+            document.getElementById('modal-client-notes').value = '';
         }
         if (type === 'service') {
             this.editingServiceId = null;
