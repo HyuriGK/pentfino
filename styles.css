@@ -1892,6 +1892,13 @@ aside nav {
     transition: all 0.2s ease;
     cursor: pointer;
     appearance: none;
+    color-scheme: dark; /* Helps with some browser defaults */
+}
+
+.glass-select option {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 10px;
 }
 
 .glass-select:focus {
@@ -1903,6 +1910,12 @@ aside nav {
 .form-row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 15px;
 }
 

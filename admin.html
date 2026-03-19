@@ -540,26 +540,32 @@
 
     <!-- Modal Venda -->
     <div id="modal-sales" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 850px;">
             <header class="modal-header">
                 <div>
                     <h2 class="modal-title">Registrar Venda</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Selecione o produto, cliente e finalize a venda.</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Gerencie a saída de produtos e comissões.</p>
                 </div>
                 <button class="btn-icon-close" onclick="admin.closeModal('sales')">×</button>
             </header>
             
             <div class="modal-body" style="padding: 10px 0;">
-                <div class="input-group-new">
-                    <label>Produto em Estoque</label>
-                    <div style="position: relative;">
+                <!-- Row 1: Product and Quantity -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                    <div class="input-group-new">
+                        <label>Produto em Estoque</label>
                         <select id="modal-sale-item" onchange="admin.handleSaleProductChange()" class="glass-select">
                             <option value="">Selecione um produto...</option>
                         </select>
                     </div>
+                    <div class="input-group-new">
+                        <label>Quantidade</label>
+                        <input type="number" id="modal-sale-qty" min="1" value="1" oninput="admin.calculateSaleTotal()" placeholder="0">
+                    </div>
                 </div>
 
-                <div class="form-row-2" style="margin-top: 20px;">
+                <!-- Row 2: Customer, Professional, and Commission -->
+                <div class="form-row-3" style="margin-top: 25px;">
                     <div class="input-group-new">
                         <label>Cliente (Opcional)</label>
                         <select id="modal-sale-client" class="glass-select">
@@ -572,38 +578,34 @@
                             <option value="">Nenhum (Sem comissão)</option>
                         </select>
                     </div>
-                </div>
-                
-                <div class="form-row-2" style="margin-top: 20px;">
-                    <div class="input-group-new">
-                        <label>Quantidade</label>
-                        <input type="number" id="modal-sale-qty" min="1" value="1" oninput="admin.calculateSaleTotal()" placeholder="0">
-                    </div>
                     <div class="input-group-new">
                         <label>Comissão Repasse (%)</label>
                         <input type="number" id="modal-sale-commission" min="0" max="100" value="0" placeholder="0">
                     </div>
                 </div>
 
-                <div class="input-group-new" style="margin-top: 20px;">
-                    <label>Preço Unitário (R$)</label>
-                    <input type="number" id="modal-sale-price-unit" readonly style="background: rgba(255,255,255,0.03); color: var(--text-muted); border-style: dashed;">
-                </div>
-
-                <div class="sale-total-display glass" style="margin-top: 25px; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-bright);">
-                    <div>
-                        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Total da Venda</span>
-                        <div id="modal-sale-total" style="font-size: 2rem; font-weight: 800; color: var(--primary); margin-top: 4px;">R$ 0,00</div>
+                <!-- Row 3: Unit Price and Total Display -->
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: end; margin-top: 25px;">
+                    <div class="input-group-new">
+                        <label>Preço Unitário (R$)</label>
+                        <input type="number" id="modal-sale-price-unit" readonly style="background: rgba(255,255,255,0.02); color: var(--text-muted); border-style: dashed; pointer-events: none;">
                     </div>
-                    <div style="opacity: 0.2;">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    
+                    <div class="sale-total-display glass" style="padding: 15px 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-bright); background: rgba(0, 255, 136, 0.03);">
+                        <div>
+                            <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Total da Venda</span>
+                            <div id="modal-sale-total" style="font-size: 2.2rem; font-weight: 900; color: var(--primary); margin-top: 2px;">R$ 0,00</div>
+                        </div>
+                        <div style="opacity: 0.15; transform: rotate(-10deg);">
+                            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="modal-footer" style="margin-top: 30px; display: flex; gap: 12px;">
-                <button class="btn btn-ghost btn-full" onclick="admin.closeModal('sales')">Cancelar</button>
-                <button class="btn btn-primary btn-full" onclick="admin.saveSale()">Confirmar Venda</button>
+            <div class="modal-footer" style="margin-top: 35px; display: flex; gap: 15px;">
+                <button class="btn btn-ghost btn-full" onclick="admin.closeModal('sales')" style="flex: 1;">Cancelar</button>
+                <button class="btn btn-primary btn-full" onclick="admin.saveSale()" style="flex: 2; height: 50px; font-size: 1rem;">Finalizar e Registrar Venda</button>
             </div>
         </div>
     </div>
