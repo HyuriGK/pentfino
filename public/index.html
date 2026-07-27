@@ -244,7 +244,7 @@
         let demoStep = 0;
         let demoName = '';
 
-        function addDemoMessage(text, type = 'bot') {
+        function addDemoMessage(text, type = 'bot', options = {}) {
             const row = document.createElement('div');
             row.className = `demo-message-row ${type}`;
 
@@ -258,34 +258,40 @@
             const bubble = document.createElement('div');
             bubble.className = 'demo-message-bubble';
             bubble.textContent = text;
+
+            if (options.quickReply) {
+                const action = document.createElement('button');
+                action.type = 'button';
+                action.className = 'demo-quick-reply';
+                action.innerHTML = '<span>Sim, eu quero!</span><span aria-hidden="true">→</span>';
+                action.addEventListener('click', () => {
+                    action.disabled = true;
+                    addDemoMessage('Sim, eu quero!', 'user');
+                    demoStep = 1;
+                    setTimeout(askNextDemoStep, 500);
+                });
+
+                const consent = document.createElement('p');
+                consent.className = 'demo-privacy-note';
+                consent.innerHTML = 'Clicando acima você aceita nossa <a href="#" aria-label="Políticas de privacidade">Políticas de privacidade</a>';
+
+                bubble.appendChild(action);
+                bubble.appendChild(consent);
+            }
+
             row.appendChild(bubble);
             demoChatBody.appendChild(row);
             demoChatBody.scrollTop = demoChatBody.scrollHeight;
         }
 
         function addDemoQuickReply() {
-            const row = document.createElement('div');
-            row.className = 'demo-message-row user';
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'demo-quick-reply';
-            button.textContent = 'Sim, eu quero!';
-            button.addEventListener('click', () => {
-                button.disabled = true;
-                addDemoMessage('Sim, eu quero!', 'user');
-                demoStep = 1;
-                setTimeout(askNextDemoStep, 500);
-            });
-            row.appendChild(button);
-            demoChatBody.appendChild(row);
-            demoChatBody.scrollTop = demoChatBody.scrollHeight;
+            addDemoMessage(demoSteps[0], 'bot', { quickReply: true });
         }
 
         function openDemoChat() {
             demoChat.classList.remove('hidden');
             demoChatInput.focus();
             if (demoStep === 0) {
-                addDemoMessage(demoSteps[0]);
                 addDemoQuickReply();
             }
         }
