@@ -177,13 +177,11 @@
         </aside>
 
         <main class="dashboard-content">
-            <header
-                style="margin-bottom: 3.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+            <header class="dashboard-header">
                 <div>
-                    <h1 id="shop-name-title" style="font-size: 2.5rem; letter-spacing: -2px; margin-bottom: 4px;">
+                    <h1 id="shop-name-title" class="dashboard-title">
                         Bem-vindo</h1>
-                    <p
-                        style="color: var(--text-muted); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">
+                    <p class="dashboard-date-line">
                         Gestão de hoje <span style="margin: 0 10px; opacity: 0.3;">/</span> <span id="current-date"
                             style="color: var(--primary);">--</span>
                     </p>
@@ -210,8 +208,8 @@
                     </div>
                 </div>
 
-                <div class="list-header" style="margin-top: 4rem;">
-                    <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+                <div class="list-header queue-header">
+                    <h2>
                         Fila de Atendimento</h2>
                     <div style="width: 40px; height: 1px; background: var(--border-bright);"></div>
                 </div>
@@ -221,8 +219,7 @@
                 </div>
 
                 <!-- Enhanced Retention Insight Section -->
-                <div class="glass"
-                    style="margin-top: 10rem; padding: 2.5rem; border: none; background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); position: relative; overflow: hidden;">
+                <div class="glass retention-card">
                     <div
                         style="position: absolute; top: -20px; right: -20px; font-size: 8rem; opacity: 0.03; pointer-events: none;">
                         AI</div>
