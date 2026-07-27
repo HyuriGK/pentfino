@@ -9,7 +9,7 @@ window.__BARBER_DEBUG__ = {
 const auth = {
     user: (() => {
         try {
-            const stored = localStorage.getItem('barberpoint_user');
+            const stored = localStorage.getItem('organo_user');
             if (!stored) return null;
             return JSON.parse(stored);
         } catch (e) {
@@ -17,7 +17,7 @@ const auth = {
             return null;
         }
     })(),
-    token: localStorage.getItem('barberpoint_token'),
+    token: localStorage.getItem('organo_token'),
 
     init() {
         this.setupEventListeners();
@@ -119,8 +119,8 @@ const auth = {
             if (data.success) {
                 this.user = data.user;
                 this.token = data.token;
-                localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
-                localStorage.setItem('barberpoint_token', this.token);
+                localStorage.setItem('organo_user', JSON.stringify(this.user));
+                localStorage.setItem('organo_token', this.token);
                 this.showDashboard();
                 this.notify('Acesso autorizado!', 'success');
             } else {
@@ -147,10 +147,10 @@ const auth = {
             if (data.success) {
                 this.user = data.user;
                 this.token = data.token;
-                localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
-                localStorage.setItem('barberpoint_token', this.token);
+                localStorage.setItem('organo_user', JSON.stringify(this.user));
+                localStorage.setItem('organo_token', this.token);
                 this.showDashboard();
-                this.notify('Bem-vindo ao BarberPoint!', 'success');
+                this.notify('Bem-vindo ao Organo!', 'success');
             } else {
                 this.notify(data.message, 'error');
             }
@@ -165,8 +165,8 @@ const auth = {
     },
 
     logout() {
-        localStorage.removeItem('barberpoint_user');
-        localStorage.removeItem('barberpoint_token');
+        localStorage.removeItem('organo_user');
+        localStorage.removeItem('organo_token');
         location.reload();
     },
 
@@ -613,7 +613,7 @@ const admin = {
     startInsights() {
         const tips = [
             "Aumento de 20% na procura por serviços esta semana.",
-            "Insight BarberPoint: Ofereça um café aos clientes que chegarem 10min antes.",
+            "Insight Organo: Ofereça um café aos clientes que chegarem 10min antes.",
             "Lembrete: Foque em retenção este mês para dobrar o lucro.",
             "Atenção: Seu faturamento cresceu 15% em relação ao mês anterior."
         ];
@@ -1822,7 +1822,7 @@ const agenda = {
 
 const sessionManager = {
     TIMEOUT_MS: 3600000, // 1 hour
-    STORAGE_KEY: 'barberpoint_last_activity',
+    STORAGE_KEY: 'organo_last_activity',
 
     init() {
         if (!auth.user) return;
@@ -1861,7 +1861,7 @@ const sessionManager = {
 
         const now = Date.now();
         if (now - lastActivity > this.TIMEOUT_MS) {
-            console.warn('Sessão expirada por inatividade (BarberPoint).');
+            console.warn('Sessão expirada por inatividade (Organo).');
             auth.logout();
         }
     },
@@ -1926,7 +1926,7 @@ document.addEventListener('mousedown', (e) => {
 window.onerror = function(msg, url, line, col, error) {
     const errorMsg = `[JS ERROR] ${msg} em ${url}:${line}:${col}`;
     console.error(errorMsg, error);
-    // Only alert for BarberPoint scripts to avoid noise from extensions
+    // Only alert for Organo scripts to avoid noise from extensions
     if (url.includes('admin.js') || url.includes('admin.html')) {
         alert(errorMsg);
     }

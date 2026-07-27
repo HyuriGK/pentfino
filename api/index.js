@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'barberpoint_fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'organo_fallback_secret';
 
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
@@ -685,7 +685,7 @@ app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
 
 if (require.main === module) {
     app.listen(port, () => {
-        console.log(`🚀 BarberPoint Server running on http://localhost:${port}`);
+        console.log(`🚀 Organo Server running on http://localhost:${port}`);
     });
 }
 

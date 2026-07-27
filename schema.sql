@@ -1,5 +1,5 @@
 /* 
-  SQL Schema for Neon PostgreSQL - BarberPoint
+  SQL Schema for Neon PostgreSQL - Organo
   Paste this into your Neon SQL Editor:
 */
 
@@ -69,12 +69,12 @@ CREATE TABLE IF NOT EXISTS inventory (
 
 -- Seed Initial Data
 INSERT INTO barbers (email, password, shop_name) 
-VALUES ('demo@barberpoint.com', 'demo123', 'BarberPoint Luxury')
+VALUES ('demo@organo.com', 'demo123', 'Organo Luxury')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO services (barber_id, name, price, duration)
-SELECT id, 'Corte de Cabelo', 50, '40 min' FROM barbers WHERE email = 'demo@barberpoint.com'
+SELECT id, 'Corte de Cabelo', 50, '40 min' FROM barbers WHERE email = 'demo@organo.com'
 UNION ALL
-SELECT id, 'Barba Completa', 30, '20 min' FROM barbers WHERE email = 'demo@barberpoint.com'
+SELECT id, 'Barba Completa', 30, '20 min' FROM barbers WHERE email = 'demo@organo.com'
 UNION ALL
-SELECT id, 'Combo (Corte + Barba)', 70, '60 min' FROM barbers WHERE email = 'demo@barberpoint.com';
+SELECT id, 'Combo (Corte + Barba)', 70, '60 min' FROM barbers WHERE email = 'demo@organo.com';
