@@ -1532,6 +1532,102 @@ aside nav {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.segments-section,
+.numbers-section,
+.ai-section {
+    padding: 120px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.segments-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.segments-grid span {
+    padding: 18px 20px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.82);
+    font-weight: 700;
+    text-align: center;
+}
+
+.numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.numbers-grid div {
+    padding: 44px 34px;
+    background: #030303;
+}
+
+.numbers-grid strong {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    margin-bottom: 18px;
+}
+
+.numbers-grid p {
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.55;
+}
+
+.ai-section {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+}
+
+.ai-content {
+    max-width: 720px;
+    margin-bottom: 42px;
+}
+
+.ai-content h2,
+.consultation-content h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1;
+    margin-bottom: 24px;
+}
+
+.ai-content p,
+.consultation-content p {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 1.15rem;
+    line-height: 1.6;
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.ai-grid div {
+    padding: 30px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-grid h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 14px;
+}
+
+.ai-grid p {
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.55;
+}
+
 .demo-chat {
     position: fixed;
     right: 28px;
@@ -1944,6 +2040,11 @@ aside nav {
         max-width: 82%;
     }
     .features-grid {
+        grid-template-columns: 1fr;
+    }
+    .segments-grid,
+    .numbers-grid,
+    .ai-grid {
         grid-template-columns: 1fr;
     }
     .pricing-grid {
