@@ -500,6 +500,13 @@
                             <label>Senha</label>
                             <input autocomplete="off" type="password" id="new-user-password" placeholder="Defina uma senha">
                         </div>
+                        <div class="input-group-new">
+                            <label>Cargo</label>
+                            <select id="new-user-role">
+                                <option value="operador">Operador</option>
+                                <option value="administrador">Administrador</option>
+                            </select>
+                        </div>
                         <button class="btn btn-primary btn-full" id="save-user-btn" onclick="admin.saveUser()">Criar Usuario</button>
                         <button class="btn btn-ghost btn-full hidden" id="cancel-edit-user-btn" style="margin-top: 10px;" onclick="admin.cancelUserEdit()">Cancelar edicao</button>
                     </div>

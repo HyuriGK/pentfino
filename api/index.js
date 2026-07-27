@@ -183,19 +183,24 @@ app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =>
 });
 
 app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
-    const { email, password, shop } = req.body;
+    const { email, password, shop, role = 'operador' } = req.body;
 
     if (!email || !password || !shop) {
         return res.status(400).json({ success: false, message: 'Informe nome da empresa, e-mail e senha.' });
     }
 
+    if (role === 'administrador' && email !== ADMIN_EMAIL) {
+        return res.status(400).json({ success: false, message: 'Somente o usuário principal pode ter cargo administrador.' });
+    }
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
+        const isAdmin = role === 'administrador' && email === ADMIN_EMAIL;
         const result = await pool.query(
             `INSERT INTO barbers (email, password, shop_name, is_admin)
-             VALUES ($1, $2, $3, FALSE)
-             RETURNING id, email, shop_name, is_admin, created_at`,
-            [email, hashedPassword, shop]
+             VALUES ($1, $2, $3, $4)
+             RETURNING id, email, shop_name, (email = $5) AS is_admin, created_at`,
+            [email, hashedPassword, shop, isAdmin, ADMIN_EMAIL]
         );
 
         res.status(201).json({ success: true, user: result.rows[0] });
@@ -210,7 +215,7 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
 
 app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
-    const { email, password, shop } = req.body;
+    const { email, password, shop, role = 'operador' } = req.body;
 
     if (!email || !shop) {
         return res.status(400).json({ success: false, message: 'Informe nome da empresa e e-mail.' });
@@ -225,11 +230,20 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
         }
 
         const isMainAdmin = user.email === ADMIN_EMAIL;
-        const newIsAdmin = isMainAdmin && email === ADMIN_EMAIL;
 
         if (isMainAdmin && email !== ADMIN_EMAIL) {
             return res.status(400).json({ success: false, message: 'O e-mail do administrador principal não pode ser alterado.' });
         }
+
+        if (role === 'administrador' && email !== ADMIN_EMAIL) {
+            return res.status(400).json({ success: false, message: 'Somente o usuário principal pode ter cargo administrador.' });
+        }
+
+        if (isMainAdmin && role !== 'administrador') {
+            return res.status(400).json({ success: false, message: 'O administrador principal não pode virar operador.' });
+        }
+
+        const newIsAdmin = role === 'administrador' && email === ADMIN_EMAIL;
 
         let result;
         if (password) {

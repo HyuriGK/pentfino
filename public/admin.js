@@ -368,6 +368,7 @@ const admin = {
         document.getElementById('new-user-email').value = user.email || '';
         document.getElementById('new-user-password').value = '';
         document.getElementById('new-user-password').placeholder = 'Deixe em branco para manter';
+        document.getElementById('new-user-role').value = user.is_admin ? 'administrador' : 'operador';
         document.getElementById('user-form-title').innerText = 'Editar usuario';
         document.getElementById('save-user-btn').innerText = 'Salvar Alteracoes';
         document.getElementById('cancel-edit-user-btn').classList.remove('hidden');
@@ -379,6 +380,7 @@ const admin = {
         document.getElementById('new-user-email').value = '';
         document.getElementById('new-user-password').value = '';
         document.getElementById('new-user-password').placeholder = 'Defina uma senha';
+        document.getElementById('new-user-role').value = 'operador';
         document.getElementById('user-form-title').innerText = 'Novo usuario';
         document.getElementById('save-user-btn').innerText = 'Criar Usuario';
         document.getElementById('cancel-edit-user-btn').classList.add('hidden');
@@ -391,10 +393,12 @@ const admin = {
         const shopInput = document.getElementById('new-user-shop');
         const emailInput = document.getElementById('new-user-email');
         const passwordInput = document.getElementById('new-user-password');
+        const roleInput = document.getElementById('new-user-role');
 
         const shop = shopInput.value.trim();
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
+        const role = roleInput.value;
 
         if (!shop || !email || (!id && !password)) {
             return auth.notify('Preencha nome da empresa, e-mail e senha.', 'error');
@@ -403,7 +407,7 @@ const admin = {
         try {
             const res = await auth.apiRequest(id ? `/api/admin/users/${id}` : '/api/admin/users', {
                 method: id ? 'PATCH' : 'POST',
-                body: JSON.stringify({ shop, email, password })
+                body: JSON.stringify({ shop, email, password, role })
             });
             const data = await res.json();
 

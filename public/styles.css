@@ -464,7 +464,8 @@ input, textarea, [contenteditable="true"] {
     margin-bottom: 10px;
 }
 
-.input-group-new input {
+.input-group-new input,
+.input-group-new select {
     width: 100%;
     background: #0a0a0a;
     border: 1px solid var(--border);
@@ -475,7 +476,13 @@ input, textarea, [contenteditable="true"] {
     transition: var(--transition);
 }
 
-.input-group-new input:focus {
+.input-group-new select {
+    appearance: none;
+    cursor: pointer;
+}
+
+.input-group-new input:focus,
+.input-group-new select:focus {
     outline: none;
     border-color: var(--primary);
     background: #111;
