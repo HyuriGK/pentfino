@@ -198,7 +198,7 @@ const app = {
     simulateRetentionInsight() {
         const tips = [
             "Faltam apenas 3 horários para hoje!",
-            "Promoção: Corte + Barba com 10% de desconto seg-qua.",
+            "Promoção: pacote de serviços com 10% de desconto seg-qua.",
             "Mais de 500 agendamentos realizados este mês.",
         ];
         

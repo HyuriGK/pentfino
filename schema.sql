@@ -73,8 +73,8 @@ VALUES ('demo@organo.com', 'demo123', 'Organo Luxury')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO services (barber_id, name, price, duration)
-SELECT id, 'Corte de Cabelo', 50, '40 min' FROM barbers WHERE email = 'demo@organo.com'
+SELECT id, 'Atendimento Essencial', 50, '40 min' FROM barbers WHERE email = 'demo@organo.com'
 UNION ALL
-SELECT id, 'Barba Completa', 30, '20 min' FROM barbers WHERE email = 'demo@organo.com'
+SELECT id, 'Consultoria Rápida', 30, '20 min' FROM barbers WHERE email = 'demo@organo.com'
 UNION ALL
-SELECT id, 'Combo (Corte + Barba)', 70, '60 min' FROM barbers WHERE email = 'demo@organo.com';
+SELECT id, 'Pacote Completo', 70, '60 min' FROM barbers WHERE email = 'demo@organo.com';
