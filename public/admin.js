@@ -43,16 +43,6 @@ const auth = {
             }
         });
 
-        // Register on Enter
-        const registerInputs = ['reg-shop', 'reg-email', 'reg-password'];
-        registerInputs.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('keyup', (e) => {
-                    if (e.key === 'Enter') this.register();
-                });
-            }
-        });
     },
 
     notify(message, type = 'info') {
@@ -86,8 +76,7 @@ const auth = {
     },
 
     toggleForm(type) {
-        document.getElementById('login-form').classList.toggle('hidden', type === 'register');
-        document.getElementById('register-form').classList.toggle('hidden', type === 'login');
+        document.getElementById('login-form')?.classList.toggle('hidden', type !== 'login');
     },
 
     async login() {
@@ -133,28 +122,7 @@ const auth = {
     },
 
     async register() {
-        const shop = document.getElementById('reg-shop').value;
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-password').value;
-        
-        try {
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, shop })
-            });
-            const data = await res.json();
-            if (data.success) {
-                this.user = data.user;
-                this.token = data.token;
-                localStorage.setItem('organo_user', JSON.stringify(this.user));
-                localStorage.setItem('organo_token', this.token);
-                this.showDashboard();
-                this.notify('Bem-vindo ao Organo!', 'success');
-            } else {
-                this.notify(data.message, 'error');
-            }
-        } catch (err) { this.notify('Erro ao realizar cadastro', 'error'); }
+        this.notify('Novas licenças são liberadas após a demonstração gratuita.', 'info');
     },
 
     showDashboard() {
