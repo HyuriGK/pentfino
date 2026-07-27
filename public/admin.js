@@ -1,4 +1,4 @@
-console.log('[BARBERPOINT] admin.js v3 loaded');
+console.log('[ORGANO] admin.js v3 loaded');
 // Global State for diagnostic purposes
 window.__BARBER_DEBUG__ = {
     lastInventoryLoad: null,
@@ -1935,4 +1935,4 @@ window.onerror = function(msg, url, line, col, error) {
 
 // Extra safety: expose admin globally
 window.admin = admin;
-console.log('[BARBERPOINT] admin.js v4 fully initialized');
+console.log('[ORGANO] admin.js v4 fully initialized');

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const content = fs.readFileSync('c:\\Users\\brasi\\Desktop\\point\\index.html', 'utf8');
+const content = fs.readFileSync('c:\\Users\\brasi\\Desktop\\point\\public\\index.html', 'utf8');
 
 function checkTags(html) {
     const stack = [];
