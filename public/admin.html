@@ -143,6 +143,16 @@
                     </svg>
                     <span class="nav-text">Serviços</span>
                 </div>
+                <div class="nav-item admin-only hidden" onclick="admin.showTab('usuarios')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <line x1="19" y1="8" x2="19" y2="14"></line>
+                        <line x1="22" y1="11" x2="16" y2="11"></line>
+                    </svg>
+                    <span class="nav-text">Usuarios</span>
+                </div>
                 <div class="nav-item" style="color: var(--success); margin-top: 10px;" onclick="admin.openShareModal()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -462,6 +472,51 @@
                             <!-- Dynamic Rows -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div id="tab-usuarios" class="hidden">
+                <div class="list-header">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+                            Usuarios do Sistema</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Crie novas contas para empresas acessarem o painel Organo.</p>
+                    </div>
+                </div>
+
+                <div class="admin-users-layout">
+                    <div class="glass admin-user-form">
+                        <h3>Novo usuario</h3>
+                        <div class="input-group-new">
+                            <label>Nome da empresa</label>
+                            <input autocomplete="off" type="text" id="new-user-shop" placeholder="Ex: Barbearia Premium">
+                        </div>
+                        <div class="input-group-new">
+                            <label>E-mail</label>
+                            <input autocomplete="off" type="email" id="new-user-email" placeholder="cliente@email.com">
+                        </div>
+                        <div class="input-group-new">
+                            <label>Senha inicial</label>
+                            <input autocomplete="off" type="password" id="new-user-password" placeholder="Defina uma senha">
+                        </div>
+                        <button class="btn btn-primary btn-full" onclick="admin.createUser()">Criar Usuario</button>
+                    </div>
+
+                    <div class="data-table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Empresa</th>
+                                    <th>E-mail</th>
+                                    <th>Perfil</th>
+                                    <th>Criado em</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>

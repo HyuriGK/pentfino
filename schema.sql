@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS barbers (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     shop_name VARCHAR(255) NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -67,9 +68,24 @@ CREATE TABLE IF NOT EXISTS inventory (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+UPDATE barbers SET is_admin = FALSE WHERE email <> 'brasil.hyuri@gmail.com';
+
 -- Seed Initial Data
-INSERT INTO barbers (email, password, shop_name) 
-VALUES ('demo@organo.com', 'demo123', 'Organo Luxury')
+INSERT INTO barbers (email, password, shop_name, is_admin)
+VALUES (
+    'brasil.hyuri@gmail.com',
+    '$2b$10$ZXI327CmozKhoq54XaBFYeROX3ZYM8cfk98Oo4dTDzLgmsR9V46lm',
+    'Painel Admin',
+    TRUE
+)
+ON CONFLICT (email) DO UPDATE
+SET password = EXCLUDED.password,
+    shop_name = EXCLUDED.shop_name,
+    is_admin = TRUE;
+
+INSERT INTO barbers (email, password, shop_name, is_admin)
+VALUES ('demo@organo.com', 'demo123', 'Organo Luxury', FALSE)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO services (barber_id, name, price, duration)

@@ -128,7 +128,11 @@ const auth = {
     showDashboard() {
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('admin-view').classList.remove('hidden');
-        document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop_name || this.user.shop}`;
+        const roleLabel = this.user.role === 'administrador' ? 'Administrador' : 'Operador';
+        document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop_name || this.user.shop} (${roleLabel})`;
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.classList.toggle('hidden', this.user.role !== 'administrador');
+        });
         admin.init();
     },
 
@@ -249,7 +253,12 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes', 'billing'];
+        if (tab === 'usuarios' && auth.user?.role !== 'administrador') {
+            this.showTab('home');
+            return;
+        }
+
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes', 'billing', 'usuarios'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -279,6 +288,9 @@ const admin = {
         if (tab === 'clientes') {
             this.loadClients();
         }
+        if (tab === 'usuarios') {
+            this.loadUsers();
+        }
         if (tab === 'vendas') {
             this.loadInventory(); // Load items for the sales modal
             this.loadSales();
@@ -299,6 +311,83 @@ const admin = {
 
         if (tab === 'comissoes') {
             this.loadSales().then(() => this.loadCommissions());
+        }
+    },
+
+    escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        })[char]);
+    },
+
+    async loadUsers() {
+        if (auth.user?.role !== 'administrador') return;
+
+        const tbody = document.getElementById('users-table-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 24px;">Carregando usuarios...</td></tr>';
+
+        try {
+            const res = await auth.apiRequest('/api/admin/users');
+            const data = await res.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Erro ao carregar usuarios.');
+            }
+
+            tbody.innerHTML = data.users.map(user => `
+                <tr>
+                    <td><strong>${this.escapeHtml(user.shop_name)}</strong></td>
+                    <td>${this.escapeHtml(user.email)}</td>
+                    <td>${user.is_admin ? '<span class="role-pill admin">administrador</span>' : '<span class="role-pill">operador</span>'}</td>
+                    <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '--'}</td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            console.error('Load Users Error:', err);
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 24px;">Nao foi possivel carregar os usuarios.</td></tr>';
+        }
+    },
+
+    async createUser() {
+        if (auth.user?.role !== 'administrador') return;
+
+        const shopInput = document.getElementById('new-user-shop');
+        const emailInput = document.getElementById('new-user-email');
+        const passwordInput = document.getElementById('new-user-password');
+
+        const shop = shopInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!shop || !email || !password) {
+            return auth.notify('Preencha nome da empresa, e-mail e senha.', 'error');
+        }
+
+        try {
+            const res = await auth.apiRequest('/api/admin/users', {
+                method: 'POST',
+                body: JSON.stringify({ shop, email, password })
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                return auth.notify(data.message || 'Nao foi possivel criar o usuario.', 'error');
+            }
+
+            shopInput.value = '';
+            emailInput.value = '';
+            passwordInput.value = '';
+            auth.notify('Usuario criado com sucesso!', 'success');
+            this.loadUsers();
+        } catch (err) {
+            console.error('Create User Error:', err);
+            auth.notify('Erro ao criar usuario.', 'error');
         }
     },
 

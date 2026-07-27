@@ -6,6 +6,9 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'organo_fallback_secret';
+const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
+
+const getUserRole = user => user.email === ADMIN_EMAIL ? 'administrador' : 'operador';
 
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
@@ -19,6 +22,13 @@ const authenticateToken = (req, res, next) => {
         req.user = user;
         next();
     });
+};
+
+const requireAdmin = (req, res, next) => {
+    if (req.user?.role !== 'administrador' || req.user?.email !== ADMIN_EMAIL) {
+        return res.status(403).json({ success: false, message: 'Acesso restrito ao administrador.' });
+    }
+    next();
 };
 
 const app = express();
@@ -73,6 +83,20 @@ pool.on('connect', () => {
     // Migration for existing table
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS client_id INTEGER REFERENCES clients(id)').catch(() => {});
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS professional_id INTEGER REFERENCES professionals(id)').catch(() => {});
+    pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE').catch(() => {});
+    pool.query('UPDATE barbers SET is_admin = FALSE WHERE email <> $1', [ADMIN_EMAIL]).catch(() => {});
+    pool.query(`
+        INSERT INTO barbers (email, password, shop_name, is_admin)
+        VALUES ($1, $2, $3, TRUE)
+        ON CONFLICT (email) DO UPDATE
+        SET password = EXCLUDED.password,
+            shop_name = EXCLUDED.shop_name,
+            is_admin = TRUE
+    `, [
+        ADMIN_EMAIL,
+        '$2b$10$ZXI327CmozKhoq54XaBFYeROX3ZYM8cfk98Oo4dTDzLgmsR9V46lm',
+        'Painel Admin'
+    ]).catch(e => console.error('Migration error (admin user):', e));
 
 });
 
@@ -92,15 +116,22 @@ app.post('/api/login', async (req, res) => {
             }
 
             if (isMatch) {
+                const role = getUserRole(user);
                 const token = jwt.sign(
-                    { id: user.id, email: user.email },
+                    { id: user.id, email: user.email, role },
                     JWT_SECRET,
                     { expiresIn: '7d' }
                 );
                 return res.json({ 
                     success: true, 
                     token, 
-                    user: { id: user.id, email: user.email, shop: user.shop_name } 
+                    user: {
+                        id: user.id,
+                        email: user.email,
+                        shop: user.shop_name,
+                        role,
+                        isAdmin: role === 'administrador'
+                    }
                 });
             }
         }
@@ -122,18 +153,58 @@ app.post('/api/register', async (req, res) => {
         
         const user = result.rows[0];
         const token = jwt.sign(
-            { id: user.id, email: user.email },
+            { id: user.id, email: user.email, role: 'operador' },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        res.json({ success: true, token, user });
+        res.json({ success: true, token, user: { ...user, role: 'operador', isAdmin: false } });
     } catch (err) {
         console.error(err);
         if (err.code === '23505') { // Postgres Unique Violation
             return res.status(409).json({ success: false, message: 'Este e-mail já está registrado em nossa base de dados.' });
         }
         res.status(500).json({ success: false, message: 'Erro ao processar o registro no servidor.' });
+    }
+});
+
+app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT id, email, shop_name, (email = $1) AS is_admin, created_at
+            FROM barbers
+            ORDER BY (email = $1) DESC, created_at DESC
+        `, [ADMIN_EMAIL]);
+        res.json({ success: true, users: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Erro ao carregar usuários.' });
+    }
+});
+
+app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
+    const { email, password, shop } = req.body;
+
+    if (!email || !password || !shop) {
+        return res.status(400).json({ success: false, message: 'Informe nome da empresa, e-mail e senha.' });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const result = await pool.query(
+            `INSERT INTO barbers (email, password, shop_name, is_admin)
+             VALUES ($1, $2, $3, FALSE)
+             RETURNING id, email, shop_name, is_admin, created_at`,
+            [email, hashedPassword, shop]
+        );
+
+        res.status(201).json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        if (err.code === '23505') {
+            return res.status(409).json({ success: false, message: 'Este e-mail já está cadastrado.' });
+        }
+        res.status(500).json({ success: false, message: 'Erro ao criar usuário.' });
     }
 });
 
