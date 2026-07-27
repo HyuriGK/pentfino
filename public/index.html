@@ -257,9 +257,15 @@
 
             const bubble = document.createElement('div');
             bubble.className = 'demo-message-bubble';
-            bubble.textContent = text;
 
             if (options.quickReply) {
+                bubble.classList.add('has-quick-reply');
+
+                const message = document.createElement('p');
+                message.className = 'demo-message-text';
+                message.textContent = text;
+                bubble.appendChild(message);
+
                 const action = document.createElement('button');
                 action.type = 'button';
                 action.className = 'demo-quick-reply';
@@ -277,6 +283,8 @@
 
                 bubble.appendChild(action);
                 bubble.appendChild(consent);
+            } else {
+                bubble.textContent = text;
             }
 
             row.appendChild(bubble);
