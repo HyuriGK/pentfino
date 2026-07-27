@@ -171,6 +171,7 @@ const admin = {
     sales: [],
     clients: [],
     allClients: [], // For filtering
+    users: [],
 
     professionals: [],
     services: [],
@@ -330,7 +331,7 @@ const admin = {
         const tbody = document.getElementById('users-table-body');
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 24px;">Carregando usuarios...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 24px;">Carregando usuarios...</td></tr>';
 
         try {
             const res = await auth.apiRequest('/api/admin/users');
@@ -340,23 +341,53 @@ const admin = {
                 throw new Error(data.message || 'Erro ao carregar usuarios.');
             }
 
+            this.users = data.users;
             tbody.innerHTML = data.users.map(user => `
                 <tr>
                     <td><strong>${this.escapeHtml(user.shop_name)}</strong></td>
                     <td>${this.escapeHtml(user.email)}</td>
                     <td>${user.is_admin ? '<span class="role-pill admin">administrador</span>' : '<span class="role-pill">operador</span>'}</td>
                     <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '--'}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm" onclick="admin.editUser(${user.id})">Editar</button>
+                    </td>
                 </tr>
             `).join('');
         } catch (err) {
             console.error('Load Users Error:', err);
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 24px;">Nao foi possivel carregar os usuarios.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 24px;">Nao foi possivel carregar os usuarios.</td></tr>';
         }
     },
 
-    async createUser() {
+    editUser(id) {
+        const user = this.users.find(item => item.id === id);
+        if (!user) return;
+
+        document.getElementById('edit-user-id').value = user.id;
+        document.getElementById('new-user-shop').value = user.shop_name || '';
+        document.getElementById('new-user-email').value = user.email || '';
+        document.getElementById('new-user-password').value = '';
+        document.getElementById('new-user-password').placeholder = 'Deixe em branco para manter';
+        document.getElementById('user-form-title').innerText = 'Editar usuario';
+        document.getElementById('save-user-btn').innerText = 'Salvar Alteracoes';
+        document.getElementById('cancel-edit-user-btn').classList.remove('hidden');
+    },
+
+    cancelUserEdit() {
+        document.getElementById('edit-user-id').value = '';
+        document.getElementById('new-user-shop').value = '';
+        document.getElementById('new-user-email').value = '';
+        document.getElementById('new-user-password').value = '';
+        document.getElementById('new-user-password').placeholder = 'Defina uma senha';
+        document.getElementById('user-form-title').innerText = 'Novo usuario';
+        document.getElementById('save-user-btn').innerText = 'Criar Usuario';
+        document.getElementById('cancel-edit-user-btn').classList.add('hidden');
+    },
+
+    async saveUser() {
         if (auth.user?.role !== 'administrador') return;
 
+        const id = document.getElementById('edit-user-id').value;
         const shopInput = document.getElementById('new-user-shop');
         const emailInput = document.getElementById('new-user-email');
         const passwordInput = document.getElementById('new-user-password');
@@ -365,29 +396,27 @@ const admin = {
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
 
-        if (!shop || !email || !password) {
+        if (!shop || !email || (!id && !password)) {
             return auth.notify('Preencha nome da empresa, e-mail e senha.', 'error');
         }
 
         try {
-            const res = await auth.apiRequest('/api/admin/users', {
-                method: 'POST',
+            const res = await auth.apiRequest(id ? `/api/admin/users/${id}` : '/api/admin/users', {
+                method: id ? 'PATCH' : 'POST',
                 body: JSON.stringify({ shop, email, password })
             });
             const data = await res.json();
 
             if (!res.ok || !data.success) {
-                return auth.notify(data.message || 'Nao foi possivel criar o usuario.', 'error');
+                return auth.notify(data.message || 'Nao foi possivel salvar o usuario.', 'error');
             }
 
-            shopInput.value = '';
-            emailInput.value = '';
-            passwordInput.value = '';
-            auth.notify('Usuario criado com sucesso!', 'success');
+            this.cancelUserEdit();
+            auth.notify(id ? 'Usuario atualizado com sucesso!' : 'Usuario criado com sucesso!', 'success');
             this.loadUsers();
         } catch (err) {
-            console.error('Create User Error:', err);
-            auth.notify('Erro ao criar usuario.', 'error');
+            console.error('Save User Error:', err);
+            auth.notify('Erro ao salvar usuario.', 'error');
         }
     },
 

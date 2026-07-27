@@ -145,6 +145,13 @@ input, textarea, [contenteditable="true"] {
     background: rgba(255, 255, 255, 0.05);
 }
 
+.btn-sm {
+    display: inline-flex;
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    border-radius: 8px;
+}
+
 .hidden { display: none !important; }
 
 /* Dashboard Components */

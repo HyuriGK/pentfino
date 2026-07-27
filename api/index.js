@@ -208,6 +208,59 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
     }
 });
 
+app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { email, password, shop } = req.body;
+
+    if (!email || !shop) {
+        return res.status(400).json({ success: false, message: 'Informe nome da empresa e e-mail.' });
+    }
+
+    try {
+        const existing = await pool.query('SELECT id, email FROM barbers WHERE id = $1', [id]);
+        const user = existing.rows[0];
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+        }
+
+        const isMainAdmin = user.email === ADMIN_EMAIL;
+        const newIsAdmin = isMainAdmin && email === ADMIN_EMAIL;
+
+        if (isMainAdmin && email !== ADMIN_EMAIL) {
+            return res.status(400).json({ success: false, message: 'O e-mail do administrador principal não pode ser alterado.' });
+        }
+
+        let result;
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            result = await pool.query(
+                `UPDATE barbers
+                 SET email = $1, shop_name = $2, password = $3, is_admin = $4
+                 WHERE id = $5
+                 RETURNING id, email, shop_name, (email = $6) AS is_admin, created_at`,
+                [email, shop, hashedPassword, newIsAdmin, id, ADMIN_EMAIL]
+            );
+        } else {
+            result = await pool.query(
+                `UPDATE barbers
+                 SET email = $1, shop_name = $2, is_admin = $3
+                 WHERE id = $4
+                 RETURNING id, email, shop_name, (email = $5) AS is_admin, created_at`,
+                [email, shop, newIsAdmin, id, ADMIN_EMAIL]
+            );
+        }
+
+        res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        if (err.code === '23505') {
+            return res.status(409).json({ success: false, message: 'Este e-mail já está cadastrado.' });
+        }
+        res.status(500).json({ success: false, message: 'Erro ao atualizar usuário.' });
+    }
+});
+
 app.get('/api/appointments/:barberId', authenticateToken, async (req, res) => {
     try {
         const { barberId } = req.params;

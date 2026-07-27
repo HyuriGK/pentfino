@@ -486,7 +486,8 @@
 
                 <div class="admin-users-layout">
                     <div class="glass admin-user-form">
-                        <h3>Novo usuario</h3>
+                        <h3 id="user-form-title">Novo usuario</h3>
+                        <input type="hidden" id="edit-user-id" value="">
                         <div class="input-group-new">
                             <label>Nome da empresa</label>
                             <input autocomplete="off" type="text" id="new-user-shop" placeholder="Ex: Barbearia Premium">
@@ -496,10 +497,11 @@
                             <input autocomplete="off" type="email" id="new-user-email" placeholder="cliente@email.com">
                         </div>
                         <div class="input-group-new">
-                            <label>Senha inicial</label>
+                            <label>Senha</label>
                             <input autocomplete="off" type="password" id="new-user-password" placeholder="Defina uma senha">
                         </div>
-                        <button class="btn btn-primary btn-full" onclick="admin.createUser()">Criar Usuario</button>
+                        <button class="btn btn-primary btn-full" id="save-user-btn" onclick="admin.saveUser()">Criar Usuario</button>
+                        <button class="btn btn-ghost btn-full hidden" id="cancel-edit-user-btn" style="margin-top: 10px;" onclick="admin.cancelUserEdit()">Cancelar edicao</button>
                     </div>
 
                     <div class="data-table-container">
@@ -510,6 +512,7 @@
                                     <th>E-mail</th>
                                     <th>Perfil</th>
                                     <th>Criado em</th>
+                                    <th>Acoes</th>
                                 </tr>
                             </thead>
                             <tbody id="users-table-body">
