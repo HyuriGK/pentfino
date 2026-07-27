@@ -1406,6 +1406,8 @@ aside nav {
     text-decoration: none;
     font-size: 0.9rem;
     transition: var(--transition);
+    border: 0;
+    cursor: pointer;
 }
 
 .btn-premium:hover {
@@ -1528,6 +1530,161 @@ aside nav {
 .features-section {
     padding: 150px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.demo-chat {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    width: min(520px, calc(100vw - 32px));
+    height: min(680px, calc(100vh - 56px));
+    background: #fff;
+    color: #0b0b0b;
+    border-radius: 8px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    z-index: 3000;
+    display: grid;
+    grid-template-rows: 90px 1fr 76px;
+}
+
+.demo-chat.hidden {
+    display: none;
+}
+
+.demo-chat-header {
+    display: grid;
+    grid-template-columns: 58px 1fr 40px;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 18px;
+    background: #48ad4d;
+    color: #fff;
+}
+
+.consultant-avatar,
+.demo-message-avatar {
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #202020, #6c3dd1);
+    color: #fff;
+    font-weight: 800;
+}
+
+.consultant-avatar {
+    width: 58px;
+    height: 58px;
+    font-size: 0.95rem;
+}
+
+.demo-chat-header strong,
+.demo-chat-header span {
+    display: block;
+}
+
+.demo-chat-header strong {
+    font-size: 1.1rem;
+}
+
+.demo-chat-header span {
+    font-size: 0.9rem;
+    margin-top: 3px;
+}
+
+.demo-chat-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    background: transparent;
+    color: #fff;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.demo-chat-body {
+    padding: 26px 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.demo-message-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.demo-message-row.user {
+    justify-content: flex-end;
+}
+
+.demo-message-avatar {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    font-size: 0.7rem;
+}
+
+.demo-message-bubble,
+.demo-quick-reply {
+    max-width: 76%;
+    border-radius: 26px;
+    padding: 18px 24px;
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
+.demo-message-row.bot .demo-message-bubble {
+    background: #ececec;
+    color: #050505;
+    border-top-left-radius: 10px;
+}
+
+.demo-message-row.user .demo-message-bubble,
+.demo-quick-reply {
+    background: #48ad4d;
+    color: #fff;
+    border-bottom-right-radius: 10px;
+}
+
+.demo-quick-reply {
+    border: 0;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.demo-chat-form {
+    padding: 12px 18px 18px;
+    display: grid;
+    grid-template-columns: 1fr 48px;
+    gap: 10px;
+    align-items: center;
+    background: #fff;
+}
+
+.demo-chat-form input {
+    height: 50px;
+    border: 2px solid #48ad4d;
+    border-radius: 999px;
+    padding: 0 20px;
+    color: #050505;
+    font-size: 1rem;
+    outline: none;
+}
+
+.demo-chat-form button {
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 999px;
+    background: #48ad4d;
+    color: #fff;
+    font-size: 1.45rem;
+    cursor: pointer;
 }
 
 .section-label {
@@ -1775,6 +1932,16 @@ aside nav {
     }
     .hero-dashboard {
         transform: none;
+    }
+    .demo-chat {
+        right: 12px;
+        bottom: 12px;
+        width: calc(100vw - 24px);
+        height: min(640px, calc(100vh - 24px));
+    }
+    .demo-message-bubble,
+    .demo-quick-reply {
+        max-width: 82%;
     }
     .features-grid {
         grid-template-columns: 1fr;

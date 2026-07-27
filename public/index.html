@@ -33,7 +33,7 @@
                     <h1 class="hero-title">A nova era da gestão.</h1>
                     <p class="hero-description">Organo centraliza agenda, clientes, equipe, estoque e faturamento em uma plataforma elegante para empresas de serviços crescerem com controle.</p>
                     <div class="hero-actions">
-                        <a href="admin.html" class="btn-premium">Experimente Agora</a>
+                        <button type="button" class="btn-premium demo-chat-trigger">Pedir Demonstração Gratuita</button>
                     </div>
                 </div>
                 <div class="hero-visual">
@@ -145,7 +145,7 @@
                     <span class="hero-tagline" style="margin-bottom: 20px; display: inline-block;">Fidelização em Tempo Real</span>
                     <h2>Inteligência que traz o cliente de volta.</h2>
                     <p>Nossa tecnologia de <strong>WhatsApp Preditivo</strong> entra em ação quando seus clientes somem. Recupere parte da sua base inativa com mensagens personalizadas e automáticas.</p>
-                    <a href="https://wa.me/seunumeroaqui" class="btn-premium">Ativar Minha Empresa</a>
+                    <button type="button" class="btn-premium demo-chat-trigger">Pedir Demonstração Gratuita</button>
                 </div>
             </div>
         </section>
@@ -175,12 +175,152 @@
         </section>
     </main>
 
+    <div class="demo-chat hidden" id="demo-chat" aria-live="polite">
+        <div class="demo-chat-header">
+            <div class="consultant-avatar">HB</div>
+            <div>
+                <strong>Hyuri Branco</strong>
+                <span>Online agora</span>
+            </div>
+            <button type="button" class="demo-chat-close" id="demo-chat-close" aria-label="Fechar chat">×</button>
+        </div>
+        <div class="demo-chat-body" id="demo-chat-body"></div>
+        <form class="demo-chat-form" id="demo-chat-form">
+            <input autocomplete="off" id="demo-chat-input" type="text" placeholder="Digite aqui">
+            <button type="submit" aria-label="Enviar">➜</button>
+        </form>
+    </div>
+
     <script>
         document.querySelectorAll('.faq-question').forEach(question => {
             question.addEventListener('click', () => {
                 const item = question.parentNode;
                 item.classList.toggle('active');
             });
+        });
+
+        const demoChat = document.getElementById('demo-chat');
+        const demoChatBody = document.getElementById('demo-chat-body');
+        const demoChatInput = document.getElementById('demo-chat-input');
+        const demoChatForm = document.getElementById('demo-chat-form');
+        const demoSteps = [
+            'Olá! Deseja fazer uma demonstração online do sistema com nossos consultores?',
+            'Me fala seu nome por gentileza?',
+            name => `Prazer em te conhecer ${name}`,
+            'Posso te pedir também seu telefone completo? Lembre-se de colocar o DDD :)',
+            'Digite novamente seu número para confirmação',
+            'Perfeito. Nossa equipe vai chamar você para combinar a demonstração gratuita.'
+        ];
+        let demoStep = 0;
+        let demoName = '';
+
+        function addDemoMessage(text, type = 'bot') {
+            const row = document.createElement('div');
+            row.className = `demo-message-row ${type}`;
+
+            if (type === 'bot') {
+                const avatar = document.createElement('div');
+                avatar.className = 'demo-message-avatar';
+                avatar.textContent = 'HB';
+                row.appendChild(avatar);
+            }
+
+            const bubble = document.createElement('div');
+            bubble.className = 'demo-message-bubble';
+            bubble.textContent = text;
+            row.appendChild(bubble);
+            demoChatBody.appendChild(row);
+            demoChatBody.scrollTop = demoChatBody.scrollHeight;
+        }
+
+        function addDemoQuickReply() {
+            const row = document.createElement('div');
+            row.className = 'demo-message-row user';
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'demo-quick-reply';
+            button.textContent = 'Sim, eu quero!';
+            button.addEventListener('click', () => {
+                button.disabled = true;
+                addDemoMessage('Sim, eu quero!', 'user');
+                demoStep = 1;
+                setTimeout(askNextDemoStep, 500);
+            });
+            row.appendChild(button);
+            demoChatBody.appendChild(row);
+            demoChatBody.scrollTop = demoChatBody.scrollHeight;
+        }
+
+        function openDemoChat() {
+            demoChat.classList.remove('hidden');
+            demoChatInput.focus();
+            if (demoStep === 0) {
+                addDemoMessage(demoSteps[0]);
+                addDemoQuickReply();
+            }
+        }
+
+        function askNextDemoStep() {
+            if (demoStep === 1) {
+                addDemoMessage(demoSteps[1]);
+                demoStep = 2;
+                return;
+            }
+
+            if (demoStep === 3) {
+                addDemoMessage(demoSteps[3]);
+                demoStep = 4;
+                return;
+            }
+
+            if (demoStep === 5) {
+                addDemoMessage(demoSteps[5]);
+                demoStep = 6;
+                demoChatInput.disabled = true;
+                demoChatInput.placeholder = 'Solicitação registrada';
+            }
+        }
+
+        document.querySelectorAll('.demo-chat-trigger').forEach(button => {
+            button.addEventListener('click', openDemoChat);
+        });
+
+        document.getElementById('demo-chat-close').addEventListener('click', () => {
+            demoChat.classList.add('hidden');
+        });
+
+        demoChatForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const value = demoChatInput.value.trim();
+            if (!value) return;
+
+            addDemoMessage(value, 'user');
+            demoChatInput.value = '';
+
+            if (demoStep === 1) {
+                askNextDemoStep();
+                return;
+            }
+
+            if (demoStep === 2) {
+                demoName = value.split(' ')[0];
+                setTimeout(() => {
+                    addDemoMessage(demoSteps[2](demoName));
+                    demoStep = 3;
+                    setTimeout(askNextDemoStep, 500);
+                }, 500);
+                return;
+            }
+
+            if (demoStep === 4) {
+                demoStep = 5;
+                setTimeout(() => addDemoMessage(demoSteps[4]), 500);
+                return;
+            }
+
+            if (demoStep === 5) {
+                setTimeout(askNextDemoStep, 500);
+            }
         });
     </script>
 </body>
