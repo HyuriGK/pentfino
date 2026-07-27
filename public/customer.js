@@ -3,8 +3,8 @@ const app = {
     professionals: [],
     availableTimes: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
     
-    // Dynamic Barber ID from URL
-    barberId: parseInt(new URLSearchParams(window.location.search).get('barberId')) || 1,
+    // Dynamic business ID from URL. barberId is kept in API payloads for backend compatibility.
+    barberId: parseInt(new URLSearchParams(window.location.search).get('businessId') || new URLSearchParams(window.location.search).get('barberId')) || 1,
 
     booking: {
         service: null,

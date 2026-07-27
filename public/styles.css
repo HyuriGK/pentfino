@@ -309,7 +309,10 @@ input, textarea, [contenteditable="true"] {
 .auth-visual-side {
     flex: 1.2;
     position: relative;
-    background: url('auth-bg.png') center/cover no-repeat;
+    background:
+        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.18), transparent 28%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 42%),
+        #050505;
     display: flex;
     align-items: center;
     padding: 10%;
@@ -637,7 +640,10 @@ input, textarea, [contenteditable="true"] {
 .booking-sidebar {
     flex: 0.8;
     position: relative;
-    background: url('auth-bg.png') center/cover no-repeat;
+    background:
+        radial-gradient(circle at 72% 22%, rgba(255, 255, 255, 0.16), transparent 30%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.1), transparent 44%),
+        #050505;
     display: flex;
     padding: 4rem;
     overflow: hidden;
@@ -1411,15 +1417,112 @@ aside nav {
     position: absolute;
     right: -100px;
     width: 45%;
-    opacity: 0.6;
+    opacity: 0.9;
 }
 
-.hero-img {
+.hero-dashboard {
     width: 100%;
     transform: perspective(1000px) rotateY(-15deg) rotateX(5deg);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 100px 200px rgba(0, 0, 0, 0.5);
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02)),
+        #080808;
+    padding: 26px;
+    min-height: 420px;
+    overflow: hidden;
+}
+
+.dashboard-topbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+}
+
+.dashboard-topbar span {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 26px;
+}
+
+.dashboard-metrics div,
+.dashboard-list div {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+}
+
+.dashboard-metrics div {
+    padding: 18px;
+}
+
+.dashboard-metrics small,
+.dashboard-list p {
+    display: block;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 0.78rem;
+}
+
+.dashboard-metrics strong {
+    display: block;
+    margin-top: 10px;
+    font-size: 1.45rem;
+}
+
+.dashboard-chart {
+    height: 150px;
+    display: flex;
+    align-items: end;
+    gap: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.dashboard-chart span {
+    flex: 1;
+    min-width: 18px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.18));
+}
+
+.dashboard-list {
+    display: grid;
+    gap: 10px;
+}
+
+.dashboard-list div {
+    display: grid;
+    grid-template-columns: 10px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+}
+
+.dashboard-list span {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--primary);
+}
+
+.dashboard-list p {
+    margin: 0;
+}
+
+.dashboard-list strong {
+    font-size: 0.95rem;
 }
 
 .features-section {
@@ -1670,7 +1773,7 @@ aside nav {
         margin-top: 100px;
         opacity: 0.8;
     }
-    .hero-img {
+    .hero-dashboard {
         transform: none;
     }
     .features-grid {

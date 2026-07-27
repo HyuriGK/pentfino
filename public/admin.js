@@ -239,7 +239,7 @@ const admin = {
     },
 
     openShareModal() {
-        const link = `${window.location.origin}/reserva.html?barberId=${auth.user.id}`;
+        const link = `${window.location.origin}/reserva.html?businessId=${auth.user.id}`;
         document.getElementById('share-link-input').value = link;
         this.openModal('share');
     },
@@ -295,7 +295,7 @@ const admin = {
         const linkBtn = document.getElementById('public-link-btn');
         if (linkBtn) {
             linkBtn.classList.toggle('hidden', tab !== 'home');
-            linkBtn.onclick = () => window.open(`reserva.html?barberId=${auth.user.id}`, '_blank');
+            linkBtn.onclick = () => window.open(`reserva.html?businessId=${auth.user.id}`, '_blank');
         }
 
         if (tab === 'agenda') {
@@ -1742,12 +1742,12 @@ const agenda = {
         });
 
         this.calendar.render();
-        this.populateBarberFilter();
+        this.populateProfessionalFilter();
         admin.loadData();
     },
 
-    populateBarberFilter() {
-        const select = document.getElementById('agenda-barber-filter');
+    populateProfessionalFilter() {
+        const select = document.getElementById('agenda-professional-filter');
         if (!select) return;
         
         const professionals = admin.professionals || [];
