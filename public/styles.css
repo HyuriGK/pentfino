@@ -1175,6 +1175,14 @@ aside nav {
     line-height: 1.45;
 }
 
+.empty-state-sales {
+    min-height: 112px;
+    display: flex;
+    align-items: center;
+    padding: 28px 32px;
+    background: transparent !important;
+}
+
 .services-table-shell {
     width: 100%;
 }
@@ -2988,6 +2996,11 @@ aside nav {
 
 .admin-light .empty-state strong {
     color: #111827;
+}
+
+.admin-light .empty-state-sales {
+    background: transparent !important;
+    border-radius: 0;
 }
 
 .admin-light .services-table-shell {

@@ -1075,19 +1075,10 @@ const admin = {
                 <tr class="empty-row">
                     <td colspan="7">
                         <div class="empty-state empty-state-sales">
-                            <div class="empty-state-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="9" cy="21" r="1"></circle>
-                                    <circle cx="20" cy="21" r="1"></circle>
-                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                                </svg>
-                            </div>
                             <div>
                                 <strong>Nenhuma venda registrada</strong>
                                 <span>Quando uma venda for lançada, ela aparecerá aqui com cliente, produto, comissão e total.</span>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="admin.openSaleModal()">Nova Venda</button>
                         </div>
                     </td>
                 </tr>
