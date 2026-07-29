@@ -1175,6 +1175,76 @@ aside nav {
     line-height: 1.45;
 }
 
+.services-table-shell {
+    width: 100%;
+}
+
+.services-table {
+    border-spacing: 0 10px;
+}
+
+.service-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 260px;
+}
+
+.service-initial {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    font-weight: 900;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.service-name-cell strong,
+.service-name-cell small {
+    display: block;
+}
+
+.service-name-cell strong {
+    font-size: 0.98rem;
+}
+
+.service-name-cell small {
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.service-chip,
+.service-price {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    padding: 7px 12px;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.service-price {
+    color: var(--text-main);
+}
+
+.service-actions {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+}
+
 /* Badges & Status */
 .status-badge {
     padding: 6px 12px;
@@ -2918,6 +2988,54 @@ aside nav {
 
 .admin-light .empty-state strong {
     color: #111827;
+}
+
+.admin-light .services-table-shell {
+    overflow: visible;
+}
+
+.admin-light .services-table {
+    margin-top: 1.25rem;
+}
+
+.admin-light .services-table th {
+    padding: 10px 26px;
+}
+
+.admin-light .services-table td {
+    padding: 18px 26px;
+}
+
+.admin-light .services-table .service-row td {
+    background: #fff;
+}
+
+.admin-light .services-table .service-row:hover td {
+    background: #fbfdff;
+}
+
+.admin-light .service-initial {
+    background: #eef6f5;
+    border-color: #cce4e0;
+    color: #0f766e;
+}
+
+.admin-light .service-chip {
+    background: #f8fafc;
+    border-color: #dbe3ec;
+    color: #475569;
+}
+
+.admin-light .service-price {
+    background: #eef6f5;
+    border-color: #cce4e0;
+    color: #0f766e;
+}
+
+.admin-light .service-actions .btn {
+    min-width: 82px;
+    height: 34px;
+    padding: 0 12px;
 }
 
 .admin-light .modal-overlay {

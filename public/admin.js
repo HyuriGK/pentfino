@@ -1658,14 +1658,46 @@ const admin = {
     renderServices() {
         const container = document.getElementById('services-table-body');
         if (!container) return;
+        if (this.services.length === 0) {
+            container.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="4">
+                        <div class="empty-state empty-state-services">
+                            <div class="empty-state-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <strong>Nenhum serviço cadastrado</strong>
+                                <span>Cadastre os serviços da barbearia para liberar agendamentos e acompanhar faturamento por atendimento.</span>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="admin.openModal('service')">Novo Serviço</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
         container.innerHTML = this.services.map(s => `
-            <tr>
-                <td><strong>${s.name}</strong></td>
-                <td>${s.duration || '-'}</td>
-                <td>R$ ${parseFloat(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            <tr class="service-row">
                 <td>
-                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="admin.editService(${s.id})">Editar</button>
-                    <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem; color: var(--danger);" onclick="admin.deleteService(${s.id}, '${s.name}')">Excluir</button>
+                    <div class="service-name-cell">
+                        <span class="service-initial">${s.name.charAt(0).toUpperCase()}</span>
+                        <div>
+                            <strong>${s.name}</strong>
+                            <small>Serviço ativo</small>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="service-chip">${s.duration || '-'}</span></td>
+                <td><span class="service-price">R$ ${parseFloat(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></td>
+                <td>
+                    <div class="service-actions">
+                        <button class="btn btn-ghost btn-sm" onclick="admin.editService(${s.id})">Editar</button>
+                        <button class="btn btn-ghost btn-sm btn-delete" onclick="admin.deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}')">Excluir</button>
+                    </div>
                 </td>
             </tr>
         `).join('');
