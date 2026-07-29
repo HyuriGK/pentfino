@@ -1222,6 +1222,51 @@ aside nav {
     letter-spacing: -1px;
 }
 
+.modal-side-panel {
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 20px;
+}
+
+.modal-side-panel .modal-content {
+    max-width: min(620px, 100%);
+    height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.commission-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.prof-commission-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: -0.5rem 0 1.25rem;
+}
+
+.prof-commission-strip span {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.prof-commission-strip strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-main);
+    font-size: 1rem;
+    letter-spacing: 0;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
@@ -2886,6 +2931,19 @@ aside nav {
     box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
 }
 
+.admin-light .modal-side-panel {
+    background: rgba(15, 23, 42, 0.28);
+}
+
+.admin-light .modal-side-panel .modal-content {
+    border-radius: 22px;
+}
+
+.admin-light .prof-commission-strip span {
+    background: #f8fafc;
+    border-color: var(--border);
+}
+
 .admin-light .btn-icon-close {
     background: #f8fafc;
     border-color: var(--border);
@@ -2989,5 +3047,24 @@ aside nav {
 
 .admin-light ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
+}
+
+@media (max-width: 760px) {
+    .modal-side-panel {
+        align-items: flex-end;
+        padding: 12px;
+    }
+
+    .modal-side-panel .modal-content {
+        max-width: 100%;
+        width: 100%;
+        height: auto;
+        max-height: calc(100vh - 24px);
+    }
+
+    .commission-fields,
+    .prof-commission-strip {
+        grid-template-columns: 1fr;
+    }
 }
 

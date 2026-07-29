@@ -1346,7 +1346,7 @@ const admin = {
                 <td><strong>${p.name}</strong></td>
                 <td>${p.specialty || '-'}</td>
                 <td style="text-align: right;">
-                    <button class="btn btn-primary btn-sm" onclick="admin.selectProfessional(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.commission_rate || 0})">Selecionar</button>
+                    <button class="btn btn-primary btn-sm" onclick="admin.selectProfessional(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.product_commission || 0})">Selecionar</button>
                 </td>
             </tr>
         `).join('');
@@ -1529,10 +1529,13 @@ const admin = {
                         <div class="prof-card-info" style="flex: 1; min-width: 0;">
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                                 <h3 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.name}</h3>
-                                ${p.commission > 0 ? `<span class="svc-tag" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-bright); flex-shrink: 0;">${p.commission}%</span>` : ''}
                             </div>
                             <p>${p.phone || 'Sem contato'}</p>
                         </div>
+                    </div>
+                    <div class="prof-commission-strip">
+                        <span>ServiÃ§os <strong>${parseFloat(p.commission || 0).toLocaleString('pt-BR')}%</strong></span>
+                        <span>Produtos <strong>${parseFloat(p.product_commission || 0).toLocaleString('pt-BR')}%</strong></span>
                     </div>
                     <div class="prof-card-services">
                         ${services.length > 0 
@@ -1558,6 +1561,7 @@ const admin = {
         document.getElementById('modal-prof-phone').value = prof.phone || '';
         document.getElementById('modal-prof-photo').value = prof.photo_url || '';
         document.getElementById('modal-prof-commission').value = prof.commission || '';
+        document.getElementById('modal-prof-product-commission').value = prof.product_commission || '';
         
         // Open modal (this will also populate the services list via override)
         this.openModal('professional');
@@ -1584,6 +1588,7 @@ const admin = {
         const phone = document.getElementById('modal-prof-phone').value;
         const photoUrl = document.getElementById('modal-prof-photo').value;
         const commission = document.getElementById('modal-prof-commission').value;
+        const productCommission = document.getElementById('modal-prof-product-commission').value;
         const selectedServices = Array.from(document.querySelectorAll('#modal-prof-services-list input:checked')).map(cb => cb.value);
 
         if(!name) return alert('Nome é obrigatório');
@@ -1591,7 +1596,7 @@ const admin = {
         try {
             await auth.apiRequest(`/api/professionals/${id}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ name, phone, photoUrl, commission: commission || 0 })
+                body: JSON.stringify({ name, phone, photoUrl, commission: commission || 0, productCommission: productCommission || 0 })
             });
             
             await auth.apiRequest('/api/professional-services', {
@@ -1618,6 +1623,7 @@ const admin = {
         const phone = document.getElementById('modal-prof-phone').value;
         const photoUrl = document.getElementById('modal-prof-photo').value;
         const commission = document.getElementById('modal-prof-commission').value;
+        const productCommission = document.getElementById('modal-prof-product-commission').value;
         const selectedServices = Array.from(document.querySelectorAll('#modal-prof-services-list input:checked')).map(cb => cb.value);
 
         if(!name) return alert('Nome é obrigatório');
@@ -1625,7 +1631,7 @@ const admin = {
         try {
             const res = await auth.apiRequest('/api/professionals', {
                 method: 'POST',
-                body: JSON.stringify({ barberId: auth.user.id, name, phone, photoUrl, commission: commission || 0 })
+                body: JSON.stringify({ barberId: auth.user.id, name, phone, photoUrl, commission: commission || 0, productCommission: productCommission || 0 })
             });
             const prof = await res.json();
             
@@ -1747,6 +1753,7 @@ const admin = {
                 document.getElementById('modal-prof-phone').value = '';
                 document.getElementById('modal-prof-photo').value = '';
                 document.getElementById('modal-prof-commission').value = '';
+                document.getElementById('modal-prof-product-commission').value = '';
             }
         }
         if (type === 'client') {

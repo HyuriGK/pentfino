@@ -554,8 +554,8 @@
 
 
     <!-- MODAL NEW PROFESSIONAL -->
-    <div id="modal-professional" class="modal-overlay hidden">
-        <div class="modal-content">
+    <div id="modal-professional" class="modal-overlay hidden modal-side-panel">
+        <div class="modal-content professional-modal-content">
             <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="modal-title">Novo Profissional</h2>
             </header>
@@ -572,8 +572,12 @@
                 <input autocomplete="off" type="text" id="modal-prof-photo" placeholder="https://...">
             </div>
             <div class="input-group-new">
-                <label>Comissão (%)</label>
-                <input autocomplete="off" type="number" id="modal-prof-commission" placeholder="Ex: 20">
+                <label>Comissão Serviços (%)</label>
+                <input autocomplete="off" type="number" id="modal-prof-commission" placeholder="Ex: 20" min="0" max="100" step="0.01">
+            </div>
+            <div class="input-group-new">
+                <label>Comissão Produtos (%)</label>
+                <input autocomplete="off" type="number" id="modal-prof-product-commission" placeholder="Ex: 10" min="0" max="100" step="0.01">
             </div>
             <div class="input-group-new">
                 <label>Serviços Realizados</label>

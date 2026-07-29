@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS professionals (
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     photo_url TEXT,
+    commission DECIMAL(5,2) DEFAULT 0,
+    product_commission DECIMAL(5,2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

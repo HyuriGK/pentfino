@@ -48,6 +48,7 @@ pool.on('connect', () => {
     console.log('✅ Connected to Neon PostgreSQL');
     // Ensure commission column exists (one-off migration)
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
+    pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS product_commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -563,11 +564,11 @@ app.get('/api/professionals/:barberId', async (req, res) => {
 });
 
 app.post('/api/professionals', authenticateToken, async (req, res) => {
-    const { barberId, name, phone, photoUrl, commission } = req.body;
+    const { barberId, name, phone, photoUrl, commission, productCommission } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO professionals (barber_id, name, phone, photo_url, commission) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [barberId, name, phone, photoUrl, commission || 0]
+            'INSERT INTO professionals (barber_id, name, phone, photo_url, commission, product_commission) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [barberId, name, phone, photoUrl, commission || 0, productCommission || 0]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -609,10 +610,10 @@ app.post('/api/professional-services', async (req, res) => {
 app.patch('/api/professionals/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, phone, photoUrl, commission } = req.body;
+        const { name, phone, photoUrl, commission, productCommission } = req.body;
         await pool.query(
-            'UPDATE professionals SET name = $1, phone = $2, photo_url = $3, commission = $4 WHERE id = $5',
-            [name, phone, photoUrl, commission || 0, id]
+            'UPDATE professionals SET name = $1, phone = $2, photo_url = $3, commission = $4, product_commission = $5 WHERE id = $6',
+            [name, phone, photoUrl, commission || 0, productCommission || 0, id]
         );
         res.json({ success: true });
     } catch (err) {
@@ -744,9 +745,9 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
         if (professionalId) {
             // If commissionRate wasn't provided in body, fetch from professional
             if (reqCommRate === undefined) {
-                const profRes = await client.query('SELECT commission FROM professionals WHERE id = $1', [professionalId]);
+                const profRes = await client.query('SELECT product_commission FROM professionals WHERE id = $1', [professionalId]);
                 if (profRes.rowCount > 0) {
-                    commissionRate = parseFloat(profRes.rows[0].commission || 0);
+                    commissionRate = parseFloat(profRes.rows[0].product_commission || 0);
                 }
             }
             commissionValue = parseFloat(totalPrice) * (commissionRate / 100);
