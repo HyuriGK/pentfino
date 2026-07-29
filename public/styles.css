@@ -1127,6 +1127,54 @@ aside nav {
     border-color: var(--border-bright);
 }
 
+.data-table tr.empty-row td {
+    padding: 0;
+}
+
+.data-table tr.empty-row:hover td {
+    background: transparent;
+}
+
+.empty-state {
+    width: 100%;
+    min-height: 120px;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+    color: var(--text-muted);
+}
+
+.empty-state-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    color: var(--primary);
+}
+
+.empty-state strong,
+.empty-state span {
+    display: block;
+}
+
+.empty-state strong {
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.empty-state span {
+    max-width: 620px;
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
 /* Badges & Status */
 .status-badge {
     padding: 6px 12px;
@@ -2800,6 +2848,31 @@ aside nav {
 
 .admin-light .data-table th {
     color: #64748b;
+}
+
+.admin-light .data-table tr.empty-row td {
+    background: transparent;
+    border-color: var(--border);
+}
+
+.admin-light .empty-state {
+    margin: 0;
+    min-height: 132px;
+    border-radius: 0 0 14px 14px;
+    background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.06), transparent 42%),
+        #f8fafc;
+}
+
+.admin-light .empty-state-icon {
+    background: #fff;
+    border-color: #dbe3ec;
+    color: #0f766e;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+}
+
+.admin-light .empty-state strong {
+    color: #111827;
 }
 
 .admin-light .modal-overlay {
