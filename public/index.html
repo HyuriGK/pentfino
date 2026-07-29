@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organo | A Arte da Gestão</title>
+    <title>PontoBarber | A Arte da Gestão</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
     <header class="landing-header">
         <div class="landing-container">
             <div class="logo-landing">
-                <span class="logo-text">Organo</span>
+                <span class="logo-text">PontoBarber</span>
             </div>
             <nav class="landing-nav">
                 <a href="#vision">Visão</a>
@@ -38,7 +38,7 @@
                     </div>
                 </div>
                 <div class="hero-visual">
-                    <div class="hero-dashboard" aria-label="Resumo visual do painel Organo">
+                    <div class="hero-dashboard" aria-label="Resumo visual do painel PontoBarber">
                         <div class="dashboard-topbar">
                             <span></span>
                             <span></span>
@@ -115,7 +115,7 @@
 
         <section id="vision" class="features-section">
             <div class="landing-container">
-                <span class="section-label">Por que o Organo funciona</span>
+                <span class="section-label">Por que o PontoBarber funciona</span>
                 <div class="features-grid">
                     <div class="feature-item">
                         <h3>Gestão prática e simples.</h3>
@@ -150,7 +150,7 @@
                 <div class="ai-content">
                     <span class="hero-tagline">Automação e inteligência</span>
                     <h2>Faça mais em menos tempo com rotinas inteligentes.</h2>
-                    <p>O Organo ajuda sua equipe a priorizar clientes, enxergar oportunidades e reduzir tarefas repetitivas no atendimento, na cobrança e na retenção.</p>
+                    <p>O PontoBarber ajuda sua equipe a priorizar clientes, enxergar oportunidades e reduzir tarefas repetitivas no atendimento, na cobrança e na retenção.</p>
                 </div>
                 <div class="ai-grid">
                     <div>
@@ -173,7 +173,7 @@
             <div class="landing-container">
                 <div class="consultation-content">
                     <span class="hero-tagline" style="margin-bottom: 20px; display: inline-block;">Demonstração gratuita</span>
-                    <h2>Veja na prática como o Organo se encaixa no seu negócio.</h2>
+                    <h2>Veja na prática como o PontoBarber se encaixa no seu negócio.</h2>
                     <p>Fale com um consultor, conte como sua operação funciona e receba uma apresentação guiada com os módulos que fazem sentido para sua empresa.</p>
                     <button type="button" class="btn-premium demo-chat-trigger">Pedir Demonstração Gratuita</button>
                 </div>
@@ -185,8 +185,8 @@
                 <span class="section-label">Perguntas frequentes</span>
                 <div class="faq-list">
                     <div class="faq-item">
-                        <div class="faq-question">Para que serve o Organo?</div>
-                        <div class="faq-answer">O Organo reúne gestão comercial, agenda, clientes, equipe, estoque e financeiro para empresas de serviços que precisam controlar a rotina e crescer com previsibilidade.</div>
+                        <div class="faq-question">Para que serve o PontoBarber?</div>
+                        <div class="faq-answer">O PontoBarber reúne gestão comercial, agenda, clientes, equipe, estoque e financeiro para empresas de serviços que precisam controlar a rotina e crescer com previsibilidade.</div>
                     </div>
                     <div class="faq-item">
                         <div class="faq-question">Preciso criar conta pela landing?</div>
@@ -198,7 +198,7 @@
                     </div>
                     <div class="faq-item">
                         <div class="faq-question">Como funciona a demonstração?</div>
-                        <div class="faq-answer">Você informa nome e telefone pelo chat. Em seguida, um consultor entra em contato para entender sua operação e apresentar o Organo de forma guiada.</div>
+                        <div class="faq-answer">Você informa nome e telefone pelo chat. Em seguida, um consultor entra em contato para entender sua operação e apresentar o PontoBarber de forma guiada.</div>
                     </div>
                 </div>
             </div>
@@ -222,6 +222,29 @@
     </div>
 
     <script>
+        function disableTextAutocomplete(root = document) {
+            root.querySelectorAll('input, textarea, form').forEach(element => {
+                const type = (element.getAttribute('type') || 'text').toLowerCase();
+                if (element.tagName === 'FORM' || element.tagName === 'TEXTAREA' || ['text', 'search', 'email', 'tel', 'url', 'password'].includes(type)) {
+                    element.setAttribute('autocomplete', 'off');
+                    element.setAttribute('autocorrect', 'off');
+                    element.setAttribute('autocapitalize', 'off');
+                    element.setAttribute('spellcheck', 'false');
+                }
+            });
+        }
+
+        disableTextAutocomplete();
+        new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        disableTextAutocomplete(node);
+                    }
+                });
+            });
+        }).observe(document.body, { childList: true, subtree: true });
+
         document.querySelectorAll('.faq-question').forEach(question => {
             question.addEventListener('click', () => {
                 const item = question.parentNode;

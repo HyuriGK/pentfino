@@ -1,4 +1,4 @@
-console.log('[ORGANO] admin.js v3 loaded');
+console.log('[PontoBarber] admin.js v3 loaded');
 // Global State for diagnostic purposes
 window.__BARBER_DEBUG__ = {
     lastInventoryLoad: null,
@@ -9,7 +9,7 @@ window.__BARBER_DEBUG__ = {
 const auth = {
     user: (() => {
         try {
-            const stored = localStorage.getItem('organo_user');
+            const stored = localStorage.getItem('pontobarber_user');
             if (!stored) return null;
             return JSON.parse(stored);
         } catch (e) {
@@ -17,7 +17,7 @@ const auth = {
             return null;
         }
     })(),
-    token: localStorage.getItem('organo_token'),
+    token: localStorage.getItem('pontobarber_token'),
 
     init() {
         this.setupEventListeners();
@@ -108,8 +108,8 @@ const auth = {
             if (data.success) {
                 this.user = data.user;
                 this.token = data.token;
-                localStorage.setItem('organo_user', JSON.stringify(this.user));
-                localStorage.setItem('organo_token', this.token);
+                localStorage.setItem('pontobarber_user', JSON.stringify(this.user));
+                localStorage.setItem('pontobarber_token', this.token);
                 this.showDashboard();
                 this.notify('Acesso autorizado!', 'success');
             } else {
@@ -137,8 +137,8 @@ const auth = {
     },
 
     logout() {
-        localStorage.removeItem('organo_user');
-        localStorage.removeItem('organo_token');
+        localStorage.removeItem('pontobarber_user');
+        localStorage.removeItem('pontobarber_token');
         location.reload();
     },
 
@@ -703,7 +703,7 @@ const admin = {
     startInsights() {
         const tips = [
             "Aumento de 20% na procura por serviços esta semana.",
-            "Insight Organo: Ofereça um café aos clientes que chegarem 10min antes.",
+            "Insight PontoBarber: Ofereça um café aos clientes que chegarem 10min antes.",
             "Lembrete: Foque em retenção este mês para dobrar o lucro.",
             "Atenção: Seu faturamento cresceu 15% em relação ao mês anterior."
         ];
@@ -1912,7 +1912,7 @@ const agenda = {
 
 const sessionManager = {
     TIMEOUT_MS: 3600000, // 1 hour
-    STORAGE_KEY: 'organo_last_activity',
+    STORAGE_KEY: 'pontobarber_last_activity',
 
     init() {
         if (!auth.user) return;
@@ -1951,7 +1951,7 @@ const sessionManager = {
 
         const now = Date.now();
         if (now - lastActivity > this.TIMEOUT_MS) {
-            console.warn('Sessão expirada por inatividade (Organo).');
+            console.warn('Sessão expirada por inatividade (PontoBarber).');
             auth.logout();
         }
     },
@@ -2016,7 +2016,7 @@ document.addEventListener('mousedown', (e) => {
 window.onerror = function(msg, url, line, col, error) {
     const errorMsg = `[JS ERROR] ${msg} em ${url}:${line}:${col}`;
     console.error(errorMsg, error);
-    // Only alert for Organo scripts to avoid noise from extensions
+    // Only alert for PontoBarber scripts to avoid noise from extensions
     if (url.includes('admin.js') || url.includes('admin.html')) {
         alert(errorMsg);
     }
@@ -2025,4 +2025,4 @@ window.onerror = function(msg, url, line, col, error) {
 
 // Extra safety: expose admin globally
 window.admin = admin;
-console.log('[ORGANO] admin.js v4 fully initialized');
+console.log('[PontoBarber] admin.js v4 fully initialized');

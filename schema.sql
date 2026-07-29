@@ -1,5 +1,5 @@
 /* 
-  SQL Schema for Neon PostgreSQL - Organo
+  SQL Schema for Neon PostgreSQL - PontoBarber
   Paste this into your Neon SQL Editor:
 */
 
@@ -85,12 +85,12 @@ SET password = EXCLUDED.password,
     is_admin = TRUE;
 
 INSERT INTO barbers (email, password, shop_name, is_admin)
-VALUES ('demo@organo.com', 'demo123', 'Organo Luxury', FALSE)
+VALUES ('demo@pontobarber.com', 'demo123', 'PontoBarber Demo', FALSE)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO services (barber_id, name, price, duration)
-SELECT id, 'Atendimento Essencial', 50, '40 min' FROM barbers WHERE email = 'demo@organo.com'
+SELECT id, 'Atendimento Essencial', 50, '40 min' FROM barbers WHERE email = 'demo@pontobarber.com'
 UNION ALL
-SELECT id, 'Consultoria Rápida', 30, '20 min' FROM barbers WHERE email = 'demo@organo.com'
+SELECT id, 'Consultoria Rápida', 30, '20 min' FROM barbers WHERE email = 'demo@pontobarber.com'
 UNION ALL
-SELECT id, 'Pacote Completo', 70, '60 min' FROM barbers WHERE email = 'demo@organo.com';
+SELECT id, 'Pacote Completo', 70, '60 min' FROM barbers WHERE email = 'demo@pontobarber.com';

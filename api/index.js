@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'organo_fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'PontoBarber_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
 
 const getUserRole = user => user.email === ADMIN_EMAIL ? 'administrador' : 'operador';
@@ -823,7 +823,7 @@ app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
 
 if (require.main === module) {
     app.listen(port, () => {
-        console.log(`🚀 Organo Server running on http://localhost:${port}`);
+        console.log(`🚀 PontoBarber Server running on http://localhost:${port}`);
     });
 }
 

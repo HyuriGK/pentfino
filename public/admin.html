@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organo Admin | Dashboard Geral</title>
+    <title>PontoBarber Admin | Dashboard Geral</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,12 +22,12 @@
         <div class="auth-visual-side">
             <div class="auth-visual-content">
                 <div class="logo logo-large">
-                    <img src="image.png" alt="Organo" class="logo-img logo-img-large">
-                    Organo
+                    <img src="image.png" alt="PontoBarber" class="logo-img logo-img-large">
+                    PontoBarber
                 </div>
                 <h1 class="auth-hero-text">A nova era da<br>gestão profissional.</h1>
                 <p class="auth-subtext">Simplifique seu fluxo, encante seus clientes e escale seu negócio com
-                    Organo.</p>
+                    PontoBarber.</p>
             </div>
             <div class="auth-visual-overlay"></div>
         </div>
@@ -59,8 +59,8 @@
         <aside id="sidebar" class="sidebar glass">
             <div class="sidebar-header" style="padding: 0;">
                 <div class="logo" onclick="ui.toggleSidebar()" style="cursor: pointer;">
-                    <img src="image.png" alt="Organo" class="logo-img">
-                    <span class="logo-text">Organo</span>
+                    <img src="image.png" alt="PontoBarber" class="logo-img">
+                    <span class="logo-text">PontoBarber</span>
                 </div>
             </div>
             <nav>
@@ -230,7 +230,7 @@
                         <div>
                             <h4
                                 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px;">
-                                Inteligência Organo AI</h4>
+                                Inteligência PontoBarber AI</h4>
                             <p id="retention-tip" style="font-size: 1.1rem; font-weight: 500; color: #fff;">Iniciando
                                 análise de comportamento dos clientes...</p>
                         </div>
@@ -477,7 +477,7 @@
                     <div>
                         <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
                             Usuarios do Sistema</h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Crie novas contas para empresas acessarem o painel Organo.</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Crie novas contas para empresas acessarem o painel PontoBarber.</p>
                     </div>
                 </div>
 
@@ -713,7 +713,7 @@
             <div class="modal-body">
                 <div class="input-group-new" style="margin-bottom: 20px;">
                     <div style="position: relative;">
-                        <input type="text" id="select-item-search" placeholder="Buscar produto..." onkeyup="admin.filterSelectItem(this.value)" style="padding-left: 45px;">
+                        <input autocomplete="off" type="text" id="select-item-search" placeholder="Buscar produto..." onkeyup="admin.filterSelectItem(this.value)" style="padding-left: 45px;">
                         <svg style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </div>
                 </div>
@@ -751,7 +751,7 @@
             <div class="modal-body">
                 <div class="input-group-new" style="margin-bottom: 20px;">
                     <div style="position: relative;">
-                        <input type="text" id="select-client-search" placeholder="Buscar cliente..." onkeyup="admin.filterSelectClient(this.value)" style="padding-left: 45px;">
+                        <input autocomplete="off" type="text" id="select-client-search" placeholder="Buscar cliente..." onkeyup="admin.filterSelectClient(this.value)" style="padding-left: 45px;">
                         <svg style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </div>
                 </div>
@@ -791,7 +791,7 @@
             <div class="modal-body">
                 <div class="input-group-new" style="margin-bottom: 20px;">
                     <div style="position: relative;">
-                        <input type="text" id="select-professional-search" placeholder="Buscar profissional..." onkeyup="admin.filterSelectProfessional(this.value)" style="padding-left: 45px;">
+                        <input autocomplete="off" type="text" id="select-professional-search" placeholder="Buscar profissional..." onkeyup="admin.filterSelectProfessional(this.value)" style="padding-left: 45px;">
                         <svg style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </div>
                 </div>
@@ -835,7 +835,7 @@
 
             <div class="input-group-new">
                 <label>Descrição Curta</label>
-                <textarea id="modal-inv-desc" placeholder="Descreva as qualidades do produto..." style="width: 100%; height: 80px; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright); outline: none; resize: none;"></textarea>
+                <textarea autocomplete="off" id="modal-inv-desc" placeholder="Descreva as qualidades do produto..." style="width: 100%; height: 80px; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright); outline: none; resize: none;"></textarea>
             </div>
 
             <div class="input-group-new">
@@ -1118,7 +1118,30 @@
         </div>
     </div>
 
+    <script>
+        function disableTextAutocomplete(root = document) {
+            root.querySelectorAll('input, textarea, form').forEach(element => {
+                const type = (element.getAttribute('type') || 'text').toLowerCase();
+                if (element.tagName === 'FORM' || element.tagName === 'TEXTAREA' || ['text', 'search', 'email', 'tel', 'url', 'password'].includes(type)) {
+                    element.setAttribute('autocomplete', 'off');
+                    element.setAttribute('autocorrect', 'off');
+                    element.setAttribute('autocapitalize', 'off');
+                    element.setAttribute('spellcheck', 'false');
+                }
+            });
+        }
 
+        disableTextAutocomplete();
+        new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        disableTextAutocomplete(node);
+                    }
+                });
+            });
+        }).observe(document.body, { childList: true, subtree: true });
+    </script>
 </body>
 
 </html>
