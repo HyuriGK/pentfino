@@ -1,4 +1,4 @@
-console.log('[PontoBarber] admin.js v3 loaded');
+﻿console.log('[PontoBarber] admin.js v3 loaded');
 // Global State for diagnostic purposes
 window.__BARBER_DEBUG__ = {
     lastInventoryLoad: null,
@@ -46,7 +46,7 @@ const auth = {
     },
 
     notify(message, type = 'info') {
-        const icon = type === 'error' ? '❌' : (type === 'success' ? '✅' : 'ℹ️');
+        const icon = type === 'error' ? '×' : (type === 'success' ? '✓' : 'i');
         const bgColor = type === 'error' ? 'var(--danger)' : (type === 'success' ? 'var(--success)' : 'var(--primary)');
         
         const toast = document.createElement('div');
@@ -243,7 +243,7 @@ const admin = {
         setInterval(() => {
             if (auth.user) {
                 this.loadData();
-                console.log('🔄 Agenda auto-atualizada');
+                console.log('ðŸ”„ Agenda auto-atualizada');
             }
         }, 30000);
     },
@@ -1171,7 +1171,7 @@ const admin = {
             remainingEl.innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             if (totalMonth >= goal) {
                 remainingEl.style.color = 'var(--success)';
-                remainingEl.innerText = 'Meta Atingida! 🎉';
+                remainingEl.innerText = 'Meta Atingida! ðŸŽ‰';
             }
         }
         
@@ -1534,7 +1534,7 @@ const admin = {
                         </div>
                     </div>
                     <div class="prof-commission-strip">
-                        <span>ServiÃ§os <strong>${parseFloat(p.commission || 0).toLocaleString('pt-BR')}%</strong></span>
+                        <span>Servi&ccedil;os <strong>${parseFloat(p.commission || 0).toLocaleString('pt-BR')}%</strong></span>
                         <span>Produtos <strong>${parseFloat(p.product_commission || 0).toLocaleString('pt-BR')}%</strong></span>
                     </div>
                     <div class="prof-card-services">
@@ -1670,10 +1670,10 @@ const admin = {
                                 </svg>
                             </div>
                             <div>
-                                <strong>Nenhum serviço cadastrado</strong>
-                                <span>Cadastre os serviços da barbearia para liberar agendamentos e acompanhar faturamento por atendimento.</span>
+                                <strong>Nenhum servi&ccedil;o cadastrado</strong>
+                                <span>Cadastre os servi&ccedil;os da barbearia para liberar agendamentos e acompanhar faturamento por atendimento.</span>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="admin.openModal('service')">Novo Serviço</button>
+                            <button class="btn btn-primary btn-sm" onclick="admin.openModal('service')">Novo Servi&ccedil;o</button>
                         </div>
                     </td>
                 </tr>
@@ -1687,7 +1687,7 @@ const admin = {
                         <span class="service-initial">${s.name.charAt(0).toUpperCase()}</span>
                         <div>
                             <strong>${s.name}</strong>
-                            <small>Serviço ativo</small>
+                            <small>Servi&ccedil;o ativo</small>
                         </div>
                     </div>
                 </td>
@@ -1718,13 +1718,13 @@ const admin = {
     },
 
     async deleteService(id, name) {
-        this.openDeleteConfirm(`Deseja excluir o servi�o <strong>${name}</strong>? Ele ser� removido da tabela de servi�os e dos v�nculos com profissionais.`, async () => {
+        this.openDeleteConfirm(`Deseja excluir o servi&ccedil;o <strong>${name}</strong>? Ele ser&aacute; removido da tabela de servi&ccedil;os e dos v&iacute;nculos com profissionais.`, async () => {
             try {
                 await auth.apiRequest(`/api/services/${id}`, { method: 'DELETE' });
                 await this.loadServices();
                 await this.loadProfessionals();
                 this.closeModal('delete-confirm');
-            } catch (err) { alert('Erro ao excluir servi�o'); }
+            } catch (err) { alert('Erro ao excluir servico'); }
         });
     },
 
