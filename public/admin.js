@@ -1718,12 +1718,14 @@ const admin = {
     },
 
     async deleteService(id, name) {
-        if (confirm(`Deseja excluir o serviÃ§o "${name}"?`)) {
+        this.openDeleteConfirm(`Deseja excluir o serviço <strong>${name}</strong>? Ele será removido da tabela de serviços e dos vínculos com profissionais.`, async () => {
             try {
                 await auth.apiRequest(`/api/services/${id}`, { method: 'DELETE' });
-                this.loadServices();
-            } catch (err) { alert('Erro ao excluir serviÃ§o'); }
-        }
+                await this.loadServices();
+                await this.loadProfessionals();
+                this.closeModal('delete-confirm');
+            } catch (err) { alert('Erro ao excluir serviço'); }
+        });
     },
 
     async saveService() {

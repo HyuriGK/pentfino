@@ -3049,6 +3049,36 @@ aside nav {
     box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
 }
 
+.admin-light #modal-delete-confirm .modal-content {
+    max-width: 460px;
+    border-radius: 18px;
+    padding: 34px;
+}
+
+.admin-light #modal-delete-confirm .modal-content > div:first-child {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+.admin-light #delete-confirm-text {
+    color: #475569 !important;
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.admin-light #delete-confirm-text strong {
+    color: #111827;
+}
+
+.admin-light #btn-do-delete {
+    background: #dc2626 !important;
+    color: #fff !important;
+}
+
+.admin-light #btn-do-delete:hover {
+    background: #b91c1c !important;
+}
+
 .admin-light .modal-side-panel {
     background: rgba(15, 23, 42, 0.28);
 }
