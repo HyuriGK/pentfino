@@ -1082,7 +1082,7 @@ const admin = {
                     <small>${new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
                 </td>
                 <td style="font-weight: 500;">${s.client_name || '<span style="color: var(--text-muted); font-style: italic;">Consumidor</span>'}</td>
-                <td><strong style="color: #fff;">${s.item_name}</strong></td>
+                <td><strong style="color: var(--text-main);">${s.item_name}</strong></td>
                 <td><span class="qty-badge" style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);">${s.quantity}</span></td>
                 <td>
                     ${s.professional_name 
@@ -1171,6 +1171,10 @@ const admin = {
         }
 
         const labels = data.map((_, i) => i + 1);
+        const styles = getComputedStyle(document.body);
+        const chartPrimary = styles.getPropertyValue('--accent').trim() || styles.getPropertyValue('--primary').trim() || '#111827';
+        const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#6b7280';
+        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255,255,255,0.05)';
 
         this.billingChart = new Chart(ctx, {
             type: 'bar',
@@ -1179,11 +1183,11 @@ const admin = {
                 datasets: [{
                     label: 'Faturamento Diário',
                     data: data,
-                    backgroundColor: 'rgba(0, 255, 136, 0.4)',
-                    borderColor: 'var(--primary)',
+                    backgroundColor: document.body.classList.contains('admin-light') ? 'rgba(15, 118, 110, 0.18)' : 'rgba(0, 255, 136, 0.4)',
+                    borderColor: chartPrimary,
                     borderWidth: 2,
                     borderRadius: 5,
-                    hoverBackgroundColor: 'var(--primary)'
+                    hoverBackgroundColor: chartPrimary
                 }]
             },
             options: {
@@ -1200,15 +1204,15 @@ const admin = {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        grid: { color: chartGrid },
                         ticks: {
-                            color: 'var(--text-muted)',
+                            color: chartMuted,
                             callback: (val) => `R$ ${val}`
                         }
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { color: 'var(--text-muted)' }
+                        ticks: { color: chartMuted }
                     }
                 }
             }

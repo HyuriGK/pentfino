@@ -2578,3 +2578,340 @@ aside nav {
     max-height: 450px !important;
 }
 
+/* PontoBarber Admin Light Theme */
+.admin-light {
+    --bg-dark: #f4f6f8;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --primary: #111827;
+    --primary-hover: #273244;
+    --accent: #0f766e;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --border-bright: #cbd5e1;
+    --danger: #dc2626;
+    --success: #047857;
+    --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 32%),
+        linear-gradient(180deg, #fbfcfd 0%, #eef2f6 100%);
+    color: var(--text-main);
+}
+
+.admin-light .auth-wrapper,
+.admin-light .dashboard-wrapper {
+    background:
+        radial-gradient(circle at 14% 8%, rgba(15, 118, 110, 0.08), transparent 28%),
+        linear-gradient(180deg, #fbfcfd 0%, #eef2f6 100%);
+}
+
+.admin-light .auth-visual-side {
+    background:
+        linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(15, 118, 110, 0.82)),
+        url("image.png") center/180px no-repeat,
+        #111827;
+}
+
+.admin-light .auth-visual-overlay {
+    background: linear-gradient(90deg, rgba(17, 24, 39, 0.72), rgba(15, 23, 42, 0.36));
+}
+
+.admin-light .auth-form-side {
+    background: transparent;
+    border-left: 1px solid var(--border);
+}
+
+.admin-light .auth-card-new {
+    padding: 34px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+}
+
+.admin-light .badge {
+    background: #eef6f5;
+    border-color: #cce4e0;
+    color: #0f766e;
+}
+
+.admin-light .sidebar {
+    margin: 18px 0 18px 18px;
+    height: calc(100vh - 36px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.admin-light .logo-text {
+    color: #111827;
+}
+
+.admin-light .nav-item {
+    color: #64748b;
+}
+
+.admin-light .nav-item:hover,
+.admin-light .nav-item.active {
+    background: #f1f5f9;
+    color: #111827;
+}
+
+.admin-light .nav-item.active {
+    box-shadow: inset 3px 0 0 #0f766e;
+}
+
+.admin-light .dashboard-content {
+    max-width: none;
+    padding: 2rem 2.5rem;
+}
+
+.admin-light .dashboard-header {
+    padding: 18px 0 8px;
+}
+
+.admin-light .dashboard-title,
+.admin-light .auth-title,
+.admin-light .modal-title,
+.admin-light .list-header h2,
+.admin-light .queue-header h2,
+.admin-light .prof-card-info h3,
+.admin-light .inventory-card-title,
+.admin-light .client-info h4 {
+    color: #111827;
+}
+
+.admin-light .glass,
+.admin-light .stat-card,
+.admin-light .professional-card,
+.admin-light .inventory-card,
+.admin-light .billing-chart-container,
+.admin-light .admin-user-form {
+    background: #fff;
+    border-color: var(--border);
+    box-shadow: var(--shadow);
+}
+
+.admin-light .glass:hover,
+.admin-light .stat-card:hover,
+.admin-light .professional-card:hover,
+.admin-light .inventory-card:hover {
+    border-color: var(--border-bright);
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+}
+
+.admin-light .stat-card {
+    border-radius: 14px;
+}
+
+.admin-light .stat-value,
+.admin-light #billing-goal,
+.admin-light #modal-sale-total,
+.admin-light .inventory-card-price {
+    color: #111827 !important;
+}
+
+.admin-light #stat-revenue,
+.admin-light #billing-total-month,
+.admin-light #prof-details-prof-share {
+    color: var(--success) !important;
+}
+
+.admin-light .retention-card {
+    background: linear-gradient(135deg, #ffffff 0%, #eef6f5 100%);
+    border: 1px solid #dbeafe;
+}
+
+.admin-light .retention-card p,
+.admin-light #retention-tip {
+    color: #1f2937 !important;
+}
+
+.admin-light .retention-card > div:nth-child(2) > div:first-child {
+    background: #111827 !important;
+    color: #fff !important;
+}
+
+.admin-light .appointment-item {
+    background: #fff;
+    border-color: var(--border);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+.admin-light .appointment-item:hover {
+    background: #f8fafc;
+    transform: translateX(4px);
+}
+
+.admin-light .input-group-new input,
+.admin-light .input-group-new select,
+.admin-light textarea,
+.admin-light .glass-select {
+    background: #f8fafc !important;
+    border-color: var(--border) !important;
+    color: #111827 !important;
+    color-scheme: light;
+}
+
+.admin-light .input-group-new input:focus,
+.admin-light .input-group-new select:focus,
+.admin-light textarea:focus,
+.admin-light .glass-select:focus {
+    background: #fff !important;
+    border-color: #0f766e !important;
+    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12) !important;
+}
+
+.admin-light .btn-primary {
+    background: #111827;
+    color: #fff;
+}
+
+.admin-light .btn-primary:hover {
+    background: #0f766e;
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(15, 118, 110, 0.22);
+}
+
+.admin-light .btn-ghost {
+    background: #fff;
+    color: #111827;
+    border-color: var(--border-bright);
+}
+
+.admin-light .btn-ghost:hover {
+    background: #f1f5f9;
+}
+
+.admin-light .data-table td {
+    background: #fff;
+    border-color: var(--border);
+    color: #111827;
+}
+
+.admin-light .data-table tr:hover td {
+    background: #f8fafc;
+    border-color: var(--border-bright);
+}
+
+.admin-light .data-table th {
+    color: #64748b;
+}
+
+.admin-light .modal-overlay {
+    background: rgba(15, 23, 42, 0.32);
+}
+
+.admin-light .modal-content {
+    background: #fff;
+    border-color: var(--border);
+    color: #111827;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
+}
+
+.admin-light .btn-icon-close {
+    background: #f8fafc;
+    border-color: var(--border);
+    color: #64748b;
+}
+
+.admin-light .professional-badge,
+.admin-light .svc-tag,
+.admin-light .role-pill {
+    background: #f8fafc;
+    border-color: var(--border);
+}
+
+.admin-light .prof-card-avatar {
+    background: #e2e8f0;
+    color: #111827;
+}
+
+.admin-light .prof-card-actions,
+.admin-light .inventory-card-qty-control {
+    border-top-color: var(--border);
+}
+
+.admin-light .inventory-card-img {
+    background: #e5e7eb;
+}
+
+.admin-light .qty-btn,
+.admin-light .card-action-btn {
+    background: #fff;
+    color: #111827;
+    border-color: var(--border-bright);
+}
+
+.admin-light .card-action-btn {
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.admin-light .stock-progress-container {
+    background: #e5e7eb;
+}
+
+.admin-light .stock-progress-bar {
+    background: #0f766e;
+}
+
+.admin-light .fc {
+    --fc-border-color: #e5e7eb;
+    --fc-page-bg-color: #ffffff;
+}
+
+.admin-light .fc .fc-button-primary {
+    background: #fff;
+    border-color: var(--border-bright);
+    color: #111827;
+}
+
+.admin-light .fc .fc-button-primary:hover,
+.admin-light .fc .fc-button-active {
+    background: #111827 !important;
+    color: #fff !important;
+    border-color: #111827 !important;
+}
+
+.admin-light .fc-day-today {
+    background: #eef6f5 !important;
+}
+
+.admin-light .fc-theme-standard td,
+.admin-light .fc-theme-standard th {
+    border-color: var(--border) !important;
+}
+
+.admin-light .fc-daygrid-day-number {
+    color: #475569 !important;
+}
+
+.admin-light .fc-day-today .fc-daygrid-day-number,
+.admin-light .fc-day-kpi {
+    background: #111827;
+    color: #fff !important;
+}
+
+.admin-light .fc-event {
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+}
+
+.admin-light .fc-event.event-completed {
+    background: #e5e7eb !important;
+    border-color: #cbd5e1 !important;
+}
+
+.admin-light .fc-event.event-canceled {
+    background: #fee2e2 !important;
+    border-color: #fecaca !important;
+}
+
+.admin-light ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.admin-light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+}
+
