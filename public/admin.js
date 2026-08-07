@@ -267,6 +267,11 @@ const admin = {
             if (el) el.classList.toggle('hidden', t !== tab);
         });
 
+        if (window.innerWidth <= 1024) {
+            document.getElementById('sidebar')?.classList.remove('open');
+            document.querySelector('.sidebar-scrim')?.classList.remove('open');
+        }
+
         if (tab === 'billing') {
             this.loadBillingData();
         }
@@ -2027,6 +2032,12 @@ const sessionManager = {
 const ui = {
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth <= 1024) {
+            const isOpen = sidebar.classList.toggle('open');
+            document.querySelector('.sidebar-scrim')?.classList.toggle('open', isOpen);
+            return;
+        }
+
         sidebar.classList.toggle('collapsed');
         
         // Save state

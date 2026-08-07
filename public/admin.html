@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap"
         rel="stylesheet">
     <!-- FullCalendar CDNs -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
@@ -56,6 +56,10 @@
     </div>
     <!-- MAIN DASHBOARD -->
     <div id="admin-view" class="dashboard-wrapper hidden">
+        <button type="button" class="mobile-menu-button" onclick="ui.toggleSidebar()" aria-label="Abrir menu">
+            <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="sidebar-scrim" onclick="ui.toggleSidebar()" aria-label="Fechar menu"></button>
         <aside id="sidebar" class="sidebar glass">
             <div class="sidebar-header" style="padding: 0;">
                 <div class="logo" onclick="ui.toggleSidebar()" style="cursor: pointer;">
