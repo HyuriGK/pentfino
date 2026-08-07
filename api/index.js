@@ -7,8 +7,20 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'BarberPoint_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
+const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos'];
+const DEFAULT_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map(key => [key, true]));
 
-const getUserRole = user => user.email === ADMIN_EMAIL ? 'administrador' : 'operador';
+const getUserRole = user => user.email === ADMIN_EMAIL && user.is_admin !== false ? 'administrador' : 'operador';
+const normalizePermissions = (permissions, isAdmin = false) => {
+    if (isAdmin) return { ...DEFAULT_PERMISSIONS };
+
+    let source = permissions;
+    if (typeof source === 'string') {
+        try { source = JSON.parse(source); } catch (_) { source = {}; }
+    }
+
+    return Object.fromEntries(PERMISSION_KEYS.map(key => [key, source?.[key] !== false]));
+};
 
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
@@ -18,7 +30,7 @@ const authenticateToken = (req, res, next) => {
     if (!token) return res.status(401).json({ success: false, message: 'Token não fornecido' });
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ success: false, message: 'Token inválido' });
+        if (err) return res.status(401).json({ success: false, message: 'Token inválido' });
         req.user = user;
         next();
     });
@@ -43,6 +55,33 @@ app.use(express.static(path.join(__dirname, '..')));
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
+
+const requireAnyPermission = (...permissions) => async (req, res, next) => {
+    if (req.user?.role === 'administrador' && req.user?.email === ADMIN_EMAIL) return next();
+
+    try {
+        const result = await pool.query(
+            'SELECT permissions, is_active FROM barbers WHERE id = $1',
+            [req.user?.id]
+        );
+        const currentUser = result.rows[0];
+
+        if (!currentUser || currentUser.is_active === false) {
+            return res.status(403).json({ success: false, message: 'Usuário inativo.' });
+        }
+
+        const granted = normalizePermissions(currentUser.permissions);
+        if (!permissions.some(permission => granted[permission])) {
+            return res.status(403).json({ success: false, message: 'Você não possui permissão para esta área.' });
+        }
+
+        req.user.permissions = granted;
+        next();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Erro ao validar permissões.' });
+    }
+};
 
 pool.on('connect', () => {
     console.log('✅ Connected to Neon PostgreSQL');
@@ -85,6 +124,12 @@ pool.on('connect', () => {
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS client_id INTEGER REFERENCES clients(id)').catch(() => {});
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS professional_id INTEGER REFERENCES professionals(id)').catch(() => {});
     pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE').catch(() => {});
+    pool.query("ALTER TABLE barbers ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '{}'::jsonb").catch(() => {});
+    pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE').catch(() => {});
+    pool.query(
+        'UPDATE barbers SET permissions = $1::jsonb WHERE permissions IS NULL OR permissions = $2::jsonb',
+        [JSON.stringify(DEFAULT_PERMISSIONS), '{}']
+    ).catch(() => {});
     pool.query('UPDATE barbers SET is_admin = FALSE WHERE email <> $1', [ADMIN_EMAIL]).catch(() => {});
     pool.query(`
         INSERT INTO barbers (email, password, shop_name, is_admin)
@@ -108,7 +153,7 @@ app.post('/api/login', async (req, res) => {
         const result = await pool.query('SELECT * FROM barbers WHERE email = $1', [email]);
         const user = result.rows[0];
         
-        if (user) {
+        if (user && user.is_active !== false) {
             let isMatch = false;
             try {
                 isMatch = await bcrypt.compare(password, user.password);
@@ -118,6 +163,7 @@ app.post('/api/login', async (req, res) => {
 
             if (isMatch) {
                 const role = getUserRole(user);
+                const permissions = normalizePermissions(user.permissions, role === 'administrador');
                 const token = jwt.sign(
                     { id: user.id, email: user.email, role },
                     JWT_SECRET,
@@ -131,7 +177,9 @@ app.post('/api/login', async (req, res) => {
                         email: user.email,
                         shop: user.shop_name,
                         role,
-                        isAdmin: role === 'administrador'
+                        isAdmin: role === 'administrador',
+                        permissions,
+                        isActive: user.is_active !== false
                     }
                 });
             }
@@ -143,36 +191,45 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/register', async (req, res) => {
-    const { email, password, shop } = req.body;
+app.get('/api/session', authenticateToken, async (req, res) => {
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const result = await pool.query(
-            'INSERT INTO barbers (email, password, shop_name) VALUES ($1, $2, $3) RETURNING id, email, shop_name',
-            [email, hashedPassword, shop]
-        );
-        
+        const result = await pool.query('SELECT * FROM barbers WHERE id = $1', [req.user.id]);
         const user = result.rows[0];
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: 'operador' },
-            JWT_SECRET,
-            { expiresIn: '7d' }
-        );
 
-        res.json({ success: true, token, user: { ...user, role: 'operador', isAdmin: false } });
+        if (!user || user.is_active === false) {
+            return res.status(403).json({ success: false, message: 'Usuário inativo.' });
+        }
+
+        const role = getUserRole(user);
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                shop: user.shop_name,
+                role,
+                isAdmin: role === 'administrador',
+                permissions: normalizePermissions(user.permissions, role === 'administrador'),
+                isActive: true
+            }
+        });
     } catch (err) {
         console.error(err);
-        if (err.code === '23505') { // Postgres Unique Violation
-            return res.status(409).json({ success: false, message: 'Este e-mail já está registrado em nossa base de dados.' });
-        }
-        res.status(500).json({ success: false, message: 'Erro ao processar o registro no servidor.' });
+        res.status(500).json({ success: false, message: 'Erro ao validar sessão.' });
     }
+});
+
+app.post('/api/register', (req, res) => {
+    res.status(403).json({
+        success: false,
+        message: 'Novos usuários devem ser criados pelo painel de Administração.'
+    });
 });
 
 app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT id, email, shop_name, (email = $1) AS is_admin, created_at
+            SELECT id, email, shop_name, (email = $1) AS is_admin, permissions, is_active, created_at
             FROM barbers
             ORDER BY (email = $1) DESC, created_at DESC
         `, [ADMIN_EMAIL]);
@@ -184,7 +241,7 @@ app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =>
 });
 
 app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
-    const { email, password, shop, role = 'operador' } = req.body;
+    const { email, password, shop, role = 'operador', permissions, isActive = true } = req.body;
 
     if (!email || !password || !shop) {
         return res.status(400).json({ success: false, message: 'Informe nome da barbearia, e-mail e senha.' });
@@ -197,11 +254,12 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const isAdmin = role === 'administrador' && email === ADMIN_EMAIL;
+        const normalizedPermissions = normalizePermissions(permissions, isAdmin);
         const result = await pool.query(
-            `INSERT INTO barbers (email, password, shop_name, is_admin)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id, email, shop_name, (email = $5) AS is_admin, created_at`,
-            [email, hashedPassword, shop, isAdmin, ADMIN_EMAIL]
+            `INSERT INTO barbers (email, password, shop_name, is_admin, permissions, is_active)
+             VALUES ($1, $2, $3, $4, $5::jsonb, $6)
+             RETURNING id, email, shop_name, (email = $7) AS is_admin, permissions, is_active, created_at`,
+            [email, hashedPassword, shop, isAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), ADMIN_EMAIL]
         );
 
         res.status(201).json({ success: true, user: result.rows[0] });
@@ -216,7 +274,7 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
 
 app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
-    const { email, password, shop, role = 'operador' } = req.body;
+    const { email, password, shop, role = 'operador', permissions, isActive = true } = req.body;
 
     if (!email || !shop) {
         return res.status(400).json({ success: false, message: 'Informe nome da barbearia e e-mail.' });
@@ -244,25 +302,30 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
             return res.status(400).json({ success: false, message: 'O administrador principal não pode virar operador.' });
         }
 
+        if (isMainAdmin && isActive === false) {
+            return res.status(400).json({ success: false, message: 'O administrador principal não pode ser desativado.' });
+        }
+
         const newIsAdmin = role === 'administrador' && email === ADMIN_EMAIL;
+        const normalizedPermissions = normalizePermissions(permissions, newIsAdmin);
 
         let result;
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             result = await pool.query(
                 `UPDATE barbers
-                 SET email = $1, shop_name = $2, password = $3, is_admin = $4
-                 WHERE id = $5
-                 RETURNING id, email, shop_name, (email = $6) AS is_admin, created_at`,
-                [email, shop, hashedPassword, newIsAdmin, id, ADMIN_EMAIL]
+                 SET email = $1, shop_name = $2, password = $3, is_admin = $4, permissions = $5::jsonb, is_active = $6
+                 WHERE id = $7
+                 RETURNING id, email, shop_name, (email = $8) AS is_admin, permissions, is_active, created_at`,
+                [email, shop, hashedPassword, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
             );
         } else {
             result = await pool.query(
                 `UPDATE barbers
-                 SET email = $1, shop_name = $2, is_admin = $3
-                 WHERE id = $4
-                 RETURNING id, email, shop_name, (email = $5) AS is_admin, created_at`,
-                [email, shop, newIsAdmin, id, ADMIN_EMAIL]
+                 SET email = $1, shop_name = $2, is_admin = $3, permissions = $4::jsonb, is_active = $5
+                 WHERE id = $6
+                 RETURNING id, email, shop_name, (email = $7) AS is_admin, permissions, is_active, created_at`,
+                [email, shop, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
             );
         }
 
@@ -276,7 +339,7 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
     }
 });
 
-app.get('/api/appointments/:barberId', authenticateToken, async (req, res) => {
+app.get('/api/appointments/:barberId', authenticateToken, requireAnyPermission('dashboard', 'agenda', 'billing', 'comissoes'), async (req, res) => {
     try {
         const { barberId } = req.params;
         // Fetch all appointments for the calendar (pending, completed, canceled)
@@ -352,7 +415,7 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
-app.patch('/api/appointments/:id', authenticateToken, async (req, res) => {
+app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     try {
@@ -364,7 +427,7 @@ app.patch('/api/appointments/:id', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/appointments/:id', authenticateToken, async (req, res) => {
+app.delete('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM appointments WHERE id = $1', [id]);
@@ -375,7 +438,7 @@ app.delete('/api/appointments/:id', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/stats/:barberId', authenticateToken, async (req, res) => {
+app.get('/api/stats/:barberId', authenticateToken, requireAnyPermission('dashboard', 'billing'), async (req, res) => {
     try {
         const { barberId } = req.params;
         // Total from services
@@ -409,7 +472,7 @@ app.get('/api/stats/:barberId', authenticateToken, async (req, res) => {
 });
 
 // Clients API - Fixed last_service_date to use appointment_date for business logic
-app.get('/api/clients/:barberId', authenticateToken, async (req, res) => {
+app.get('/api/clients/:barberId', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query(`
@@ -433,7 +496,7 @@ app.get('/api/clients/:barberId', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/clients/:id/history', authenticateToken, async (req, res) => {
+app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
     try {
         const { id } = req.params;
         const clientResult = await pool.query('SELECT * FROM clients WHERE id = $1', [id]);
@@ -468,7 +531,7 @@ app.get('/api/clients/:id/history', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/clients/:id', authenticateToken, async (req, res) => {
+app.delete('/api/clients/:id', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
     const { id } = req.params;
     try {
         const clientRes = await pool.query('SELECT name, phone FROM clients WHERE id = $1', [id]);
@@ -501,7 +564,7 @@ app.get('/api/services/:barberId', async (req, res) => {
     }
 });
 
-app.post('/api/services', authenticateToken, async (req, res) => {
+app.post('/api/services', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
     const { barberId, name, price, duration } = req.body;
     try {
         const result = await pool.query(
@@ -515,7 +578,7 @@ app.post('/api/services', authenticateToken, async (req, res) => {
     }
 });
 
-app.patch('/api/services/:id', authenticateToken, async (req, res) => {
+app.patch('/api/services/:id', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
     const { id } = req.params;
     const { name, price, duration } = req.body;
     try {
@@ -530,7 +593,7 @@ app.patch('/api/services/:id', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/services/:id', authenticateToken, async (req, res) => {
+app.delete('/api/services/:id', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM professional_services WHERE service_id = $1', [id]);
@@ -563,7 +626,7 @@ app.get('/api/professionals/:barberId', async (req, res) => {
     }
 });
 
-app.post('/api/professionals', authenticateToken, async (req, res) => {
+app.post('/api/professionals', authenticateToken, requireAnyPermission('barbeiros'), async (req, res) => {
     const { barberId, name, phone, photoUrl, commission, productCommission } = req.body;
     try {
         const result = await pool.query(
@@ -592,7 +655,7 @@ app.get('/api/professional-services/:profId', async (req, res) => {
     }
 });
 
-app.post('/api/professional-services', async (req, res) => {
+app.post('/api/professional-services', authenticateToken, requireAnyPermission('barbeiros'), async (req, res) => {
     const { profId, serviceIds } = req.body;
     try {
         await pool.query('DELETE FROM professional_services WHERE professional_id = $1', [profId]);
@@ -607,7 +670,7 @@ app.post('/api/professional-services', async (req, res) => {
     }
 });
 
-app.patch('/api/professionals/:id', authenticateToken, async (req, res) => {
+app.patch('/api/professionals/:id', authenticateToken, requireAnyPermission('barbeiros'), async (req, res) => {
     try {
         const { id } = req.params;
         const { name, phone, photoUrl, commission, productCommission } = req.body;
@@ -622,7 +685,7 @@ app.patch('/api/professionals/:id', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/professionals/:id', authenticateToken, async (req, res) => {
+app.delete('/api/professionals/:id', authenticateToken, requireAnyPermission('barbeiros'), async (req, res) => {
     try {
         const { id } = req.params;
         await pool.query('DELETE FROM professional_services WHERE professional_id = $1', [id]);
@@ -634,7 +697,7 @@ app.delete('/api/professionals/:id', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/clients', async (req, res) => {
+app.post('/api/clients', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
     const { barberId, name, phone, notes } = req.body;
     try {
         const result = await pool.query(
@@ -649,7 +712,7 @@ app.post('/api/clients', async (req, res) => {
 });
 
 // Inventory API (Revolutionary)
-app.get('/api/inventory/:barberId', authenticateToken, async (req, res) => {
+app.get('/api/inventory/:barberId', authenticateToken, requireAnyPermission('estoque', 'vendas'), async (req, res) => {
     try {
         const { barberId } = req.params;
         const result = await pool.query('SELECT * FROM inventory WHERE barber_id = $1 ORDER BY item_name ASC', [barberId]);
@@ -660,7 +723,7 @@ app.get('/api/inventory/:barberId', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/inventory', authenticateToken, async (req, res) => {
+app.post('/api/inventory', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     const { barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice } = req.body;
     try {
         const result = await pool.query(
@@ -674,7 +737,7 @@ app.post('/api/inventory', authenticateToken, async (req, res) => {
     }
 });
 
-app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
+app.patch('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     const { id } = req.params;
     const { itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice } = req.body;
     try {
@@ -697,7 +760,7 @@ app.patch('/api/inventory/:id', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
+app.delete('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM inventory WHERE id = $1', [id]);
@@ -709,7 +772,7 @@ app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
 });
 
 // Sales API Endpoints
-app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
+app.get('/api/sales/:barberId', authenticateToken, requireAnyPermission('vendas', 'comissoes', 'billing'), async (req, res) => {
     const { barberId } = req.params;
     try {
         const result = await pool.query(
@@ -729,7 +792,7 @@ app.get('/api/sales/:barberId', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/sales', authenticateToken, async (req, res) => {
+app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async (req, res) => {
     const { inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId, commissionRate: reqCommRate } = req.body;
     const barberId = req.body.barberId || req.user.id;
     
@@ -780,7 +843,7 @@ app.post('/api/sales', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/sales/:id', authenticateToken, async (req, res) => {
+app.delete('/api/sales/:id', authenticateToken, requireAnyPermission('vendas'), async (req, res) => {
     const { id } = req.params;
     const client = await pool.connect();
     try {
@@ -808,7 +871,7 @@ app.delete('/api/sales/:id', authenticateToken, async (req, res) => {
     }
 });
 
-app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
+app.delete('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     const { id } = req.params;
     try {
         // Sales that reference this item will have item_id set to NULL due to ON DELETE SET NULL

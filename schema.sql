@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS barbers (
     password VARCHAR(255) NOT NULL,
     shop_name VARCHAR(255) NOT NULL,
     is_admin BOOLEAN DEFAULT FALSE,
+    permissions JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -71,6 +73,8 @@ CREATE TABLE IF NOT EXISTS inventory (
 );
 
 ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+ALTER TABLE barbers ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
 UPDATE barbers SET is_admin = FALSE WHERE email <> 'brasil.hyuri@gmail.com';
 
 -- Seed Initial Data

@@ -19,14 +19,29 @@ const auth = {
     })(),
     token: localStorage.getItem('barberpoint_token') || localStorage.getItem('pontobarber_token'),
 
-    init() {
+    async init() {
         this.setupEventListeners();
         if (this.user && typeof this.user === 'object' && this.user.id) {
             try {
+                const sessionRes = await fetch('/api/session', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+
+                if (sessionRes.ok) {
+                    const sessionData = await sessionRes.json();
+                    this.user = sessionData.user;
+                    localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
+                } else if (sessionRes.status === 401 || sessionRes.status === 403) {
+                    this.logout();
+                    return;
+                }
+
                 sessionManager.init();
                 this.showDashboard();
             } catch (err) {
                 console.error('Erro durante inicialização do auth:', err);
+                sessionManager.init();
+                this.showDashboard();
             }
         }
     },
@@ -133,7 +148,15 @@ const auth = {
         document.querySelectorAll('.admin-only').forEach(el => {
             el.classList.toggle('hidden', this.user.role !== 'administrador');
         });
+        document.querySelectorAll('[data-permission]').forEach(el => {
+            el.classList.toggle('hidden', !this.can(el.dataset.permission));
+        });
         admin.init();
+    },
+
+    can(permission) {
+        if (this.user?.role === 'administrador') return true;
+        return this.user?.permissions?.[permission] !== false;
     },
 
     logout() {
@@ -156,10 +179,16 @@ const auth = {
 
         const res = await fetch(url, { ...options, headers });
         
-        if (res.status === 401 || res.status === 403) {
+        if (res.status === 401) {
             console.warn('Sessão inválida ou expirada. Redirecionando para login.');
             this.logout();
             throw new Error('Unauthorized');
+        }
+
+        if (res.status === 403) {
+            const data = await res.clone().json().catch(() => ({}));
+            this.notify(data.message || 'Você não possui permissão para esta ação.', 'error');
+            throw new Error('Forbidden');
         }
 
         return res;
@@ -181,34 +210,51 @@ const admin = {
 
     async init() {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
-        await this.loadData();
-        await this.loadClients();
-        await this.loadInventory();
-        await this.loadProfessionals();
-        await this.loadServices();
-        await this.loadSales();
+        const initialLoads = [];
+        if (['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) initialLoads.push(this.loadData());
+        if (auth.can('clientes')) initialLoads.push(this.loadClients());
+        if (auth.can('estoque') || auth.can('vendas')) initialLoads.push(this.loadInventory());
+        if (auth.can('barbeiros') || auth.can('agenda') || auth.can('comissoes')) initialLoads.push(this.loadProfessionals());
+        if (auth.can('servicos')) initialLoads.push(this.loadServices());
+        if (auth.can('vendas') || auth.can('comissoes') || auth.can('billing')) initialLoads.push(this.loadSales());
+        await Promise.all(initialLoads);
+
+        if (!auth.can('dashboard')) {
+            const firstAvailable = [
+                ['agenda', 'agenda'], ['billing', 'billing'], ['clientes', 'clientes'],
+                ['vendas', 'vendas'], ['estoque', 'estoque'], ['barbeiros', 'barbeiros'],
+                ['comissoes', 'comissoes'], ['servicos', 'servicos']
+            ].find(([permission]) => auth.can(permission));
+            if (firstAvailable) this.showTab(firstAvailable[1]);
+        }
 
         this.startInsights();
     },
 
     async loadData() {
         try {
+            const needsAppointments = ['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission));
+            const needsStats = auth.can('dashboard') || auth.can('billing');
             const [aptRes, statRes] = await Promise.all([
-                auth.apiRequest(`/api/appointments/${auth.user.id}`),
-                auth.apiRequest(`/api/stats/${auth.user.id}`)
+                needsAppointments ? auth.apiRequest(`/api/appointments/${auth.user.id}`) : Promise.resolve(null),
+                needsStats ? auth.apiRequest(`/api/stats/${auth.user.id}`) : Promise.resolve(null)
             ]);
-            
-            const allApts = await aptRes.json();
-            this.allAppointments = allApts; // Store for agenda filtering
-            this.pending = allApts.filter(a => a.status === 'pending');
-            const stats = await statRes.json();
-            
-            this.renderAppointments();
-            this.updateStats(stats);
-            
-            if (agenda.calendar) {
-                agenda.allAppointments = allApts; // Fix: ensure agenda has the data before renderEvents if needed
-                agenda.renderEvents(allApts);
+
+            if (aptRes) {
+                const allApts = await aptRes.json();
+                this.allAppointments = allApts;
+                this.pending = allApts.filter(a => a.status === 'pending');
+                if (auth.can('dashboard')) this.renderAppointments();
+
+                if (agenda.calendar) {
+                    agenda.allAppointments = allApts;
+                    agenda.renderEvents(allApts);
+                }
+            }
+
+            if (statRes) {
+                const stats = await statRes.json();
+                if (auth.can('dashboard')) this.updateStats(stats);
             }
         } catch (err) { console.error('Erro ao carregar dados'); }
     },
@@ -243,7 +289,7 @@ const admin = {
     startPolling() {
         // Refresh data every 30 seconds
         setInterval(() => {
-            if (auth.user) {
+            if (auth.user && ['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) {
                 this.loadData();
                 console.log('ðŸ”„ Agenda auto-atualizada');
             }
@@ -251,17 +297,22 @@ const admin = {
     },
 
     showTab(tab) {
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        const target = [...document.querySelectorAll('.nav-item')].find(el => el.innerText.toLowerCase().includes(tab.toLowerCase()));
-        if(target) target.classList.add('active');
-        
-        // Tab display logic
-        if (tab === 'usuarios' && auth.user?.role !== 'administrador') {
-            this.showTab('home');
+        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', clientes: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos' };
+        if (tab === 'administracao' && auth.user?.role !== 'administrador') {
+            auth.notify('Acesso exclusivo do administrador.', 'error');
+            return;
+        }
+        if (permissionByTab[tab] && !auth.can(permissionByTab[tab])) {
+            auth.notify('Você não possui permissão para esta área.', 'error');
             return;
         }
 
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'comissoes', 'billing', 'usuarios'];
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const target = [...document.querySelectorAll('.nav-item')].find(el => el.getAttribute('onclick')?.includes(`showTab('${tab}')`));
+        if(target) target.classList.add('active');
+        
+        // Tab display logic
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'comissoes', 'billing', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -296,7 +347,7 @@ const admin = {
         if (tab === 'clientes') {
             this.loadClients();
         }
-        if (tab === 'usuarios') {
+        if (tab === 'administracao') {
             this.loadUsers();
         }
         if (tab === 'vendas') {
@@ -349,11 +400,18 @@ const admin = {
             }
 
             this.users = data.users;
+            const countLabel = document.getElementById('admin-user-count');
+            if (countLabel) countLabel.innerText = `${data.users.length} ${data.users.length === 1 ? 'usuário' : 'usuários'}`;
             tbody.innerHTML = data.users.map(user => `
                 <tr>
-                    <td><strong>${this.escapeHtml(user.shop_name)}</strong></td>
-                    <td>${this.escapeHtml(user.email)}</td>
-                    <td>${user.is_admin ? '<span class="role-pill admin">administrador</span>' : '<span class="role-pill">operador</span>'}</td>
+                    <td>
+                        <div class="admin-user-identity">
+                            <span class="admin-user-avatar">${this.escapeHtml((user.shop_name || 'U').charAt(0).toUpperCase())}</span>
+                            <span><strong>${this.escapeHtml(user.shop_name)}</strong><small>${this.escapeHtml(user.email)}</small></span>
+                        </div>
+                    </td>
+                    <td>${user.is_active === false ? '<span class="account-status inactive">Inativo</span>' : '<span class="account-status active">Ativo</span>'}</td>
+                    <td><div class="permission-summary">${this.renderPermissionSummary(user)}</div></td>
                     <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '--'}</td>
                     <td>
                         <button class="btn btn-ghost btn-sm" onclick="admin.editUser(${user.id})">Editar</button>
@@ -366,6 +424,41 @@ const admin = {
         }
     },
 
+    renderPermissionSummary(user) {
+        if (user.is_admin) return '<span class="permission-chip admin">Acesso total</span>';
+
+        const labels = {
+            dashboard: 'Dashboard', agenda: 'Agenda', billing: 'Faturamento', clientes: 'Clientes',
+            vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços'
+        };
+        const enabled = Object.keys(labels).filter(key => user.permissions?.[key] !== false);
+        if (!enabled.length) return '<span class="permission-chip muted">Sem acesso</span>';
+
+        const visible = enabled.slice(0, 2).map(key => `<span class="permission-chip">${labels[key]}</span>`).join('');
+        const remaining = enabled.length - 2;
+        return visible + (remaining > 0 ? `<span class="permission-chip muted">+${remaining}</span>` : '');
+    },
+
+    setPermissionInputs(permissions = {}, forceAll = false) {
+        document.querySelectorAll('#user-permissions-grid input[type="checkbox"]').forEach(input => {
+            input.checked = forceAll || permissions[input.value] !== false;
+            input.disabled = forceAll;
+        });
+    },
+
+    getSelectedPermissions() {
+        return Object.fromEntries(
+            [...document.querySelectorAll('#user-permissions-grid input[type="checkbox"]')]
+                .map(input => [input.value, input.checked])
+        );
+    },
+
+    toggleAllPermissions() {
+        const inputs = [...document.querySelectorAll('#user-permissions-grid input[type="checkbox"]:not(:disabled)')];
+        const shouldSelectAll = inputs.some(input => !input.checked);
+        inputs.forEach(input => { input.checked = shouldSelectAll; });
+    },
+
     editUser(id) {
         const user = this.users.find(item => item.id === id);
         if (!user) return;
@@ -376,9 +469,15 @@ const admin = {
         document.getElementById('new-user-password').value = '';
         document.getElementById('new-user-password').placeholder = 'Deixe em branco para manter';
         document.getElementById('new-user-role').value = user.is_admin ? 'administrador' : 'operador';
-        document.getElementById('user-form-title').innerText = 'Editar usuario';
-        document.getElementById('save-user-btn').innerText = 'Salvar Alteracoes';
+        document.getElementById('new-user-active').checked = user.is_active !== false;
+        this.setPermissionInputs(user.permissions, user.is_admin);
+        document.getElementById('new-user-email').disabled = user.is_admin;
+        document.getElementById('new-user-role').disabled = user.is_admin;
+        document.getElementById('new-user-active').disabled = user.is_admin;
+        document.getElementById('user-form-title').innerText = 'Editar usuário';
+        document.getElementById('save-user-btn').innerText = 'Salvar alterações';
         document.getElementById('cancel-edit-user-btn').classList.remove('hidden');
+        document.querySelector('.admin-user-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
 
     cancelUserEdit() {
@@ -388,8 +487,13 @@ const admin = {
         document.getElementById('new-user-password').value = '';
         document.getElementById('new-user-password').placeholder = 'Defina uma senha';
         document.getElementById('new-user-role').value = 'operador';
-        document.getElementById('user-form-title').innerText = 'Novo usuario';
-        document.getElementById('save-user-btn').innerText = 'Criar Usuario';
+        document.getElementById('new-user-active').checked = true;
+        document.getElementById('new-user-email').disabled = false;
+        document.getElementById('new-user-role').disabled = false;
+        document.getElementById('new-user-active').disabled = false;
+        this.setPermissionInputs({}, false);
+        document.getElementById('user-form-title').innerText = 'Novo usuário';
+        document.getElementById('save-user-btn').innerText = 'Criar usuário';
         document.getElementById('cancel-edit-user-btn').classList.add('hidden');
     },
 
@@ -401,11 +505,14 @@ const admin = {
         const emailInput = document.getElementById('new-user-email');
         const passwordInput = document.getElementById('new-user-password');
         const roleInput = document.getElementById('new-user-role');
+        const activeInput = document.getElementById('new-user-active');
 
         const shop = shopInput.value.trim();
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
         const role = roleInput.value;
+        const permissions = this.getSelectedPermissions();
+        const isActive = activeInput.checked;
 
         if (!shop || !email || (!id && !password)) {
             return auth.notify('Preencha nome da barbearia, e-mail e senha.', 'error');
@@ -414,7 +521,7 @@ const admin = {
         try {
             const res = await auth.apiRequest(id ? `/api/admin/users/${id}` : '/api/admin/users', {
                 method: id ? 'PATCH' : 'POST',
-                body: JSON.stringify({ shop, email, password, role })
+                body: JSON.stringify({ shop, email, password, role, permissions, isActive })
             });
             const data = await res.json();
 
