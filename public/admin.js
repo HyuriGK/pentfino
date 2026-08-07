@@ -228,7 +228,6 @@ const admin = {
             if (firstAvailable) this.showTab(firstAvailable[1]);
         }
 
-        this.startInsights();
     },
 
     async loadData() {
@@ -812,24 +811,6 @@ const admin = {
         document.getElementById('stat-revenue').innerText = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         document.getElementById('stat-count').innerText = stats.count || 0;
         document.getElementById('stat-scheduled-count').innerText = this.pending.length;
-    },
-
-    startInsights() {
-        const tips = [
-            "Aumento de 20% na procura por cortes e barbas esta semana.",
-            "Insight BarberPoint: ofereça uma bebida aos clientes que chegarem 10 minutos antes.",
-            "Lembrete: Foque em retenção este mês para dobrar o lucro.",
-            "Atenção: Seu faturamento cresceu 15% em relação ao mês anterior."
-        ];
-        
-        let i = 0;
-        setInterval(() => {
-            const el = document.getElementById('retention-tip');
-            if (el) {
-                el.innerText = tips[i % tips.length];
-                i++;
-            }
-        }, 10000);
     },
 
     // CRM / Clients Logic
