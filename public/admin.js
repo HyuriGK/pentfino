@@ -1,4 +1,4 @@
-﻿console.log('[PontoBarber] admin.js v3 loaded');
+﻿console.log('[BarberPoint] admin.js loaded');
 // Global State for diagnostic purposes
 window.__BARBER_DEBUG__ = {
     lastInventoryLoad: null,
@@ -9,7 +9,7 @@ window.__BARBER_DEBUG__ = {
 const auth = {
     user: (() => {
         try {
-            const stored = localStorage.getItem('pontobarber_user');
+            const stored = localStorage.getItem('barberpoint_user') || localStorage.getItem('pontobarber_user');
             if (!stored) return null;
             return JSON.parse(stored);
         } catch (e) {
@@ -17,7 +17,7 @@ const auth = {
             return null;
         }
     })(),
-    token: localStorage.getItem('pontobarber_token'),
+    token: localStorage.getItem('barberpoint_token') || localStorage.getItem('pontobarber_token'),
 
     init() {
         this.setupEventListeners();
@@ -108,8 +108,8 @@ const auth = {
             if (data.success) {
                 this.user = data.user;
                 this.token = data.token;
-                localStorage.setItem('pontobarber_user', JSON.stringify(this.user));
-                localStorage.setItem('pontobarber_token', this.token);
+                localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
+                localStorage.setItem('barberpoint_token', this.token);
                 this.showDashboard();
                 this.notify('Acesso autorizado!', 'success');
             } else {
@@ -137,6 +137,8 @@ const auth = {
     },
 
     logout() {
+        localStorage.removeItem('barberpoint_user');
+        localStorage.removeItem('barberpoint_token');
         localStorage.removeItem('pontobarber_user');
         localStorage.removeItem('pontobarber_token');
         location.reload();
@@ -259,7 +261,7 @@ const admin = {
             return;
         }
 
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'profissionais', 'servicos', 'comissoes', 'billing', 'usuarios'];
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'comissoes', 'billing', 'usuarios'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -302,7 +304,7 @@ const admin = {
 
 
 
-        if (tab === 'profissionais') {
+        if (tab === 'barbeiros') {
             this.loadProfessionals();
         }
 
@@ -401,7 +403,7 @@ const admin = {
         const role = roleInput.value;
 
         if (!shop || !email || (!id && !password)) {
-            return auth.notify('Preencha nome da empresa, e-mail e senha.', 'error');
+            return auth.notify('Preencha nome da barbearia, e-mail e senha.', 'error');
         }
 
         try {
@@ -494,7 +496,7 @@ const admin = {
 
         // Render Table
         if (commData.length === 0) {
-            container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum profissional cadastrado para calcular comissões.</td></tr>';
+            container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum barbeiro cadastrado para calcular comissões.</td></tr>';
             return;
         }
 
@@ -702,8 +704,8 @@ const admin = {
 
     startInsights() {
         const tips = [
-            "Aumento de 20% na procura por serviços esta semana.",
-            "Insight PontoBarber: Ofereça um café aos clientes que chegarem 10min antes.",
+            "Aumento de 20% na procura por cortes e barbas esta semana.",
+            "Insight BarberPoint: ofereça uma bebida aos clientes que chegarem 10 minutos antes.",
             "Lembrete: Foque em retenção este mês para dobrar o lucro.",
             "Atenção: Seu faturamento cresceu 15% em relação ao mês anterior."
         ];
@@ -1329,7 +1331,7 @@ const admin = {
     renderSelectProfessionalTable(pros) {
         const body = document.getElementById('select-professional-table-body');
         if (pros.length === 0) {
-            body.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum profissional encontrado.</td></tr>';
+            body.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum barbeiro encontrado.</td></tr>';
             return;
         }
         body.innerHTML = pros.map(p => `
@@ -1490,7 +1492,7 @@ const admin = {
             const res = await auth.apiRequest(`/api/professionals/${auth.user.id}`);
             this.professionals = await res.json();
             this.renderProfessionals();
-        } catch (err) { console.error('Erro ao carregar profissionais'); }
+        } catch (err) { console.error('Erro ao carregar barbeiros'); }
     },
 
     renderProfessionals() {
@@ -1500,7 +1502,7 @@ const admin = {
         if (this.professionals.length === 0) {
             container.innerHTML = `
                 <div class="glass" style="grid-column: 1/-1; padding: 4rem; text-align: center; border: 2px dashed var(--border);">
-                    <p style="color: var(--text-muted); font-size: 1.1rem;">Nenhum profissional cadastrado ainda.</p>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Nenhum barbeiro cadastrado ainda.</p>
                     <button class="btn btn-primary" onclick="admin.openModal('professional')" style="margin-top: 1.5rem; display: inline-flex;">Começar agora</button>
                 </div>
             `;
@@ -1597,7 +1599,7 @@ const admin = {
 
             this.closeModal('professional');
             await this.loadProfessionals();
-        } catch (err) { alert('Erro ao atualizar profissional'); }
+        } catch (err) { alert('Erro ao atualizar barbeiro'); }
     },
 
     async deleteProfessional(id, name) {
@@ -1605,7 +1607,7 @@ const admin = {
             try {
                 await auth.apiRequest(`/api/professionals/${id}`, { method: 'DELETE' });
                 await this.loadProfessionals();
-            } catch (err) { alert('Erro ao remover profissional'); }
+            } catch (err) { alert('Erro ao remover barbeiro'); }
         }
     },
 
@@ -1634,7 +1636,7 @@ const admin = {
 
             this.closeModal('professional');
             this.loadProfessionals();
-        } catch (err) { alert('Erro ao salvar profissional'); }
+        } catch (err) { alert('Erro ao salvar barbeiro'); }
     },
 
     // Services Management
@@ -1709,7 +1711,7 @@ const admin = {
     },
 
     async deleteService(id, name) {
-        this.openDeleteConfirm(`Deseja excluir o servi&ccedil;o <strong>${name}</strong>? Ele ser&aacute; removido da tabela de servi&ccedil;os e dos v&iacute;nculos com profissionais.`, async () => {
+        this.openDeleteConfirm(`Deseja excluir o servi&ccedil;o <strong>${name}</strong>? Ele ser&aacute; removido da tabela de servi&ccedil;os e dos v&iacute;nculos com barbeiros.`, async () => {
             try {
                 await auth.apiRequest(`/api/services/${id}`, { method: 'DELETE' });
                 await this.loadServices();
@@ -1767,7 +1769,7 @@ const admin = {
         if (type === 'professional') {
             const saveBtn = document.querySelector('#modal-professional .btn-primary');
             if (saveBtn) {
-                saveBtn.innerText = 'Cadastrar Profissional';
+                saveBtn.innerText = 'Cadastrar Barbeiro';
                 saveBtn.onclick = () => this.saveProfessional();
             }
             
@@ -1968,7 +1970,7 @@ const agenda = {
 
 const sessionManager = {
     TIMEOUT_MS: 3600000, // 1 hour
-    STORAGE_KEY: 'pontobarber_last_activity',
+    STORAGE_KEY: 'barberpoint_last_activity',
 
     init() {
         if (!auth.user) return;
@@ -2007,7 +2009,7 @@ const sessionManager = {
 
         const now = Date.now();
         if (now - lastActivity > this.TIMEOUT_MS) {
-            console.warn('Sessão expirada por inatividade (PontoBarber).');
+            console.warn('Sessão expirada por inatividade (BarberPoint).');
             auth.logout();
         }
     },
@@ -2072,7 +2074,7 @@ document.addEventListener('mousedown', (e) => {
 window.onerror = function(msg, url, line, col, error) {
     const errorMsg = `[JS ERROR] ${msg} em ${url}:${line}:${col}`;
     console.error(errorMsg, error);
-    // Only alert for PontoBarber scripts to avoid noise from extensions
+    // Only alert for BarberPoint scripts to avoid noise from extensions
     if (url.includes('admin.js') || url.includes('admin.html')) {
         alert(errorMsg);
     }
@@ -2081,4 +2083,4 @@ window.onerror = function(msg, url, line, col, error) {
 
 // Extra safety: expose admin globally
 window.admin = admin;
-console.log('[PontoBarber] admin.js v4 fully initialized');
+console.log('[BarberPoint] admin.js fully initialized');

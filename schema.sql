@@ -1,5 +1,5 @@
 /* 
-  SQL Schema for Neon PostgreSQL - PontoBarber
+  SQL Schema for Neon PostgreSQL - BarberPoint
   Paste this into your Neon SQL Editor:
 */
 
@@ -78,7 +78,7 @@ INSERT INTO barbers (email, password, shop_name, is_admin)
 VALUES (
     'brasil.hyuri@gmail.com',
     '$2b$10$ZXI327CmozKhoq54XaBFYeROX3ZYM8cfk98Oo4dTDzLgmsR9V46lm',
-    'Painel Admin',
+    'Painel BarberPoint',
     TRUE
 )
 ON CONFLICT (email) DO UPDATE
@@ -87,12 +87,12 @@ SET password = EXCLUDED.password,
     is_admin = TRUE;
 
 INSERT INTO barbers (email, password, shop_name, is_admin)
-VALUES ('demo@pontobarber.com', 'demo123', 'PontoBarber Demo', FALSE)
+VALUES ('demo@barberpoint.com', 'demo123', 'BarberPoint Demo', FALSE)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO services (barber_id, name, price, duration)
-SELECT id, 'Atendimento Essencial', 50, '40 min' FROM barbers WHERE email = 'demo@pontobarber.com'
+SELECT id, 'Corte Clássico', 50, '40 min' FROM barbers WHERE email = 'demo@barberpoint.com'
 UNION ALL
-SELECT id, 'Consultoria Rápida', 30, '20 min' FROM barbers WHERE email = 'demo@pontobarber.com'
+SELECT id, 'Barba Completa', 30, '20 min' FROM barbers WHERE email = 'demo@barberpoint.com'
 UNION ALL
-SELECT id, 'Pacote Completo', 70, '60 min' FROM barbers WHERE email = 'demo@pontobarber.com';
+SELECT id, 'Pacote Estilo', 70, '60 min' FROM barbers WHERE email = 'demo@barberpoint.com';

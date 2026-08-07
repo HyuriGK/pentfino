@@ -1,7 +1,7 @@
 {
-  "name": "pontobarber-saas",
+  "name": "barberpoint",
   "version": "1.0.0",
-  "description": "Premium Barbershop Management SaaS",
+  "description": "BarberPoint - sistema de gestao para barbearias",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'PontoBarber_fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'BarberPoint_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
 
 const getUserRole = user => user.email === ADMIN_EMAIL ? 'administrador' : 'operador';
@@ -96,7 +96,7 @@ pool.on('connect', () => {
     `, [
         ADMIN_EMAIL,
         '$2b$10$ZXI327CmozKhoq54XaBFYeROX3ZYM8cfk98Oo4dTDzLgmsR9V46lm',
-        'Painel Admin'
+        'Painel BarberPoint'
     ]).catch(e => console.error('Migration error (admin user):', e));
 
 });
@@ -187,7 +187,7 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
     const { email, password, shop, role = 'operador' } = req.body;
 
     if (!email || !password || !shop) {
-        return res.status(400).json({ success: false, message: 'Informe nome da empresa, e-mail e senha.' });
+        return res.status(400).json({ success: false, message: 'Informe nome da barbearia, e-mail e senha.' });
     }
 
     if (role === 'administrador' && email !== ADMIN_EMAIL) {
@@ -219,7 +219,7 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
     const { email, password, shop, role = 'operador' } = req.body;
 
     if (!email || !shop) {
-        return res.status(400).json({ success: false, message: 'Informe nome da empresa e e-mail.' });
+        return res.status(400).json({ success: false, message: 'Informe nome da barbearia e e-mail.' });
     }
 
     try {
@@ -323,7 +323,7 @@ app.post('/api/appointments', async (req, res) => {
         `, [barberId, professionalId, apptDate, time]);
 
         if (collision.rows.length > 0) {
-            return res.status(409).json({ success: false, message: 'Este horário já foi reservado para este profissional.' });
+            return res.status(409).json({ success: false, message: 'Este horário já foi reservado para este barbeiro.' });
         }
 
         // 1. Insert the appointment
@@ -824,7 +824,7 @@ app.delete('/api/inventory/:id', authenticateToken, async (req, res) => {
 
 if (require.main === module) {
     app.listen(port, () => {
-        console.log(`🚀 PontoBarber Server running on http://localhost:${port}`);
+        console.log(`🚀 BarberPoint Server running on http://localhost:${port}`);
     });
 }
 

@@ -182,7 +182,7 @@ const app = {
                 document.getElementById('summary-content').innerHTML = `
                     <p style="margin-bottom: 12px;"><strong style="color: var(--primary);">${this.booking.service.name}</strong></p>
                     <p style="font-size: 0.9rem; color: var(--text-muted);">${new Date(date).toLocaleDateString('pt-BR')} às ${this.booking.time}</p>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">Profissional: ${this.booking.professional?.name || 'Não selecionado'}</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">Barbeiro: ${this.booking.professional?.name || 'Não selecionado'}</p>
                     <p style="font-size: 0.9rem; color: var(--text-muted);">Valor: R$ ${this.booking.service.price}</p>
                 `;
                 this.showStep('success');
@@ -198,8 +198,8 @@ const app = {
     simulateRetentionInsight() {
         const tips = [
             "Faltam apenas 3 horários para hoje!",
-            "Promoção: pacote de serviços com 10% de desconto seg-qua.",
-            "Mais de 500 agendamentos realizados este mês.",
+            "Promoção: pacote de serviços com 10% de desconto para clientes recorrentes.",
+            "Mais de 500 agendamentos realizados este mês na barbearia.",
         ];
         
         setInterval(() => {

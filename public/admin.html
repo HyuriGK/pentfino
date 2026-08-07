@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PontoBarber Admin | Dashboard Geral</title>
+    <title>BarberPoint Admin | Dashboard da Barbearia</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,12 +22,12 @@
         <div class="auth-visual-side">
             <div class="auth-visual-content">
                 <div class="logo logo-large">
-                    <img src="image.png" alt="PontoBarber" class="logo-img logo-img-large">
-                    PontoBarber
+                    <img src="image.png" alt="BarberPoint" class="logo-img logo-img-large">
+                    BarberPoint
                 </div>
-                <h1 class="auth-hero-text">A nova era da<br>gestão profissional.</h1>
-                <p class="auth-subtext">Simplifique seu fluxo, encante seus clientes e escale seu negócio com
-                    PontoBarber.</p>
+                <h1 class="auth-hero-text">A nova era da<br>gestão da barbearia.</h1>
+                <p class="auth-subtext">Simplifique seu fluxo, encante seus clientes e faça sua barbearia crescer com
+                    BarberPoint.</p>
             </div>
             <div class="auth-visual-overlay"></div>
         </div>
@@ -37,11 +37,11 @@
                 <div id="login-form" class="auth-card-new">
                     <span class="badge">Acesso Restrito</span>
                     <h2 class="auth-title">Bem-vindo de volta</h2>
-                    <p class="auth-description">Insira suas credenciais para gerenciar sua empresa hoje.</p>
+                    <p class="auth-description">Insira suas credenciais para gerenciar a sua barbearia hoje.</p>
 
                     <div class="input-group-new">
                         <label>E-mail Corporativo</label>
-                        <input autocomplete="off" type="email" id="email" placeholder="nome@suaempresa.com">
+                        <input autocomplete="off" type="email" id="email" placeholder="nome@barbearia.com">
                     </div>
                     <div class="input-group-new">
                         <label>Senha</label>
@@ -59,8 +59,8 @@
         <aside id="sidebar" class="sidebar glass">
             <div class="sidebar-header" style="padding: 0;">
                 <div class="logo" onclick="ui.toggleSidebar()" style="cursor: pointer;">
-                    <img src="image.png" alt="PontoBarber" class="logo-img">
-                    <span class="logo-text">PontoBarber</span>
+                    <img src="image.png" alt="BarberPoint" class="logo-img">
+                    <span class="logo-text">BarberPoint</span>
                 </div>
             </div>
             <nav>
@@ -117,14 +117,14 @@
                     <span class="nav-text">Estoque</span>
                 </div>
 
-                <div class="nav-item" onclick="admin.showTab('profissionais')">
+                <div class="nav-item" onclick="admin.showTab('barbeiros')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <polyline points="16 11 18 13 22 9"></polyline>
                     </svg>
-                    <span class="nav-text">Profissionais</span>
+                    <span class="nav-text">Barbeiros</span>
                 </div>
                 <div class="nav-item" onclick="admin.showTab('comissoes')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -230,7 +230,7 @@
                         <div>
                             <h4
                                 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px;">
-                                Inteligência PontoBarber AI</h4>
+                                Inteligência BarberPoint AI</h4>
                             <p id="retention-tip" style="font-size: 1.1rem; font-weight: 500; color: #fff;">Iniciando
                                 análise de comportamento dos clientes...</p>
                         </div>
@@ -339,7 +339,7 @@
                                 <th>Cliente</th>
                                 <th>Produto</th>
                                 <th>Qtd</th>
-                                <th>Profissional</th>
+                                <th>Barbeiro</th>
                                 <th>Total</th>
                                 <th>Ações</th>
                             </tr>
@@ -367,18 +367,18 @@
                 </div>
             </div>
 
-            <!-- TAB PROFISSIONAIS -->
-            <div id="tab-profissionais" class="hidden">
+            <!-- TAB BARBEIROS -->
+            <div id="tab-barbeiros" class="hidden">
                 <div class="list-header">
                     <div>
                         <h2
                             style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
-                            Equipe Profissional</h2>
+                            Equipe de Barbeiros</h2>
                         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Gerencie sua equipe e
                             os serviços que cada um realiza.</p>
                     </div>
                     <button class="btn btn-primary" onclick="admin.openModal('professional')">+ Novo
-                        Profissional</button>
+                        Barbeiro</button>
                 </div>
 
                 <div id="professionals-grid" class="professional-grid" style="margin-top: 2.5rem;">
@@ -394,7 +394,7 @@
                             style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
                             Dashboard de Comissões</h2>
                         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Acompanhe o
-                            faturamento e comissões devidas a cada profissional.</p>
+                            faturamento e comissões devidas a cada barbeiro.</p>
                     </div>
                 </div>
 
@@ -408,7 +408,7 @@
                         <div class="stat-value" id="comm-total-due" style="color: var(--danger);">R$ 0,00</div>
                     </div>
                     <div class="stat-card glass">
-                        <div class="stat-label">Repasse Profissionais (Total)</div>
+                        <div class="stat-label">Repasse dos Barbeiros (Total)</div>
                         <div class="stat-value" id="comm-total-prof" style="color: var(--success);">R$ 0,00</div>
                     </div>
                 </div>
@@ -434,11 +434,11 @@
                     <table class="data-table services-table">
                         <thead>
                             <tr>
-                                <th>Profissional</th>
+                                <th>Barbeiro</th>
                                 <th>Taxa (%)</th>
                                 <th>Total Gerado</th>
                                 <th>Loja (Due)</th>
-                                <th>A Receber (Profissional)</th>
+                                <th>A Receber (Barbeiro)</th>
                             </tr>
                         </thead>
                         <tbody id="commissions-table-body">
@@ -477,7 +477,7 @@
                     <div>
                         <h2 style="font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
                             Usuarios do Sistema</h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Crie novas contas para empresas acessarem o painel PontoBarber.</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Crie novas contas para barbearias acessarem o painel BarberPoint.</p>
                     </div>
                 </div>
 
@@ -486,7 +486,7 @@
                         <h3 id="user-form-title">Novo usuario</h3>
                         <input type="hidden" id="edit-user-id" value="">
                         <div class="input-group-new">
-                            <label>Nome da empresa</label>
+                            <label>Nome da Barbearia</label>
                             <input autocomplete="off" type="text" id="new-user-shop" placeholder="Ex: Barbearia Premium">
                         </div>
                         <div class="input-group-new">
@@ -512,7 +512,7 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Empresa</th>
+                                    <th>Barbearia</th>
                                     <th>E-mail</th>
                                     <th>Perfil</th>
                                     <th>Criado em</th>
@@ -557,10 +557,10 @@
     <div id="modal-professional" class="modal-overlay hidden modal-side-panel">
         <div class="modal-content professional-modal-content">
             <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="modal-title">Novo Profissional</h2>
+                <h2 class="modal-title">Novo Barbeiro</h2>
             </header>
             <div class="input-group-new">
-                <label>Nome do Profissional</label>
+                <label>Nome do Barbeiro</label>
                 <input autocomplete="off" type="text" id="modal-prof-name" placeholder="Ex: Rodrigo Barbeiro">
             </div>
             <div class="input-group-new">
@@ -586,7 +586,7 @@
                     <!-- Checkboxes injected by JS -->
                 </div>
             </div>
-            <button class="btn btn-primary btn-full" onclick="admin.saveProfessional()">Cadastrar Profissional</button>
+            <button class="btn btn-primary btn-full" onclick="admin.saveProfessional()">Cadastrar Barbeiro</button>
         </div>
     </div>
 
@@ -788,14 +788,14 @@
             <header class="modal-header">
                 <div>
                     <h2 class="modal-title">Selecionar Barbeiro/Atendente</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Atribua a venda a um profissional.</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Atribua a venda a um barbeiro.</p>
                 </div>
             </header>
             
             <div class="modal-body">
                 <div class="input-group-new" style="margin-bottom: 20px;">
                     <div style="position: relative;">
-                        <input autocomplete="off" type="text" id="select-professional-search" placeholder="Buscar profissional..." onkeyup="admin.filterSelectProfessional(this.value)" style="padding-left: 45px;">
+                        <input autocomplete="off" type="text" id="select-professional-search" placeholder="Buscar barbeiro..." onkeyup="admin.filterSelectProfessional(this.value)" style="padding-left: 45px;">
                         <svg style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </div>
                 </div>
