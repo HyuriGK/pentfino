@@ -5105,12 +5105,13 @@ textarea:focus-visible,
 }
 
 .admin-light .sidebar .sidebar-header {
-    order: 3;
+    order: 0;
     width: 100%;
     min-height: 58px;
     margin: 0;
-    padding: 14px 0 0 !important;
-    border-top: 1px solid var(--border);
+    padding: 0 0 18px !important;
+    border-top: 0;
+    border-bottom: 1px solid var(--border);
 }
 
 .admin-light .sidebar nav .nav-item[onclick*="confirmLogout"] {
