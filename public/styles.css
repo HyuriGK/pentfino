@@ -5230,3 +5230,223 @@ textarea:focus-visible,
     }
 }
 
+/* Agenda workspace */
+.admin-light .agenda-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 18px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-light .agenda-heading h2 {
+    margin-top: 6px;
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+}
+
+.admin-light .agenda-heading p {
+    margin-top: 6px;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.admin-light .agenda-kicker {
+    color: var(--primary);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.admin-light .agenda-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.admin-light .agenda-controls .btn,
+.admin-light #agenda-professional-filter {
+    min-height: 42px;
+}
+
+.admin-light #agenda-professional-filter {
+    min-width: 220px;
+    padding: 0 38px 0 14px !important;
+    background-color: var(--bg-card) !important;
+    background-image: none !important;
+    text-align: left;
+    text-align-last: left;
+}
+
+.admin-light .agenda-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.admin-light .agenda-summary-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    padding: 14px 16px;
+    background: rgba(16, 25, 32, 0.78);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.admin-light .agenda-summary-card span,
+.admin-light .agenda-summary-card small {
+    color: var(--text-muted);
+}
+
+.admin-light .agenda-summary-card span {
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-light .agenda-summary-card small {
+    grid-column: 1 / -1;
+    margin-top: 3px;
+    font-size: 0.72rem;
+}
+
+.admin-light .agenda-summary-card strong {
+    color: var(--primary);
+    font-size: 1.55rem;
+    line-height: 1;
+}
+
+.admin-light .agenda-calendar {
+    padding: clamp(14px, 2vw, 26px) !important;
+    background: rgba(16, 25, 32, 0.88) !important;
+    border-radius: 10px;
+}
+
+.admin-light .agenda-calendar .fc-toolbar {
+    gap: 12px;
+    margin-bottom: 20px !important;
+}
+
+.admin-light .agenda-calendar .fc-toolbar-title {
+    color: var(--text-main);
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    text-transform: none;
+}
+
+.admin-light .agenda-calendar .fc-button-primary {
+    min-height: 36px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+}
+
+.admin-light .agenda-calendar .fc-timegrid-slot {
+    height: 34px;
+}
+
+.admin-light .agenda-calendar .fc-timegrid-axis-cushion,
+.admin-light .agenda-calendar .fc-col-header-cell-cushion,
+.admin-light .agenda-calendar .fc-daygrid-day-number {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.admin-light .agenda-calendar .fc-event {
+    min-height: 28px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    border-left: 3px solid var(--primary);
+    box-shadow: none;
+}
+
+.admin-light .agenda-calendar .fc-event-title,
+.admin-light .agenda-calendar .fc-event-time {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.admin-light .agenda-calendar .fc-event.event-pending {
+    background: rgba(255, 214, 0, 0.18) !important;
+    border-color: var(--primary) !important;
+    color: var(--text-main) !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-completed {
+    background: rgba(33, 199, 120, 0.14) !important;
+    border-color: var(--success) !important;
+    color: #b9e8d0 !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-canceled {
+    background: rgba(237, 58, 64, 0.14) !important;
+    border-color: var(--danger) !important;
+    color: #ffb5b8 !important;
+    text-decoration: line-through;
+}
+
+.admin-light .appointment-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin: -8px 0 16px;
+}
+
+.admin-light .appointment-modal-actions .btn {
+    flex: 1;
+    white-space: nowrap;
+}
+
+.admin-light .appointment-modal-actions .btn-danger {
+    background: var(--danger);
+    border: 0;
+    color: #fff;
+}
+
+@media (max-width: 700px) {
+    .admin-light .agenda-heading {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .admin-light .agenda-controls {
+        width: 100%;
+    }
+
+    .admin-light .agenda-controls .btn,
+    .admin-light #agenda-professional-filter {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .admin-light .agenda-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-light .agenda-calendar .fc-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-light .agenda-calendar .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+    }
+
+    .admin-light .appointment-modal-actions {
+        flex-direction: column;
+    }
+
+    .admin-light .appointment-modal-actions .btn {
+        width: 100%;
+    }
+}
+

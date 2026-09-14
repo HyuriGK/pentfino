@@ -1627,6 +1627,7 @@ const admin = {
             const res = await auth.apiRequest(`/api/professionals/${auth.user.id}`);
             this.professionals = await res.json();
             this.renderProfessionals();
+            if (agenda.calendar) agenda.populateProfessionalFilter();
         } catch (err) { console.error('Erro ao carregar barbeiros'); }
     },
 
@@ -1951,6 +1952,7 @@ const admin = {
 const agenda = {
     calendar: null,
     allAppointments: [],
+    sourceAppointments: [],
 
     init() {
         const calendarEl = document.getElementById('calendar');
@@ -1963,19 +1965,22 @@ const agenda = {
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
+            buttonText: {
+                today: 'Hoje',
+                month: 'Mês',
+                week: 'Semana',
+                day: 'Dia'
+            },
             eventDisplay: 'block',
-            dayMaxEvents: 0, // This hides individual events in dayGridMonth view
+            dayMaxEvents: 3,
             navLinks: true,
             navLinkDayClick: (date) => {
                 this.calendar.changeView('timeGridWeek', date);
             },
             dayCellDidMount: (info) => {
-                const dateStr = info.date.toLocaleDateString('en-CA'); // YYYY-MM-DD local
+                const dateStr = [info.date.getFullYear(), String(info.date.getMonth() + 1).padStart(2, '0'), String(info.date.getDate()).padStart(2, '0')].join('-');
                 const count = this.allAppointments.filter(a => {
-                    let aDate = a.appointment_date;
-                    if (aDate) {
-                        aDate = new Date(aDate).toLocaleDateString('en-CA');
-                    }
+                    const aDate = String(a.appointment_date || '').slice(0, 10);
                     return aDate === dateStr && a.status !== 'canceled';
                 }).length;
 
@@ -1999,6 +2004,11 @@ const agenda = {
             slotEventOverlap: false,
             eventMaxStack: 3,
             locale: 'pt-br',
+            firstDay: 1,
+            nowIndicator: true,
+            expandRows: true,
+            scrollTime: '08:00:00',
+            slotDuration: '00:30:00',
             slotMinTime: '06:00:00',
             slotMaxTime: '24:00:00',
             allDaySlot: false,
@@ -2012,21 +2022,18 @@ const agenda = {
             height: 'auto',
             events: [],
             eventClick: (info) => {
-                const id = info.event.id;
-                const status = info.event.extendedProps.status;
-                const name = info.event.title;
-                
-                if (status === 'pending') {
-                    admin.completeService(id, name);
-                } else {
-                    this.showAppointmentDetails(info.event);
-                }
+                this.showAppointmentDetails(info.event);
             }
         });
 
         this.calendar.render();
         this.populateProfessionalFilter();
         admin.loadData();
+    },
+
+    goToday() {
+        if (!this.calendar) return;
+        this.calendar.today();
     },
 
     populateProfessionalFilter() {
@@ -2039,12 +2046,12 @@ const agenda = {
     },
 
     filterByProfessional(profId) {
-        const apts = this.allAppointments || admin.allAppointments || [];
+        const apts = this.sourceAppointments || admin.allAppointments || [];
         if (profId === 'all') {
             this.renderEvents(apts);
         } else {
             const filtered = apts.filter(a => String(a.professional_id) === String(profId));
-            this.renderEvents(filtered);
+            this.renderEvents(filtered, true);
         }
     },
 
@@ -2059,21 +2066,36 @@ const agenda = {
         document.getElementById('view-app-time').innerText = time;
         
         const statusEl = document.getElementById('view-app-status');
-        statusEl.innerText = status.toUpperCase();
-        statusEl.className = status === 'completed' ? 'status-badge status-ok' : 'status-badge status-danger';
+        const statusLabels = { pending: 'Pendente', completed: 'Concluído', canceled: 'Cancelado' };
+        statusEl.innerText = statusLabels[status] || status;
+        statusEl.className = `status-badge ${status === 'completed' ? 'status-ok' : (status === 'pending' ? 'status-warn' : 'status-danger')}`;
+
+        const actions = document.getElementById('appointment-modal-actions');
+        actions?.classList.toggle('hidden', status !== 'pending');
+        if (status === 'pending') {
+            document.getElementById('btn-view-complete').onclick = () => admin.completeService(event.id, name);
+            document.getElementById('btn-view-cancel').onclick = () => admin.cancelService(event.id, name);
+        }
 
         admin.openModal('view-appointment');
     },
 
-    renderEvents(appointments) {
+    renderEvents(appointments, preserveSource = false) {
         if (!this.calendar) return;
+        if (!preserveSource) this.sourceAppointments = appointments;
         this.allAppointments = appointments;
 
+        const today = new Date().toISOString().slice(0, 10);
+        const countToday = appointments.filter(a => String(a.appointment_date).slice(0, 10) === today && a.status !== 'canceled').length;
+        const countPending = appointments.filter(a => a.status === 'pending').length;
+        const countCompleted = appointments.filter(a => a.status === 'completed').length;
+        document.getElementById('agenda-today-count')?.replaceChildren(String(countToday));
+        document.getElementById('agenda-pending-count')?.replaceChildren(String(countPending));
+        document.getElementById('agenda-completed-count')?.replaceChildren(String(countCompleted));
+
         const events = appointments.map(a => {
-            let dateStr = a.appointment_date;
-            if (dateStr) {
-                dateStr = new Date(dateStr).toISOString().split('T')[0];
-            } else {
+            let dateStr = String(a.appointment_date || '').slice(0, 10);
+            if (!dateStr) {
                 const now = new Date();
                 dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             }
