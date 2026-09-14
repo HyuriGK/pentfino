@@ -4933,6 +4933,32 @@ button, input, select, textarea { font: inherit; }
     box-shadow: var(--focus-ring);
 }
 
+/* Interface without the browser's focus highlight. */
+:where(button, input, select, textarea, [role="button"]):focus,
+:where(button, input, select, textarea, [role="button"]):focus-visible {
+    outline: none !important;
+    outline-offset: 0;
+    box-shadow: none !important;
+}
+
+:where(.btn, button) {
+    text-align: center;
+}
+
+:where(select, .glass-select, .input-group-new select) {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background-image: none !important;
+    text-align: center;
+    text-align-last: center;
+    padding-right: 16px !important;
+}
+
+:where(.input-group-new input, .input-group-new select, .glass-select, textarea):focus {
+    border-color: var(--border) !important;
+    background-color: inherit;
+}
+
 .btn, .btn-large { min-height: var(--control-height); }
 
 .btn:disabled, button:disabled {
