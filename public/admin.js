@@ -317,6 +317,9 @@ const admin = {
             if (el) el.classList.toggle('hidden', t !== tab);
         });
 
+        // The welcome/date header belongs exclusively to the dashboard home.
+        document.querySelector('.dashboard-header')?.classList.toggle('hidden', tab !== 'home');
+
         if (window.innerWidth <= 1024) {
             document.getElementById('sidebar')?.classList.remove('open');
             document.querySelector('.sidebar-scrim')?.classList.remove('open');
