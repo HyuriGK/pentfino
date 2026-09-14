@@ -1079,9 +1079,10 @@ const admin = {
 
         if (this.inventory.length === 0) {
             container.innerHTML = `
-                <div class="glass" style="grid-column: 1/-1; padding: 4rem; text-align: center; border: 2px dashed var(--border);">
-                    <p style="color: var(--text-muted); font-size: 1.1rem;">Nenhum produto cadastrado no estoque.</p>
-                    <button class="btn btn-primary" onclick="admin.openModal('inventory')" style="margin-top: 1.5rem; display: inline-flex;">Começar agora</button>
+                <div class="inventory-empty-state">
+                    <strong>Nenhum produto cadastrado no estoque</strong>
+                    <span>Quando um produto for cadastrado, ele aparecerá aqui com quantidade, preço e status.</span>
+                    <button class="btn btn-primary" onclick="admin.openModal('inventory')">Começar agora</button>
                 </div>
             `;
             return;
