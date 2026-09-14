@@ -5393,6 +5393,47 @@ textarea:focus-visible,
     text-decoration: line-through;
 }
 
+.admin-light .billing-chart-empty {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 32px;
+    text-align: center;
+    border: 1px dashed var(--border-bright);
+    border-radius: 10px;
+    background:
+        radial-gradient(circle at center, rgba(255, 214, 0, 0.06), transparent 58%),
+        rgba(8, 15, 20, 0.45);
+}
+
+.admin-light .billing-chart-empty-icon {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    margin-bottom: 6px;
+    color: #111;
+    background: var(--primary);
+    border-radius: 14px;
+    font-size: 1.2rem;
+    font-weight: 900;
+}
+
+.admin-light .billing-chart-empty strong {
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.admin-light .billing-chart-empty span {
+    max-width: 420px;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
 .admin-light .appointment-modal-actions {
     display: flex;
     gap: 10px;

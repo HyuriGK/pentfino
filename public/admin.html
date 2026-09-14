@@ -268,6 +268,11 @@
                         <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;">Evolução Diária de Receita</h3>
                         <div style="font-size: 0.8rem; color: var(--text-muted);">Mês Atual: <span id="billing-chart-month">Novembro</span></div>
                     </div>
+                    <div id="billing-chart-empty" class="billing-chart-empty hidden">
+                        <div class="billing-chart-empty-icon">₿</div>
+                        <strong>Nenhum faturamento cadastrado</strong>
+                        <span>Quando houver atendimentos concluídos ou vendas registradas, a evolução diária aparecerá aqui.</span>
+                    </div>
                     <canvas id="billingDailyChart"></canvas>
                 </div>
             </div>

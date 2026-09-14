@@ -1318,9 +1318,20 @@ const admin = {
     renderBillingChart(data) {
         const canvas = document.getElementById('billingDailyChart');
         if (!canvas) return;
-        const ctx = canvas.getContext('2d');
         if (this.billingChart) {
             this.billingChart.destroy();
+            this.billingChart = null;
+        }
+
+        const hasRevenue = data.some(value => Number(value) > 0);
+        const emptyState = document.getElementById('billing-chart-empty');
+        emptyState?.classList.toggle('hidden', hasRevenue);
+        canvas.classList.toggle('hidden', !hasRevenue);
+        if (!hasRevenue) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            return;
         }
 
         const labels = data.map((_, i) => i + 1);
