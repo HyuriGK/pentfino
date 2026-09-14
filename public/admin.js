@@ -873,13 +873,20 @@ const admin = {
         const container = document.getElementById('clients-table-body');
         if (!container) return;
 
-        const tableShell = document.getElementById('clients-table-shell');
-        const emptyState = document.getElementById('clients-empty-state');
         const hasClients = (this.allClients || []).length > 0;
-        tableShell?.classList.toggle('hidden', !hasClients);
-        emptyState?.classList.toggle('hidden', hasClients);
         if (!hasClients) {
-            container.innerHTML = '';
+            container.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="5">
+                        <div class="empty-state entity-empty-state">
+                            <div>
+                                <strong>Nenhum cliente cadastrado</strong>
+                                <span>Quando um cliente for cadastrado, ele aparecerá aqui com histórico, atendimentos e contato.</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
             return;
         }
 

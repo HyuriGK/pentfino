@@ -5429,32 +5429,21 @@ textarea:focus-visible,
 }
 
 .admin-light .billing-chart-empty {
-    min-height: 300px;
+    min-height: 210px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     gap: 8px;
-    padding: 32px;
-    text-align: center;
-    border: 1px dashed var(--border-bright);
-    border-radius: 10px;
-    background:
-        radial-gradient(circle at center, rgba(255, 214, 0, 0.06), transparent 58%),
-        rgba(8, 15, 20, 0.45);
+    padding: 28px 36px;
+    text-align: left;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
 .admin-light .billing-chart-empty-icon {
-    display: grid;
-    width: 52px;
-    height: 52px;
-    place-items: center;
-    margin-bottom: 6px;
-    color: #111;
-    background: var(--primary);
-    border-radius: 14px;
-    font-size: 1.2rem;
-    font-weight: 900;
+    display: none;
 }
 
 .admin-light .billing-chart-empty strong {
@@ -5470,33 +5459,20 @@ textarea:focus-visible,
 }
 
 .admin-light .entity-empty-state {
-    min-height: 300px;
+    min-height: 132px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 9px;
-    margin-top: 18px;
-    padding: 36px 24px;
-    text-align: center;
-    border: 1px dashed var(--border-bright);
-    border-radius: 10px;
-    background:
-        radial-gradient(circle at center, rgba(255, 214, 0, 0.06), transparent 58%),
-        rgba(8, 15, 20, 0.45);
+    margin: 0;
+    padding: 28px 36px;
+    text-align: left;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
 .admin-light .entity-empty-icon {
-    display: grid;
-    width: 54px;
-    height: 54px;
-    place-items: center;
-    margin-bottom: 6px;
-    color: #111;
-    background: var(--primary);
-    border-radius: 14px;
-    font-size: 1.35rem;
-    font-weight: 900;
+    display: none;
 }
 
 .admin-light .entity-empty-state strong {
@@ -5505,14 +5481,12 @@ textarea:focus-visible,
 }
 
 .admin-light .entity-empty-state span {
-    max-width: 460px;
+    display: block;
+    max-width: 620px;
+    margin-top: 5px;
     color: var(--text-muted);
     font-size: 0.86rem;
     line-height: 1.5;
-}
-
-.admin-light .entity-empty-state .btn {
-    margin-top: 10px;
 }
 
 .admin-light .table-empty-result {
