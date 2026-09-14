@@ -4959,6 +4959,24 @@ button, input, select, textarea { font: inherit; }
     background-color: inherit;
 }
 
+/* Final focus reset: overrides theme-specific focus rules as well. */
+button:focus,
+button:focus-visible,
+select:focus,
+select:focus-visible,
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+.admin-light .glass-select:focus,
+.admin-light .glass-select:focus-visible,
+.admin-light .input-group-new input:focus,
+.admin-light .input-group-new select:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: var(--border) !important;
+}
+
 .btn, .btn-large { min-height: var(--control-height); }
 
 .btn:disabled, button:disabled {
