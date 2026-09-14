@@ -344,7 +344,7 @@ app.get('/api/appointments/:barberId', authenticateToken, requireAnyPermission('
         const { barberId } = req.params;
         // Fetch all appointments for the calendar (pending, completed, canceled)
         const result = await pool.query(`
-            SELECT a.*, s.name as service_name, s.price as service_price, p.name as professional_name
+            SELECT a.*, s.name as service_name, s.price as service_price, s.duration as service_duration, p.name as professional_name
             FROM appointments a
             JOIN services s ON a.service_id = s.id
             LEFT JOIN professionals p ON a.professional_id = p.id

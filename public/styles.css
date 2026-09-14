@@ -5605,6 +5605,18 @@ button.btn > svg {
     margin-top: 12px;
 }
 
+.admin-light .service-duration-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.admin-light .service-duration-fields input,
+.admin-light .service-duration-fields select {
+    width: 100%;
+    min-height: var(--control-height);
+}
+
 .admin-light .appointment-modal-actions {
     display: flex;
     gap: 10px;

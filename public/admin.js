@@ -1878,7 +1878,9 @@ const admin = {
         this.editingServiceId = id;
         document.getElementById('modal-svc-name').value = svc.name;
         document.getElementById('modal-svc-price').value = svc.price;
-        document.getElementById('modal-svc-duration').value = svc.duration;
+        const durationMatch = String(svc.duration || '').match(/(\d+(?:[.,]\d+)?)\s*(hora|horas|h|minuto|minutos|min|m)?/i);
+        document.getElementById('modal-svc-duration-value').value = durationMatch ? durationMatch[1].replace(',', '.') : '';
+        document.getElementById('modal-svc-duration-unit').value = durationMatch?.[2]?.toLowerCase().startsWith('h') ? 'horas' : 'minutos';
 
         const saveBtn = document.querySelector('#modal-service .btn-primary');
         saveBtn.innerText = 'Salvar Alterações';
@@ -1899,9 +1901,12 @@ const admin = {
     async saveService() {
         const name = document.getElementById('modal-svc-name').value;
         const price = document.getElementById('modal-svc-price').value;
-        const duration = document.getElementById('modal-svc-duration').value;
+        const durationValue = document.getElementById('modal-svc-duration-value').value;
+        const durationUnit = document.getElementById('modal-svc-duration-unit').value;
+        const durationNumber = Number(durationValue);
 
-        if(!name || !price) return alert('Nome e Preço são obrigatórios');
+        if(!name || !price || !durationNumber || durationNumber <= 0) return alert('Nome, preço e duração são obrigatórios');
+        const duration = `${durationNumber} ${durationUnit}`;
 
         try {
             const method = this.editingServiceId ? 'PATCH' : 'POST';
@@ -1977,7 +1982,8 @@ const admin = {
             if (sName) {
                 sName.value = '';
                 document.getElementById('modal-svc-price').value = '';
-                document.getElementById('modal-svc-duration').value = '';
+                document.getElementById('modal-svc-duration-value').value = '';
+                document.getElementById('modal-svc-duration-unit').value = 'minutos';
             }
         }
 
@@ -2117,6 +2123,20 @@ const agenda = {
         admin.openModal('view-appointment');
     },
 
+    durationToMinutes(value) {
+        const text = String(value ?? '').trim().toLowerCase().replace(',', '.');
+        const match = text.match(/(\d+(?:\.\d+)?)\s*(hora|horas|h|minuto|minutos|min|m)?/i);
+        if (!match) return 30;
+        const amount = Number(match[1]);
+        if (!Number.isFinite(amount) || amount <= 0) return 30;
+        return /^h/i.test(match[2] || '') ? Math.round(amount * 60) : Math.round(amount);
+    },
+
+    toCalendarDateTime(date, time) {
+        const pad = number => String(number).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+    },
+
     renderEvents(appointments, preserveSource = false) {
         if (!this.calendar) return;
         if (!preserveSource) this.sourceAppointments = appointments;
@@ -2137,17 +2157,24 @@ const agenda = {
                 dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             }
 
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const [hour, minute] = String(a.appointment_time || '00:00').slice(0, 5).split(':').map(Number);
+            const startDate = new Date(year, month - 1, day, hour || 0, minute || 0);
+            const endDate = new Date(startDate.getTime() + this.durationToMinutes(a.service_duration) * 60000);
+
             return {
                 id: a.id,
                 title: a.client_name,
-                start: `${dateStr}T${a.appointment_time}:00`,
+                start: this.toCalendarDateTime(startDate),
+                end: this.toCalendarDateTime(endDate),
                 backgroundColor: a.status === 'completed' ? '#1a1a1a' : (a.status === 'canceled' ? '#330000' : 'var(--primary)'),
                 borderColor: a.status === 'completed' ? '#333' : 'var(--primary)',
                 textColor: a.status === 'completed' ? '#555' : '#000',
                 classNames: [`event-${a.status}`],
                 extendedProps: {
                     service: a.service_name,
-                    status: a.status
+                    status: a.status,
+                    duration: a.service_duration
                 }
             };
         });

@@ -666,7 +666,13 @@
             </div>
             <div class="input-group-new">
                 <label>Duração Estimada</label>
-                <input autocomplete="off" type="text" id="modal-svc-duration" placeholder="Ex: 30 min">
+                <div class="service-duration-fields">
+                    <input autocomplete="off" type="number" id="modal-svc-duration-value" min="1" step="1" placeholder="30">
+                    <select id="modal-svc-duration-unit" aria-label="Unidade da duração">
+                        <option value="minutos">Minutos</option>
+                        <option value="horas">Horas</option>
+                    </select>
+                </div>
             </div>
             <button class="btn btn-primary btn-full" onclick="admin.saveService()">Adicionar Serviço</button>
         </div>
