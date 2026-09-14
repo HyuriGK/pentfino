@@ -1006,25 +1006,29 @@
 
     <!-- MODAL VIEW APPOINTMENT (AGENDA) -->
     <div id="modal-view-appointment" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content">
             <header class="modal-header"
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <h2 class="modal-title">Detalhes do Agendamento</h2>
                 <button class="btn-icon-close" onclick="admin.closeModal('view-appointment')">×</button>
             </header>
-            <div class="glass" style="padding: 24px; border-radius: 16px; margin-bottom: 24px;">
+            <div class="glass appointment-details-card">
                 <div style="margin-bottom: 16px;">
                     <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Cliente</label>
                     <div id="view-app-name" style="font-size: 1.2rem; font-weight: 700;">--</div>
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Serviço</label>
-                    <div id="view-app-service" style="font-size: 1rem; color: var(--primary);">--</div>
+                    <div id="view-app-service" class="appointment-service-value">--</div>
                 </div>
-                <div style="display: flex; gap: 24px;">
+                <div class="appointment-time-status-grid">
                     <div>
-                        <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Horário</label>
-                        <div id="view-app-time" style="font-weight: 600;">--</div>
+                        <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Início</label>
+                        <div id="view-app-time" class="appointment-time-value">--</div>
+                    </div>
+                    <div>
+                        <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Fim estimado</label>
+                        <div id="view-app-end-time" class="appointment-time-value">--</div>
                     </div>
                     <div>
                         <label class="sidebar-date-label" style="display: block; margin-bottom: 4px;">Status</label>

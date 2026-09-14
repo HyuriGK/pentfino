@@ -5527,6 +5527,7 @@ button.btn > svg {
     width: min(100%, 720px) !important;
     max-width: 720px !important;
     overflow: visible;
+    padding: 24px 28px 26px;
 }
 
 .admin-light #modal-view-appointment .modal-title {
@@ -5538,13 +5539,32 @@ button.btn > svg {
 }
 
 .admin-light #modal-view-appointment .modal-content > .glass {
-    margin-bottom: 20px !important;
+    margin-bottom: 14px !important;
 }
 
-.admin-light #modal-view-appointment .modal-content > .glass > div:last-child {
+.admin-light #modal-view-appointment .appointment-details-card {
+    padding: 22px 24px !important;
+    border-radius: 16px;
+}
+
+.admin-light #modal-view-appointment .appointment-service-value {
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.admin-light #modal-view-appointment .appointment-time-status-grid {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.admin-light #modal-view-appointment .appointment-time-status-grid .sidebar-date-label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.admin-light #modal-view-appointment .appointment-time-value {
+    font-weight: 700;
 }
 
 .admin-light #modal-view-appointment .appointment-modal-actions {
@@ -5561,8 +5581,8 @@ button.btn > svg {
         white-space: normal;
     }
 
-    .admin-light #modal-view-appointment .modal-content > .glass > div:last-child {
-        grid-template-columns: 1fr;
+    .admin-light #modal-view-appointment .appointment-time-status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 14px;
     }
 
@@ -5631,7 +5651,7 @@ button.btn > svg {
 .admin-light .appointment-modal-actions {
     display: flex;
     gap: 10px;
-    margin: -8px 0 16px;
+    margin: -8px 0 0;
 }
 
 .admin-light .appointment-modal-actions .btn {

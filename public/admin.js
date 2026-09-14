@@ -2101,12 +2101,17 @@ const agenda = {
     showAppointmentDetails(event) {
         const name = event.title;
         const service = event.extendedProps.service;
+        const duration = event.extendedProps.duration;
         const status = event.extendedProps.status;
-        const time = event.start.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+        const time = event.start.toLocaleTimeString('pt-BR', timeOptions);
+        const end = event.end || new Date(event.start.getTime() + this.durationToMinutes(duration) * 60000);
+        const endTime = end.toLocaleTimeString('pt-BR', timeOptions);
 
         document.getElementById('view-app-name').innerText = name;
-        document.getElementById('view-app-service').innerText = service;
+        document.getElementById('view-app-service').innerText = `${service} · ${this.formatDuration(duration)}`;
         document.getElementById('view-app-time').innerText = time;
+        document.getElementById('view-app-end-time').innerText = endTime;
         
         const statusEl = document.getElementById('view-app-status');
         const statusLabels = { pending: 'Pendente', completed: 'Concluído', canceled: 'Cancelado' };
@@ -2130,6 +2135,16 @@ const agenda = {
         const amount = Number(match[1]);
         if (!Number.isFinite(amount) || amount <= 0) return 30;
         return /^h/i.test(match[2] || '') ? Math.round(amount * 60) : Math.round(amount);
+    },
+
+    formatDuration(value) {
+        const minutes = this.durationToMinutes(value);
+        if (minutes >= 60) {
+            const hours = Math.floor(minutes / 60);
+            const remaining = minutes % 60;
+            return remaining ? `${hours}h ${remaining}min` : `${hours}h`;
+        }
+        return `${minutes} min`;
     },
 
     toCalendarDateTime(date, time) {
