@@ -4901,3 +4901,174 @@ aside nav {
     }
 }
 
+/* ==========================================================================
+   Design-system hardening
+   Shared spacing, focus, modal, table and responsive rules for every screen.
+   ========================================================================== */
+:root {
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --content-gutter: clamp(16px, 3vw, 40px);
+    --control-height: 44px;
+    --focus-ring: 0 0 0 3px rgba(255, 214, 0, 0.28);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    user-select: auto;
+    -webkit-user-select: auto;
+}
+
+button, input, select, textarea { font: inherit; }
+
+:where(button, a, input, select, textarea, [role="button"]):focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    box-shadow: var(--focus-ring);
+}
+
+.btn, .btn-large { min-height: var(--control-height); }
+
+.btn:disabled, button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+}
+
+.admin-light .dashboard-content {
+    width: min(100%, 1500px);
+    margin-inline: auto;
+    padding-inline: var(--content-gutter);
+}
+
+.admin-light .dashboard-header { gap: var(--space-5); }
+
+.admin-light .dashboard-title,
+.admin-light .list-header h2,
+.admin-light .queue-header h2,
+.admin-light .admin-panel-heading h2 { text-wrap: balance; }
+
+.admin-light .stat-grid,
+.admin-light .billing-grid,
+.admin-light .inventory-grid,
+.admin-light .professional-grid { gap: clamp(12px, 1.5vw, 24px); }
+
+.admin-light .data-table-container {
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-light .data-table { min-width: 620px; }
+.admin-light .data-table th,
+.admin-light .data-table td { vertical-align: middle; }
+.admin-light .data-table th { white-space: nowrap; }
+
+.admin-light .input-group-new input,
+.admin-light .input-group-new select,
+.admin-light .glass-select,
+.admin-light textarea { min-height: var(--control-height); }
+
+.admin-light .modal-overlay {
+    padding: clamp(12px, 3vw, 32px);
+    overscroll-behavior: contain;
+}
+
+.admin-light .modal-content {
+    width: min(100%, 560px);
+    max-height: min(92vh, 820px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: clamp(20px, 3vw, 32px);
+}
+
+.admin-light .modal-content .modal-footer { flex-wrap: wrap; }
+
+.booking-body .booking-main,
+.booking-body .step-container { min-width: 0; }
+.booking-body .step-title { text-wrap: balance; }
+.booking-body .input-group-modern input,
+.booking-body .input-group-modern input[type="date"] { min-height: var(--control-height); }
+.booking-body .time-grid-mini { grid-template-columns: repeat(auto-fit, minmax(82px, 1fr)); }
+.booking-body .service-card,
+.booking-body .time-card { min-height: var(--control-height); }
+.booking-body .step-footer,
+.booking-body .step-footer-dual { align-items: stretch; }
+.booking-body .step-footer-dual .btn { min-width: 140px; }
+
+/* Normalize legacy inline declarations on the public booking form. */
+.booking-body input[type="date"] {
+    background: transparent !important;
+    color: var(--text-main) !important;
+    border-color: var(--border) !important;
+}
+
+@media (max-width: 900px) {
+    .admin-light .dashboard-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-light .dashboard-header .btn,
+    .admin-light .dashboard-header select { width: 100%; }
+
+    .admin-light .admin-panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 680px) {
+    .admin-light .dashboard-content {
+        padding-top: 76px;
+        padding-inline: 14px;
+    }
+
+    .admin-light .dashboard-header {
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+    }
+
+    .admin-light .stat-grid,
+    .admin-light .billing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-light .data-table { min-width: 560px; }
+
+    .admin-light .modal-overlay {
+        align-items: flex-end;
+        padding: 10px;
+    }
+
+    .admin-light .modal-content {
+        width: 100%;
+        max-height: calc(100vh - 20px);
+        border-radius: 16px;
+    }
+
+    .admin-light .modal-content .modal-footer,
+    .admin-light .modal-content .modal-footer > *,
+    .booking-body .step-footer-dual .btn { width: 100%; }
+
+    .booking-body .booking-main { padding-inline: 16px; }
+    .booking-body .step-title { font-size: clamp(1.75rem, 8vw, 2.2rem); }
+    .booking-body .step-footer-dual { gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
