@@ -5085,6 +5085,40 @@ textarea:focus-visible,
     gap: 6px;
 }
 
+/* Sidebar hierarchy: main navigation -> share -> brand -> logout. */
+.admin-light .sidebar {
+    gap: 8px;
+}
+
+.admin-light .sidebar nav {
+    display: contents;
+}
+
+.admin-light .sidebar nav .nav-item {
+    order: 1;
+    flex-shrink: 0;
+}
+
+.admin-light .sidebar nav .nav-item[onclick*="openShareModal"] {
+    order: 2;
+    margin-top: auto !important;
+}
+
+.admin-light .sidebar .sidebar-header {
+    order: 3;
+    width: 100%;
+    min-height: 58px;
+    margin: 0;
+    padding: 14px 0 0 !important;
+    border-top: 1px solid var(--border);
+}
+
+.admin-light .sidebar nav .nav-item[onclick*="confirmLogout"] {
+    order: 4;
+    margin-top: 0 !important;
+    margin-bottom: 0;
+}
+
 .admin-light .sidebar .nav-item {
     position: relative;
     isolation: isolate;
