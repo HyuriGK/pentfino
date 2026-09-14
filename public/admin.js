@@ -21,7 +21,12 @@ const auth = {
 
     async init() {
         this.setupEventListeners();
-        if (this.user && typeof this.user === 'object' && this.user.id) {
+        if (this.user && typeof this.user === 'object' && this.user.id && this.token) {
+            // Restore the authenticated UI immediately on refresh. The token is
+            // validated below without flashing the login screen first.
+            sessionManager.init();
+            this.showDashboard();
+
             try {
                 const sessionRes = await fetch('/api/session', {
                     headers: { 'Authorization': `Bearer ${this.token}` }
@@ -31,17 +36,14 @@ const auth = {
                     const sessionData = await sessionRes.json();
                     this.user = sessionData.user;
                     localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
+                    this.applyDashboardAccess();
                 } else if (sessionRes.status === 401 || sessionRes.status === 403) {
                     this.logout();
                     return;
                 }
-
-                sessionManager.init();
-                this.showDashboard();
             } catch (err) {
-                console.error('Erro durante inicialização do auth:', err);
-                sessionManager.init();
-                this.showDashboard();
+                // Keep the saved session during temporary network/API failures.
+                console.warn('Não foi possível validar a sessão agora; mantendo a sessão local.', err);
             }
         }
     },
@@ -143,6 +145,11 @@ const auth = {
     showDashboard() {
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('admin-view').classList.remove('hidden');
+        this.applyDashboardAccess();
+        admin.init();
+    },
+
+    applyDashboardAccess() {
         const roleLabel = this.user.role === 'administrador' ? 'Administrador' : 'Operador';
         document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop_name || this.user.shop} (${roleLabel})`;
         document.querySelectorAll('.admin-only').forEach(el => {
@@ -151,7 +158,6 @@ const auth = {
         document.querySelectorAll('[data-permission]').forEach(el => {
             el.classList.toggle('hidden', !this.can(el.dataset.permission));
         });
-        admin.init();
     },
 
     can(permission) {
