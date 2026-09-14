@@ -13,10 +13,13 @@
     <script>
         // Prevent the login screen from flashing while an existing session is restored.
         try {
-            const sessionKeys = ['barberpoint_user', 'barberpoint_token', 'pontobarber_user', 'pontobarber_token'];
-            const hasStoredSession = sessionKeys.some(key => {
+            const readStored = key => {
                 try { return Boolean(localStorage.getItem(key) || sessionStorage.getItem(key)); } catch (_) { return false; }
-            }) || document.cookie.split('; ').some(cookie => sessionKeys.some(key => cookie.startsWith(`${key}=`)));
+            };
+            const hasCookie = key => document.cookie.split('; ').some(cookie => cookie.startsWith(`${key}=`));
+            const hasUser = readStored('barberpoint_user') || readStored('pontobarber_user') || hasCookie('barberpoint_user') || hasCookie('pontobarber_user');
+            const hasToken = readStored('barberpoint_token') || readStored('pontobarber_token') || hasCookie('barberpoint_token') || hasCookie('pontobarber_token');
+            const hasStoredSession = hasUser && hasToken;
             if (hasStoredSession) document.documentElement.classList.add('session-restore-pending');
         } catch (_) { /* The regular login screen remains available if storage is blocked. */ }
     </script>

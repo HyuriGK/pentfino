@@ -52,6 +52,11 @@ const auth = {
 
     async init() {
         this.setupEventListeners();
+        if (!this.user || typeof this.user !== 'object' || !this.user.id || !this.token) {
+            document.documentElement.classList.remove('session-restore-pending');
+            return;
+        }
+
         if (this.user && typeof this.user === 'object' && this.user.id && this.token) {
             // Restore the authenticated UI immediately on refresh. The token is
             // validated below without flashing the login screen first.
