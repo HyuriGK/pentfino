@@ -306,7 +306,7 @@
                     <input autocomplete="off" type="text" id="client-search" placeholder="Buscar por nome ou WhatsApp..."
                         onkeyup="admin.filterClients()">
                 </div>
-                <div class="data-table-container">
+                <div id="clients-table-shell" class="data-table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -321,6 +321,12 @@
                             <!-- Dynamic Rows -->
                         </tbody>
                     </table>
+                </div>
+                <div id="clients-empty-state" class="entity-empty-state hidden">
+                    <div class="entity-empty-icon">♙</div>
+                    <strong>Nenhum cliente cadastrado</strong>
+                    <span>Cadastre seu primeiro cliente para acompanhar histórico, atendimentos e relacionamento.</span>
+                    <button class="btn btn-primary" type="button" onclick="admin.openModal('client')">Cadastrar primeiro cliente</button>
                 </div>
             </div>
 

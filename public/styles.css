@@ -5434,6 +5434,58 @@ textarea:focus-visible,
     line-height: 1.5;
 }
 
+.admin-light .entity-empty-state {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 18px;
+    padding: 36px 24px;
+    text-align: center;
+    border: 1px dashed var(--border-bright);
+    border-radius: 10px;
+    background:
+        radial-gradient(circle at center, rgba(255, 214, 0, 0.06), transparent 58%),
+        rgba(8, 15, 20, 0.45);
+}
+
+.admin-light .entity-empty-icon {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    margin-bottom: 6px;
+    color: #111;
+    background: var(--primary);
+    border-radius: 14px;
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.admin-light .entity-empty-state strong {
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.admin-light .entity-empty-state span {
+    max-width: 460px;
+    color: var(--text-muted);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.admin-light .entity-empty-state .btn {
+    margin-top: 10px;
+}
+
+.admin-light .table-empty-result {
+    padding: 48px 20px !important;
+    color: var(--text-muted) !important;
+    text-align: center;
+}
+
 .admin-light .appointment-modal-actions {
     display: flex;
     gap: 10px;

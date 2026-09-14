@@ -873,6 +873,16 @@ const admin = {
         const container = document.getElementById('clients-table-body');
         if (!container) return;
 
+        const tableShell = document.getElementById('clients-table-shell');
+        const emptyState = document.getElementById('clients-empty-state');
+        const hasClients = (this.allClients || []).length > 0;
+        tableShell?.classList.toggle('hidden', !hasClients);
+        emptyState?.classList.toggle('hidden', hasClients);
+        if (!hasClients) {
+            container.innerHTML = '';
+            return;
+        }
+
         // Sort: Most recent first (descending)
         const sorted = [...clientsList].sort((a, b) => {
             if (!a.last_service_date) return 1;
@@ -897,6 +907,11 @@ const admin = {
             
             return date.toLocaleDateString('pt-BR') + ' ' + displayTime;
         };
+
+        if (sorted.length === 0) {
+            container.innerHTML = '<tr><td colspan="5" class="table-empty-result">Nenhum cliente encontrado para esta busca.</td></tr>';
+            return;
+        }
 
         container.innerHTML = sorted.map(c => `
             <tr>
