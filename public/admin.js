@@ -1966,15 +1966,23 @@ const agenda = {
         this.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
             headerToolbar: {
-                left: 'prev,next today',
+                left: 'prev,next',
                 center: 'title',
-                right: 'dayGridMonth,timeGridWeek'
+                right: 'todayView,dayGridMonth,timeGridWeek,timeGridDay'
             },
             buttonText: {
-                today: 'Hoje',
                 month: 'Mês',
                 week: 'Semana',
                 day: 'Dia'
+            },
+            customButtons: {
+                todayView: {
+                    text: 'Hoje',
+                    click: () => {
+                        this.calendar.today();
+                        this.calendar.changeView('timeGridDay');
+                    }
+                }
             },
             eventDisplay: 'block',
             dayMaxEvents: 3,
@@ -2034,11 +2042,6 @@ const agenda = {
         this.calendar.render();
         this.populateProfessionalFilter();
         admin.loadData();
-    },
-
-    goToday() {
-        if (!this.calendar) return;
-        this.calendar.today();
     },
 
     populateProfessionalFilter() {
