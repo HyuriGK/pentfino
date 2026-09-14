@@ -5416,9 +5416,19 @@ button.btn > svg {
 }
 
 .admin-light .agenda-calendar .fc-event.event-pending {
-    background: rgba(255, 214, 0, 0.18) !important;
-    border-color: var(--primary) !important;
-    color: var(--text-main) !important;
+    background: #18232b !important;
+    border: 1px solid rgba(255, 214, 0, 0.42) !important;
+    border-left: 3px solid var(--primary) !important;
+    color: #f7f2e8 !important;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.2);
+}
+
+.admin-light .agenda-calendar .fc-event.event-pending .fc-event-time {
+    color: var(--primary) !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-pending .fc-event-title {
+    color: #f7f2e8 !important;
 }
 
 .admin-light .agenda-calendar .fc-event.event-completed {
