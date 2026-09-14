@@ -5612,6 +5612,13 @@ button.btn > svg {
     color: #fff;
 }
 
+.admin-light .appointment-modal-actions .btn-danger:hover {
+    background: #ff4a50;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(237, 58, 64, 0.28);
+}
+
 @media (max-width: 700px) {
     .admin-light .agenda-heading {
         align-items: stretch;

@@ -1935,7 +1935,9 @@ const admin = {
         if (!this.modalStack.includes(modalId)) {
             this.modalStack.push(modalId);
         }
-        document.getElementById(modalId).classList.remove('hidden');
+        const modalElement = document.getElementById(modalId);
+        modalElement.style.zIndex = String(2000 + (this.modalStack.length - 1) * 20);
+        modalElement.classList.remove('hidden');
         document.body.classList.add('modal-open');
     },
 
@@ -1980,7 +1982,9 @@ const admin = {
         }
 
         this.modalStack = this.modalStack.filter(id => id !== modalId);
-        document.getElementById(modalId).classList.add('hidden');
+        const modalElement = document.getElementById(modalId);
+        modalElement.classList.add('hidden');
+        modalElement.style.zIndex = '';
         
         if (this.modalStack.length === 0) {
             document.body.classList.remove('modal-open');
