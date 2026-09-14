@@ -5518,3 +5518,22 @@ textarea:focus-visible,
     }
 }
 
+/* Absolute final focus reset. Keep this block last so screen-specific rules
+   cannot reintroduce the yellow browser/theme focus ring. */
+button:focus,
+button:focus-visible,
+select:focus,
+select:focus-visible,
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+.fc-button:focus,
+.fc-button:focus-visible,
+.admin-light #agenda-professional-filter:focus,
+.admin-light #agenda-professional-filter:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: var(--border-bright) !important;
+}
+
