@@ -154,6 +154,11 @@ input, textarea, [contenteditable="true"] {
 
 .hidden { display: none !important; }
 
+/* Keep a known session from briefly exposing the login screen on hard reload. */
+html.session-restore-pending #auth-view {
+    visibility: hidden;
+}
+
 /* Dashboard Components */
 .sidebar {
     width: 240px;

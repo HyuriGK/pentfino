@@ -174,6 +174,7 @@ const auth = {
     },
 
     showDashboard() {
+        document.documentElement.classList.remove('session-restore-pending');
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('admin-view').classList.remove('hidden');
         this.applyDashboardAccess();
@@ -197,6 +198,7 @@ const auth = {
     },
 
     logout() {
+        document.documentElement.classList.remove('session-restore-pending');
         authStorage.remove('barberpoint_user');
         authStorage.remove('barberpoint_token');
         authStorage.remove('pontobarber_user');

@@ -10,6 +10,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap"
         rel="stylesheet">
+    <script>
+        // Prevent the login screen from flashing while an existing session is restored.
+        try {
+            const sessionKeys = ['barberpoint_user', 'barberpoint_token', 'pontobarber_user', 'pontobarber_token'];
+            const hasStoredSession = sessionKeys.some(key => {
+                try { return Boolean(localStorage.getItem(key) || sessionStorage.getItem(key)); } catch (_) { return false; }
+            }) || document.cookie.split('; ').some(cookie => sessionKeys.some(key => cookie.startsWith(`${key}=`)));
+            if (hasStoredSession) document.documentElement.classList.add('session-restore-pending');
+        } catch (_) { /* The regular login screen remains available if storage is blocked. */ }
+    </script>
     <!-- FullCalendar CDNs -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales-all.global.min.js"></script>
