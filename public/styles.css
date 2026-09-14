@@ -5494,17 +5494,14 @@ textarea:focus-visible,
     border-radius: 6px;
 }
 
-.admin-light .agenda-calendar .fc-header-toolbar .fc-today-button,
-.admin-light .agenda-calendar .fc-header-toolbar .fc-todayView-button {
+.admin-light .agenda-calendar .fc-header-toolbar .fc-today-button {
     order: -1;
     color: var(--primary);
     border-color: rgba(255, 214, 0, 0.4);
 }
 
 .admin-light .agenda-calendar .fc-header-toolbar .fc-today-button:hover,
-.admin-light .agenda-calendar .fc-header-toolbar .fc-today-button.fc-button-active,
-.admin-light .agenda-calendar .fc-header-toolbar .fc-todayView-button:hover,
-.admin-light .agenda-calendar .fc-header-toolbar .fc-todayView-button.fc-button-active {
+.admin-light .agenda-calendar .fc-header-toolbar .fc-today-button.fc-button-active {
     color: #111;
     background: var(--primary);
     border-color: var(--primary);

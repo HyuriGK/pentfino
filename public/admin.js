@@ -1968,21 +1968,12 @@ const agenda = {
             headerToolbar: {
                 left: 'prev,next',
                 center: 'title',
-                right: 'todayView,dayGridMonth,timeGridWeek,timeGridDay'
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             buttonText: {
                 month: 'Mês',
                 week: 'Semana',
                 day: 'Dia'
-            },
-            customButtons: {
-                todayView: {
-                    text: 'Hoje',
-                    click: () => {
-                        this.calendar.today();
-                        this.calendar.changeView('timeGridDay');
-                    }
-                }
             },
             eventDisplay: 'block',
             dayMaxEvents: 3,
