@@ -5501,6 +5501,55 @@ button.btn > svg {
     text-align: center;
 }
 
+/* Appointment details modal: wider layout with room for all actions. */
+.admin-light #modal-view-appointment .modal-content {
+    width: min(100%, 720px) !important;
+    max-width: 720px !important;
+    overflow: visible;
+}
+
+.admin-light #modal-view-appointment .modal-title {
+    white-space: nowrap;
+}
+
+.admin-light #modal-view-appointment .modal-header {
+    margin-bottom: 20px !important;
+}
+
+.admin-light #modal-view-appointment .modal-content > .glass {
+    margin-bottom: 20px !important;
+}
+
+.admin-light #modal-view-appointment .modal-content > .glass > div:last-child {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 20px;
+}
+
+.admin-light #modal-view-appointment .appointment-modal-actions {
+    flex-wrap: nowrap;
+}
+
+.admin-light #modal-view-appointment .appointment-modal-actions .btn,
+.admin-light #modal-view-appointment .modal-content > .btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+    .admin-light #modal-view-appointment .modal-title {
+        white-space: normal;
+    }
+
+    .admin-light #modal-view-appointment .modal-content > .glass > div:last-child {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .admin-light #modal-view-appointment .appointment-modal-actions {
+        flex-direction: column;
+    }
+}
+
 /* Empty-state alignment by screen: clients left, billing centered. */
 .admin-light .entity-empty-state {
     justify-content: flex-start;
