@@ -6,10 +6,41 @@ window.__BARBER_DEBUG__ = {
     editingId: null
 };
 
+const authStorage = {
+    read(key) {
+        const storages = [window.localStorage, window.sessionStorage];
+        for (const storage of storages) {
+            try {
+                const value = storage.getItem(key);
+                if (value) return value;
+            } catch (_) { /* Storage can be unavailable in private/restricted contexts. */ }
+        }
+
+        const cookie = document.cookie
+            .split('; ')
+            .find(item => item.startsWith(`${key}=`));
+        return cookie ? decodeURIComponent(cookie.slice(key.length + 1)) : null;
+    },
+
+    write(key, value) {
+        [window.localStorage, window.sessionStorage].forEach(storage => {
+            try { storage.setItem(key, value); } catch (_) { /* Keep the other stores available. */ }
+        });
+        document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=604800; SameSite=Lax`;
+    },
+
+    remove(key) {
+        [window.localStorage, window.sessionStorage].forEach(storage => {
+            try { storage.removeItem(key); } catch (_) { /* Ignore unavailable storage. */ }
+        });
+        document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+    }
+};
+
 const auth = {
     user: (() => {
         try {
-            const stored = localStorage.getItem('barberpoint_user') || localStorage.getItem('pontobarber_user');
+            const stored = authStorage.read('barberpoint_user') || authStorage.read('pontobarber_user');
             if (!stored) return null;
             return JSON.parse(stored);
         } catch (e) {
@@ -17,7 +48,7 @@ const auth = {
             return null;
         }
     })(),
-    token: localStorage.getItem('barberpoint_token') || localStorage.getItem('pontobarber_token'),
+    token: authStorage.read('barberpoint_token') || authStorage.read('pontobarber_token'),
 
     async init() {
         this.setupEventListeners();
@@ -35,7 +66,7 @@ const auth = {
                 if (sessionRes.ok) {
                     const sessionData = await sessionRes.json();
                     this.user = sessionData.user;
-                    localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
+                    authStorage.write('barberpoint_user', JSON.stringify(this.user));
                     this.applyDashboardAccess();
                 } else if (sessionRes.status === 401 || sessionRes.status === 403) {
                     this.logout();
@@ -125,8 +156,8 @@ const auth = {
             if (data.success) {
                 this.user = data.user;
                 this.token = data.token;
-                localStorage.setItem('barberpoint_user', JSON.stringify(this.user));
-                localStorage.setItem('barberpoint_token', this.token);
+                authStorage.write('barberpoint_user', JSON.stringify(this.user));
+                authStorage.write('barberpoint_token', this.token);
                 this.showDashboard();
                 this.notify('Acesso autorizado!', 'success');
             } else {
@@ -166,10 +197,10 @@ const auth = {
     },
 
     logout() {
-        localStorage.removeItem('barberpoint_user');
-        localStorage.removeItem('barberpoint_token');
-        localStorage.removeItem('pontobarber_user');
-        localStorage.removeItem('pontobarber_token');
+        authStorage.remove('barberpoint_user');
+        authStorage.remove('barberpoint_token');
+        authStorage.remove('pontobarber_user');
+        authStorage.remove('pontobarber_token');
         location.reload();
     },
 
