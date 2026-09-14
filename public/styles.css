@@ -5097,6 +5097,41 @@ button.btn > svg {
     padding-inline: 16px;
 }
 
+.admin-light #modal-cancel-service .cancel-confirm-field {
+    display: grid;
+    gap: 8px;
+    margin: -10px 0 20px;
+    text-align: left;
+}
+
+.admin-light #modal-cancel-service .cancel-confirm-field label {
+    color: var(--text-muted);
+    font-size: 0.84rem;
+}
+
+.admin-light #modal-cancel-service .cancel-confirm-field strong {
+    color: var(--text-main);
+    letter-spacing: 0.04em;
+}
+
+.admin-light #modal-cancel-service .cancel-confirm-field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    text-transform: uppercase;
+}
+
+.admin-light #modal-cancel-service #btn-do-cancel-service:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 /* Keep adjacent navigation states visually separate. */
 .admin-light .sidebar nav {
     gap: 6px;

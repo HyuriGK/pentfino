@@ -973,10 +973,15 @@
             <h2 class="modal-title" style="margin-bottom: 8px;">Cancelar Horário</h2>
             <p style="color: var(--text-muted); margin-bottom: 32px;" id="cancel-service-text">Deseja cancelar o
                 agendamento?</p>
+            <div class="cancel-confirm-field">
+                <label for="cancel-service-confirmation">Digite <strong>CONFIRMAR</strong> para continuar</label>
+                <input autocomplete="off" type="text" id="cancel-service-confirmation" placeholder="CONFIRMAR"
+                    oninput="admin.validateCancellationConfirmation(this.value)">
+            </div>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-ghost btn-full" onclick="admin.closeModal('cancel-service')">Voltar</button>
                 <button class="btn btn-danger btn-full" id="btn-do-cancel-service"
-                    style="background: var(--danger); border: none;">Confirmar</button>
+                    style="background: var(--danger); border: none;" disabled>Confirmar</button>
             </div>
         </div>
     </div>

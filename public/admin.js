@@ -830,14 +830,26 @@ const admin = {
     async cancelService(id, clientName = null) {
         if (clientName) {
             document.getElementById('cancel-service-text').innerHTML = `Deseja cancelar o agendamento de <strong>${clientName}</strong>?`;
-            document.getElementById('btn-do-cancel-service').onclick = () => this.executeCancellation(id);
+            const confirmation = document.getElementById('cancel-service-confirmation');
+            const confirmButton = document.getElementById('btn-do-cancel-service');
+            if (confirmation) confirmation.value = '';
+            if (confirmButton) {
+                confirmButton.disabled = true;
+                confirmButton.onclick = () => this.executeCancellation(id);
+            }
             this.openModal('cancel-service');
+            confirmation?.focus();
             return;
         }
 
         if (confirm('Deseja cancelar este agendamento?')) {
             this.executeCancellation(id);
         }
+    },
+
+    validateCancellationConfirmation(value) {
+        const button = document.getElementById('btn-do-cancel-service');
+        if (button) button.disabled = value !== 'CONFIRMAR';
     },
 
     async executeCancellation(id) {
