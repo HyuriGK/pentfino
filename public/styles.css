@@ -4950,6 +4950,97 @@ button, input, select, textarea { font: inherit; }
 
 .admin-light .dashboard-header { gap: var(--space-5); }
 
+/* The sales table is already inside its own framed container. */
+.admin-light .sales-history-container > .data-table {
+    margin-top: 0;
+}
+
+/* Service selector inside the professional form. */
+.admin-light #modal-prof-services-list.checkbox-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px !important;
+    max-height: 220px !important;
+    overflow-y: auto;
+    background: rgba(8, 15, 20, 0.7);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+}
+
+.admin-light #modal-prof-services-list .checkbox-item {
+    min-width: 0;
+    min-height: 46px;
+    padding: 10px 12px;
+    gap: 10px;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.admin-light #modal-prof-services-list .checkbox-item:hover,
+.admin-light #modal-prof-services-list .checkbox-item:has(input:checked) {
+    color: #fff;
+    background: rgba(255, 214, 0, 0.1);
+    border-color: rgba(255, 214, 0, 0.6);
+}
+
+.admin-light #modal-prof-services-list .checkbox-item span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.admin-light #modal-prof-services-list .checkbox-item input {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--primary);
+}
+
+/* Confirmation dialogs need room for their actions and labels. */
+.admin-light #modal-confirm-service .modal-content,
+.admin-light #modal-cancel-service .modal-content,
+.admin-light #modal-delete-confirm .modal-content,
+.admin-light #modal-logout .modal-content {
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
+}
+
+.admin-light #modal-confirm-service .modal-content > div:last-child,
+.admin-light #modal-cancel-service .modal-content > div:last-child,
+.admin-light #modal-delete-confirm .modal-content > div:last-child,
+.admin-light #modal-logout .modal-content > div:last-child {
+    display: flex !important;
+    gap: 12px !important;
+}
+
+.admin-light #modal-confirm-service .modal-content .btn,
+.admin-light #modal-cancel-service .modal-content .btn,
+.admin-light #modal-delete-confirm .modal-content .btn,
+.admin-light #modal-logout .modal-content .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+    word-break: keep-all;
+    padding-inline: 16px;
+}
+
+/* Keep adjacent navigation states visually separate. */
+.admin-light .sidebar nav {
+    gap: 6px;
+}
+
+.admin-light .sidebar .nav-item {
+    position: relative;
+    isolation: isolate;
+}
+
 .admin-light .dashboard-title,
 .admin-light .list-header h2,
 .admin-light .queue-header h2,
@@ -5059,6 +5150,24 @@ button, input, select, textarea { font: inherit; }
     .booking-body .booking-main { padding-inline: 16px; }
     .booking-body .step-title { font-size: clamp(1.75rem, 8vw, 2.2rem); }
     .booking-body .step-footer-dual { gap: 10px; }
+
+    .admin-light #modal-prof-services-list.checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-light #modal-confirm-service .modal-content > div:last-child,
+    .admin-light #modal-cancel-service .modal-content > div:last-child,
+    .admin-light #modal-delete-confirm .modal-content > div:last-child,
+    .admin-light #modal-logout .modal-content > div:last-child {
+        flex-direction: column;
+    }
+
+    .admin-light #modal-confirm-service .modal-content .btn,
+    .admin-light #modal-cancel-service .modal-content .btn,
+    .admin-light #modal-delete-confirm .modal-content .btn,
+    .admin-light #modal-logout .modal-content .btn {
+        width: 100%;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
