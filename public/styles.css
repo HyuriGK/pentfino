@@ -5316,20 +5316,20 @@ button.btn > svg {
 .admin-light .sidebar .sidebar-header {
     order: 0;
     width: 100%;
-    min-height: 78px;
+    min-height: 58px;
     margin: 0;
-    padding: 0 0 24px !important;
+    padding: 0 0 18px !important;
     border-top: 0;
     border-bottom: 1px solid var(--border);
 }
 
 .admin-light .sidebar .logo-img {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
 }
 
 .admin-light .sidebar .logo-text {
-    font-size: 1.18rem;
+    font-size: 1.3rem;
     line-height: 1.15;
 }
 
