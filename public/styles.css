@@ -5490,6 +5490,34 @@ button.btn > svg {
     text-decoration: line-through;
 }
 
+/* In the month overview, show only the day and its appointment total.
+   Detailed client/time blocks remain available in day and week views. */
+.admin-light .agenda-calendar .fc-daygrid-view .fc-daygrid-event {
+    display: none !important;
+}
+
+.admin-light .agenda-calendar .fc-daygrid-view .fc-daygrid-day-top {
+    min-height: 42px;
+    align-items: flex-start;
+}
+
+.admin-light .agenda-calendar .fc-daygrid-view .fc-daygrid-day-number {
+    position: relative;
+    z-index: 6;
+    font-weight: 800;
+}
+
+.admin-light .agenda-calendar .fc-daygrid-view .fc-day-kpi {
+    top: 28px;
+    right: 8px;
+    min-height: 24px;
+    height: auto;
+    max-width: calc(100% - 16px);
+    padding: 4px 9px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
 .admin-light .billing-chart-empty {
     min-height: 210px;
     display: flex;

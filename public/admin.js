@@ -2055,7 +2055,7 @@ const agenda = {
                         kpi.innerText = count === 1 ? '1 Agendamento' : `${count} Agendamentos`;
                         kpi.onclick = (e) => {
                             e.stopPropagation();
-                            this.calendar.changeView('timeGridWeek', info.date);
+                            this.calendar.changeView('timeGridDay', info.date);
                         };
                         info.el.querySelector('.fc-daygrid-day-top').appendChild(kpi);
                     }
