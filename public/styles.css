@@ -5680,6 +5680,79 @@ button.btn > svg {
     max-width: 520px;
 }
 
+/* Sales modal layout: wider, balanced fields and predictable responsive collapse. */
+.admin-light #modal-sales .sale-modal-content {
+    width: min(100%, 980px) !important;
+    max-width: 980px !important;
+    padding: 32px 40px 30px;
+    border-radius: 16px;
+}
+
+.admin-light #modal-sales .sale-modal-body {
+    display: grid;
+    gap: 24px;
+    padding: 0 !important;
+}
+
+.admin-light #modal-sales .sale-modal-product-row,
+.admin-light #modal-sales .sale-modal-details-row,
+.admin-light #modal-sales .sale-modal-summary-row {
+    margin-top: 0 !important;
+    min-width: 0;
+    gap: 16px !important;
+}
+
+.admin-light #modal-sales .sale-modal-product-row {
+    grid-template-columns: minmax(0, 2.4fr) minmax(130px, 0.75fr) !important;
+}
+
+.admin-light #modal-sales .sale-modal-details-row {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.35fr) minmax(125px, 0.65fr) !important;
+}
+
+.admin-light #modal-sales .sale-modal-summary-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+.admin-light #modal-sales .input-group-new,
+.admin-light #modal-sales .input-group-new > div {
+    min-width: 0;
+}
+
+.admin-light #modal-sales .input-group-new > div > .glass {
+    min-width: 0;
+}
+
+.admin-light #modal-sales .sale-modal-footer {
+    margin-top: 24px !important;
+    gap: 12px;
+}
+
+.admin-light #modal-sales .sale-modal-footer .btn {
+    min-height: 54px;
+    white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-sales .sale-modal-content {
+        padding: 24px 20px;
+    }
+
+    .admin-light #modal-sales .sale-modal-product-row,
+    .admin-light #modal-sales .sale-modal-details-row,
+    .admin-light #modal-sales .sale-modal-summary-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-light #modal-sales .sale-modal-footer {
+        flex-direction: column;
+    }
+
+    .admin-light #modal-sales .sale-modal-footer .btn {
+        width: 100%;
+    }
+}
+
 .admin-light .inventory-empty-state {
     grid-column: 1 / -1;
     min-height: 190px;

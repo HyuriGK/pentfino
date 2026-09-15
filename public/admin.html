@@ -680,7 +680,7 @@
 
     <!-- Modal Venda -->
     <div id="modal-sales" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 850px;">
+        <div class="modal-content sale-modal-content" style="max-width: 850px;">
             <header class="modal-header">
                 <div>
                     <h2 class="modal-title">Registrar Venda</h2>
@@ -688,9 +688,9 @@
                 </div>
             </header>
             
-            <div class="modal-body" style="padding: 10px 0;">
+            <div class="modal-body sale-modal-body" style="padding: 10px 0;">
                 <!-- Row 1: Product and Quantity -->
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                <div class="sale-modal-product-row" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
                     <div class="input-group-new">
                         <label>Produto em Estoque</label>
                         <div style="display: flex; gap: 8px;">
@@ -708,7 +708,7 @@
                 </div>
 
                 <!-- Row 2: Customer, Professional, and Commission -->
-                <div class="form-row-3" style="margin-top: 25px;">
+                <div class="form-row-3 sale-modal-details-row" style="margin-top: 25px;">
                     <div class="input-group-new">
                         <label>Cliente</label>
                         <div style="display: flex; gap: 8px;">
@@ -736,7 +736,7 @@
                 </div>
 
                 <!-- Row 3: Unit Price and Total Display (Side-by-Side) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: end; margin-top: 25px;">
+                <div class="sale-modal-summary-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: end; margin-top: 25px;">
                     <div class="input-group-new">
                         <label>Preço Unitário (R$)</label>
                         <div class="glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dotted var(--border-bright); background: rgba(255, 255, 255, 0.02);">
@@ -763,7 +763,7 @@
                 </div>
             </div>
 
-            <div class="modal-footer" style="margin-top: 35px; display: flex; gap: 15px;">
+            <div class="modal-footer sale-modal-footer" style="margin-top: 35px; display: flex; gap: 15px;">
                 <button class="btn btn-ghost" onclick="admin.closeModal('sales')" style="flex: 1; height: 55px; border-radius: 12px; font-weight: 600;">Cancelar</button>
                 <button class="btn btn-primary" onclick="admin.saveSale()" style="flex: 2; height: 55px; border-radius: 12px; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Finalizar e Registrar Venda</button>
             </div>
