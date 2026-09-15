@@ -5863,3 +5863,14 @@ textarea:focus-visible,
     border-color: var(--border-bright) !important;
 }
 
+/* Queue actions use color feedback only; do not enlarge on hover. */
+.admin-light .action-btns .btn-primary:hover,
+.admin-light .action-btns .btn-queue-cancel:hover,
+.admin-light .btn-queue-cancel:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: #ec252b !important;
+    border-color: #ec252b !important;
+    color: #fff !important;
+}
+
