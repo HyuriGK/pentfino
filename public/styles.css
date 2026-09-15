@@ -5202,6 +5202,7 @@ button.btn > svg {
 .admin-light #modal-confirm-service .modal-content,
 .admin-light #modal-cancel-service .modal-content,
 .admin-light #modal-delete-confirm .modal-content,
+.admin-light #modal-whatsapp-confirm .modal-content,
 .admin-light #modal-logout .modal-content {
     width: min(100%, 520px) !important;
     max-width: 520px !important;
@@ -5210,6 +5211,7 @@ button.btn > svg {
 .admin-light #modal-confirm-service .modal-content > div:last-child,
 .admin-light #modal-cancel-service .modal-content > div:last-child,
 .admin-light #modal-delete-confirm .modal-content > div:last-child,
+.admin-light #modal-whatsapp-confirm .modal-content > div:last-child,
 .admin-light #modal-logout .modal-content > div:last-child {
     display: flex !important;
     gap: 12px !important;
@@ -5218,12 +5220,38 @@ button.btn > svg {
 .admin-light #modal-confirm-service .modal-content .btn,
 .admin-light #modal-cancel-service .modal-content .btn,
 .admin-light #modal-delete-confirm .modal-content .btn,
+.admin-light #modal-whatsapp-confirm .modal-content .btn,
 .admin-light #modal-logout .modal-content .btn {
     flex: 1 1 0;
     min-width: 0;
     white-space: nowrap;
     word-break: keep-all;
     padding-inline: 16px;
+}
+
+.admin-light .whatsapp-confirm-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.13);
+    border: 1px solid rgba(34, 197, 94, 0.32);
+    border-radius: 50%;
+    box-shadow: 0 12px 28px rgba(34, 197, 94, 0.12);
+}
+
+.admin-light .whatsapp-confirm-action {
+    background: #16a34a !important;
+    color: #fff !important;
+    border-color: #16a34a !important;
+}
+
+.admin-light .whatsapp-confirm-action:hover {
+    background: #15803d !important;
+    border-color: #15803d !important;
 }
 
 .admin-light #modal-cancel-service .cancel-confirm-field {

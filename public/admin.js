@@ -977,7 +977,7 @@ const admin = {
                 <td style="text-align:center">${c.total_appointments || 0}</td>
                 <td>
                     <div style="display: flex; gap: 8px; justify-content: center;">
-                        <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
+                        <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="admin.openWhatsAppConfirm(${c.id})">WhatsApp ↗</button>
                         <button class="btn-queue-cancel" aria-label="Excluir cliente" onclick="admin.deleteClient(${c.id}, '${c.name.replace(/'/g, "\\'")}')">×</button>
                     </div>
                 </td>
@@ -1097,6 +1097,34 @@ const admin = {
         const btn = document.getElementById('btn-do-delete');
         btn.onclick = onConfirm;
         this.openModal('delete-confirm');
+    },
+
+    openWhatsAppConfirm(clientId) {
+        const client = (this.allClients || []).find(item => String(item.id) === String(clientId));
+        if (!client) return auth.notify('Cliente não encontrado.', 'error');
+
+        const phone = String(client.phone || '').replace(/\D/g, '');
+        if (!phone) return auth.notify('Este cliente não possui WhatsApp cadastrado.', 'error');
+
+        const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[character]));
+
+        document.getElementById('whatsapp-confirm-text').innerHTML =
+            `Deseja abrir uma conversa com <strong>${escapeHtml(client.name)}</strong> no WhatsApp?`;
+
+        const button = document.getElementById('btn-do-whatsapp');
+        button.onclick = () => {
+            const newWindow = window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer');
+            if (newWindow) newWindow.opener = null;
+            this.closeModal('whatsapp-confirm');
+        };
+
+        this.openModal('whatsapp-confirm');
     },
 
     filterClients() {
