@@ -1564,6 +1564,19 @@ const admin = {
         const formatPercent = (value, total) => total > 0
             ? `${((value / total) * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
             : '0,0%';
+        const tooltipPositionerName = 'billingBarTopRight';
+
+        if (Chart.Tooltip?.positioners) {
+            Chart.Tooltip.positioners[tooltipPositionerName] = elements => {
+                const element = elements[0]?.element;
+                if (!element) return false;
+
+                return {
+                    x: element.x + (element.width || 0) / 2 + 4,
+                    y: element.y - 3
+                };
+            };
+        }
 
         this.billingChart = new Chart(ctx, {
             type: 'bar',
@@ -1588,15 +1601,23 @@ const admin = {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
+                        position: tooltipPositionerName,
+                        xAlign: 'left',
+                        yAlign: 'bottom',
                         backgroundColor: '#05090d',
                         borderColor: 'rgba(148, 163, 184, 0.45)',
                         borderWidth: 1,
                         cornerRadius: 9,
                         displayColors: true,
-                        padding: 14,
-                        titleMarginBottom: 9,
-                        titleFont: { family: 'Outfit, sans-serif', size: 14, weight: '800' },
-                        bodyFont: { family: 'Inter, sans-serif', size: 13, weight: '700' },
+                        caretPadding: 8,
+                        padding: { top: 14, right: 18, bottom: 15, left: 18 },
+                        bodySpacing: 7,
+                        boxPadding: 5,
+                        titleMarginBottom: 11,
+                        titleFont: { family: 'Outfit, sans-serif', size: 15, weight: '800' },
+                        bodyFont: { family: 'Inter, sans-serif', size: 14, weight: '700', lineHeight: 1.35 },
+                        titleAlign: 'left',
+                        bodyAlign: 'left',
                         titleColor: '#f8fafc',
                         bodyColor: '#e2e8f0',
                         callbacks: {
