@@ -417,10 +417,53 @@ app.post('/api/appointments', async (req, res) => {
 
 app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
-        await pool.query('UPDATE appointments SET status = $1 WHERE id = $2', [status, id]);
-        res.json({ success: true });
+        const hasAppointmentChanges = [serviceId, professionalId, clientName, clientPhone, time, date]
+            .some(value => value !== undefined);
+
+        if (!hasAppointmentChanges) {
+            await pool.query('UPDATE appointments SET status = $1 WHERE id = $2', [status, id]);
+            return res.json({ success: true });
+        }
+
+        if (!serviceId || !professionalId || !clientName || !clientPhone || !time || !date) {
+            return res.status(400).json({ success: false, message: 'Preencha todos os dados do agendamento.' });
+        }
+
+        const collision = await pool.query(`
+            SELECT id FROM appointments
+            WHERE barber_id = (SELECT barber_id FROM appointments WHERE id = $1)
+              AND professional_id = $2
+              AND appointment_date = $3
+              AND appointment_time = $4
+              AND status != 'canceled'
+              AND id <> $1
+        `, [id, professionalId, date, time]);
+
+        if (collision.rows.length > 0) {
+            return res.status(409).json({ success: false, message: 'Este horário já está reservado para este barbeiro.' });
+        }
+
+        const result = await pool.query(`
+            UPDATE appointments
+            SET service_id = $1, professional_id = $2, client_name = $3,
+                client_phone = $4, appointment_time = $5, appointment_date = $6
+            WHERE id = $7
+            RETURNING *
+        `, [serviceId, professionalId, clientName, clientPhone, time, date, id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Agendamento não encontrado.' });
+        }
+
+        await pool.query(`
+            INSERT INTO clients (barber_id, name, phone)
+            SELECT barber_id, $1, $2 FROM appointments WHERE id = $3
+            ON CONFLICT (barber_id, name, phone) DO NOTHING
+        `, [clientName, clientPhone, id]);
+
+        res.json({ success: true, appointment: result.rows[0] });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');

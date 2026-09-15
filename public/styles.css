@@ -5643,11 +5643,52 @@ button.btn > svg {
 }
 
 .admin-light #modal-view-appointment .appointment-modal-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
     flex-wrap: nowrap;
 }
 
 .admin-light #modal-view-appointment .appointment-modal-actions .btn,
 .admin-light #modal-view-appointment .modal-content > .btn {
+    white-space: nowrap;
+    width: 100%;
+}
+
+.admin-light #modal-edit-appointment .edit-appointment-content {
+    width: min(100%, 760px) !important;
+    max-width: 760px !important;
+    padding: 30px 36px;
+}
+
+.admin-light #modal-edit-appointment .edit-appointment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.admin-light #modal-edit-appointment .edit-appointment-header p {
+    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 0.86rem;
+}
+
+.admin-light #modal-edit-appointment .edit-appointment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 16px;
+}
+
+.admin-light #modal-edit-appointment .edit-appointment-footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.admin-light #modal-edit-appointment .edit-appointment-footer .btn {
+    min-height: 48px;
     white-space: nowrap;
 }
 
@@ -5663,6 +5704,16 @@ button.btn > svg {
 
     .admin-light #modal-view-appointment .appointment-modal-actions {
         flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+
+    .admin-light #modal-edit-appointment .edit-appointment-content {
+        padding: 24px 20px;
+    }
+
+    .admin-light #modal-edit-appointment .edit-appointment-grid,
+    .admin-light #modal-edit-appointment .edit-appointment-footer {
+        grid-template-columns: 1fr;
     }
 }
 

@@ -2164,11 +2164,67 @@ const agenda = {
         const actions = document.getElementById('appointment-modal-actions');
         actions?.classList.toggle('hidden', status !== 'pending');
         if (status === 'pending') {
+            document.getElementById('btn-view-edit').onclick = () => this.openEditAppointment(event);
             document.getElementById('btn-view-complete').onclick = () => admin.completeService(event.id, name);
             document.getElementById('btn-view-cancel').onclick = () => admin.cancelService(event.id, name);
         }
 
         admin.openModal('view-appointment');
+    },
+
+    openEditAppointment(event) {
+        const appointment = event.extendedProps.appointment || {};
+        const serviceSelect = document.getElementById('edit-appointment-service');
+        const professionalSelect = document.getElementById('edit-appointment-professional');
+        serviceSelect.innerHTML = (admin.services || []).map(service =>
+            `<option value="${service.id}">${service.name} · ${this.formatDuration(service.duration)}</option>`
+        ).join('');
+        professionalSelect.innerHTML = (admin.professionals || []).map(professional =>
+            `<option value="${professional.id}">${professional.name}</option>`
+        ).join('');
+
+        document.getElementById('edit-appointment-id').value = event.id;
+        document.getElementById('edit-appointment-client').value = appointment.clientName || event.title || '';
+        document.getElementById('edit-appointment-phone').value = appointment.clientPhone || '';
+        document.getElementById('edit-appointment-date').value = appointment.date || '';
+        document.getElementById('edit-appointment-time').value = appointment.time || '';
+        serviceSelect.value = String(appointment.serviceId || '');
+        professionalSelect.value = String(appointment.professionalId || '');
+
+        admin.openModal('edit-appointment');
+    },
+
+    async saveEditedAppointment() {
+        const id = document.getElementById('edit-appointment-id').value;
+        const clientName = document.getElementById('edit-appointment-client').value.trim();
+        const clientPhone = document.getElementById('edit-appointment-phone').value.trim();
+        const serviceId = document.getElementById('edit-appointment-service').value;
+        const professionalId = document.getElementById('edit-appointment-professional').value;
+        const date = document.getElementById('edit-appointment-date').value;
+        const time = document.getElementById('edit-appointment-time').value;
+
+        if (!id || !clientName || !clientPhone || !serviceId || !professionalId || !date || !time) {
+            return auth.notify('Preencha todos os dados do agendamento.', 'error');
+        }
+
+        try {
+            const res = await auth.apiRequest(`/api/appointments/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ clientName, clientPhone, serviceId, professionalId, date, time })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.success === false) {
+                throw new Error(data.message || 'Não foi possível atualizar o agendamento.');
+            }
+
+            admin.closeModal('edit-appointment');
+            admin.closeModal('view-appointment');
+            await admin.loadData();
+            auth.notify('Agendamento atualizado com sucesso!', 'success');
+        } catch (err) {
+            console.error('Erro ao editar agendamento:', err);
+            auth.notify(err.message || 'Erro ao editar agendamento.', 'error');
+        }
     },
 
     durationToMinutes(value) {
@@ -2232,7 +2288,15 @@ const agenda = {
                 extendedProps: {
                     service: a.service_name,
                     status: a.status,
-                    duration: a.service_duration
+                    duration: a.service_duration,
+                    appointment: {
+                        clientName: a.client_name,
+                        clientPhone: a.client_phone,
+                        serviceId: a.service_id,
+                        professionalId: a.professional_id,
+                        date: dateStr,
+                        time: String(a.appointment_time || '').slice(0, 5)
+                    }
                 }
             };
         });

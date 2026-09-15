@@ -1042,8 +1042,54 @@
                 </div>
             </div>
             <div id="appointment-modal-actions" class="appointment-modal-actions hidden">
+                <button id="btn-view-edit" class="btn btn-ghost">Editar</button>
                 <button id="btn-view-complete" class="btn btn-primary">Finalizar atendimento</button>
                 <button id="btn-view-cancel" class="btn btn-danger">Cancelar horário</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT APPOINTMENT (AGENDA) -->
+    <div id="modal-edit-appointment" class="modal-overlay hidden">
+        <div class="modal-content edit-appointment-content">
+            <header class="modal-header edit-appointment-header">
+                <div>
+                    <h2 class="modal-title">Editar Agendamento</h2>
+                    <p>Atualize os dados e o horário deste atendimento.</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('edit-appointment')">×</button>
+            </header>
+
+            <input type="hidden" id="edit-appointment-id">
+            <div class="edit-appointment-grid">
+                <div class="input-group-new">
+                    <label for="edit-appointment-client">Cliente</label>
+                    <input autocomplete="off" type="text" id="edit-appointment-client">
+                </div>
+                <div class="input-group-new">
+                    <label for="edit-appointment-phone">WhatsApp</label>
+                    <input autocomplete="off" type="tel" id="edit-appointment-phone">
+                </div>
+                <div class="input-group-new">
+                    <label for="edit-appointment-service">Serviço</label>
+                    <select id="edit-appointment-service"></select>
+                </div>
+                <div class="input-group-new">
+                    <label for="edit-appointment-professional">Barbeiro/Atendente</label>
+                    <select id="edit-appointment-professional"></select>
+                </div>
+                <div class="input-group-new">
+                    <label for="edit-appointment-date">Data</label>
+                    <input autocomplete="off" type="date" id="edit-appointment-date">
+                </div>
+                <div class="input-group-new">
+                    <label for="edit-appointment-time">Horário</label>
+                    <input autocomplete="off" type="time" id="edit-appointment-time">
+                </div>
+            </div>
+            <div class="edit-appointment-footer">
+                <button class="btn btn-ghost" onclick="admin.closeModal('edit-appointment')">Cancelar</button>
+                <button class="btn btn-primary" onclick="agenda.saveEditedAppointment()">Salvar alterações</button>
             </div>
         </div>
     </div>
