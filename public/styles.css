@@ -5779,6 +5779,7 @@ button.btn > svg {
 .admin-light #modal-select-item .modal-content {
     width: min(100%, 1100px) !important;
     max-width: 1100px !important;
+    min-height: 560px;
     padding: 32px 40px 30px;
 }
 
@@ -5786,7 +5787,14 @@ button.btn > svg {
 .admin-light #modal-select-professional .modal-content {
     width: min(100%, 960px) !important;
     max-width: 960px !important;
+    min-height: 550px;
     padding: 32px 40px 30px;
+}
+
+.admin-light #modal-select-item .data-table,
+.admin-light #modal-select-client .data-table,
+.admin-light #modal-select-professional .data-table {
+    margin-top: 0 !important;
 }
 
 .admin-light #modal-select-item .data-table-container,
@@ -5799,18 +5807,26 @@ button.btn > svg {
 .admin-light #modal-client .modal-content {
     width: min(100%, 640px) !important;
     max-width: 640px !important;
+    min-height: 460px;
 }
 
 .admin-light #modal-professional .modal-content {
     width: min(100%, 720px) !important;
     max-width: 720px !important;
+    min-height: 620px;
 }
 
 @media (max-width: 760px) {
     .admin-light #modal-select-item .modal-content,
     .admin-light #modal-select-client .modal-content,
     .admin-light #modal-select-professional .modal-content {
+        min-height: 0;
         padding: 24px 20px;
+    }
+
+    .admin-light #modal-client .modal-content,
+    .admin-light #modal-professional .modal-content {
+        min-height: 0;
     }
 
     .admin-light #modal-select-item .data-table-container,
