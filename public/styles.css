@@ -6253,7 +6253,8 @@ textarea:focus-visible,
     position: absolute;
     z-index: 20;
     display: none;
-    min-width: 370px;
+    width: 360px;
+    min-width: 0;
     max-width: calc(100% - 12px);
     padding: 16px 18px;
     pointer-events: none;
@@ -6275,7 +6276,7 @@ textarea:focus-visible,
 
 .admin-light .billing-tooltip-row {
     display: grid;
-    grid-template-columns: 12px minmax(104px, 1fr) minmax(84px, auto) minmax(68px, auto);
+    grid-template-columns: 12px minmax(0, 1fr) max-content max-content;
     align-items: center;
     column-gap: 0;
     min-height: 30px;
@@ -6306,7 +6307,7 @@ textarea:focus-visible,
 }
 
 .admin-light .billing-tooltip-label {
-    padding-left: 10px;
+    padding-left: 8px;
 }
 
 .admin-light .billing-tooltip-row strong,
@@ -6314,7 +6315,8 @@ textarea:focus-visible,
     height: 22px;
     display: flex;
     align-items: center;
-    padding-left: 12px;
+    padding-left: 9px;
+    padding-right: 8px;
     border-left: 1px solid rgba(148, 163, 184, 0.26);
 }
 
@@ -6347,12 +6349,12 @@ textarea:focus-visible,
 
 @media (max-width: 700px) {
     .admin-light .billing-custom-tooltip {
-        min-width: 300px;
+        width: min(100%, 320px);
+        min-width: 0;
         padding: 14px 15px;
     }
 
     .admin-light .billing-tooltip-row {
-        grid-template-columns: 12px minmax(86px, 1fr) minmax(76px, auto) minmax(58px, auto);
         font-size: 0.76rem;
     }
 }
