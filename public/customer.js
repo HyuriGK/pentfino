@@ -180,10 +180,28 @@ const app = {
 
             if (res.ok) {
                 document.getElementById('summary-content').innerHTML = `
-                    <p style="margin-bottom: 12px;"><strong style="color: var(--primary);">${this.booking.service.name}</strong></p>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">${new Date(date).toLocaleDateString('pt-BR')} às ${this.booking.time}</p>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">Barbeiro: ${this.booking.professional?.name || 'Não selecionado'}</p>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">Valor: R$ ${this.booking.service.price}</p>
+                    <div class="success-card-heading">
+                        <span>Resumo do agendamento</span>
+                        <span class="success-card-status">Confirmado</span>
+                    </div>
+                    <div class="confirmation-service">
+                        <span class="confirmation-label">Serviço escolhido</span>
+                        <strong>${this.booking.service.name}</strong>
+                    </div>
+                    <div class="confirmation-details">
+                        <div class="confirmation-row">
+                            <span>Data e horário</span>
+                            <strong>${new Date(date).toLocaleDateString('pt-BR')} às ${this.booking.time}</strong>
+                        </div>
+                        <div class="confirmation-row">
+                            <span>Barbeiro</span>
+                            <strong>${this.booking.professional?.name || 'Não selecionado'}</strong>
+                        </div>
+                        <div class="confirmation-row confirmation-row-total">
+                            <span>Valor</span>
+                            <strong>R$ ${this.booking.service.price}</strong>
+                        </div>
+                    </div>
                 `;
                 this.showStep('success');
             } else {
