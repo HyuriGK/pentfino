@@ -3669,6 +3669,11 @@ aside nav {
     }
 }
 
+/* Keep all appointment detail actions consistent on hover. */
+.admin-light #modal-view-appointment .appointment-modal-actions .btn:hover {
+    transform: translateY(-2px) scale(1.015);
+}
+
 /* Unified BarberPoint product theme */
 .admin-light,
 .booking-body {
