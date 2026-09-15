@@ -6110,6 +6110,8 @@ textarea:focus-visible,
 /* Billing chart controls and always-visible daily bar chart. */
 .admin-light .billing-chart-container {
     min-height: 500px;
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
 }
 
 .admin-light .billing-month-selector {
@@ -6172,6 +6174,7 @@ textarea:focus-visible,
     width: 100% !important;
     height: 340px !important;
     max-height: none !important;
+    margin: 0 !important;
     flex: 1 1 auto;
 }
 
