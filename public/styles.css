@@ -5523,17 +5523,23 @@ button.btn > svg {
 }
 
 .admin-light .billing-chart-empty {
-    min-height: 210px;
+    min-height: clamp(300px, 42vh, 520px);
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     gap: 8px;
-    padding: 28px 36px;
+    padding: 28px 36px 40px;
     text-align: left;
     border: 0;
     border-radius: 0;
     background: transparent;
+}
+
+.admin-light .billing-chart-container {
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-light .billing-chart-empty-icon {
