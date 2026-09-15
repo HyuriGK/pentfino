@@ -743,6 +743,13 @@ const admin = {
 
         // Fill modal
         document.getElementById('prof-details-name').innerText = prof.name;
+        document.getElementById('prof-details-initials').innerText = prof.name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(namePart => namePart[0])
+            .join('')
+            .toUpperCase() || 'BR';
         document.getElementById('prof-details-month').innerText = `${monthNames[this.selectedCommMonth]} ${currentYear}`;
         document.getElementById('prof-details-total-gen').innerText = `R$ ${totalGen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         document.getElementById('prof-details-shop-share').innerText = `R$ ${totalShopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
