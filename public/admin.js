@@ -969,7 +969,7 @@ const admin = {
                 <td>
                     <div style="display: flex; gap: 8px; justify-content: center;">
                         <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="window.open('https://wa.me/${c.phone.replace(/\D/g, '')}')">WhatsApp ↗</button>
-                        <button class="btn btn-ghost" style="color: var(--danger); font-size: 1rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteClient(${c.id}, '${c.name.replace(/'/g, "\\'")}')">×</button>
+                        <button class="btn-queue-cancel" aria-label="Excluir cliente" onclick="admin.deleteClient(${c.id}, '${c.name.replace(/'/g, "\\'")}')">×</button>
                     </div>
                 </td>
             </tr>
