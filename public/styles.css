@@ -6194,6 +6194,105 @@ textarea:focus-visible,
     }
 }
 
+/* Billing chart tooltip: readable source breakdown anchored to each bar. */
+.admin-light .billing-chart-container {
+    position: relative;
+}
+
+.admin-light .billing-custom-tooltip {
+    position: absolute;
+    z-index: 20;
+    display: none;
+    min-width: 320px;
+    max-width: calc(100% - 12px);
+    padding: 16px 18px;
+    pointer-events: none;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 10px;
+    background: #05090d;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
+    color: #e2e8f0;
+}
+
+.admin-light .billing-tooltip-title {
+    margin-bottom: 12px;
+    color: #f8fafc;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.admin-light .billing-tooltip-row {
+    display: grid;
+    grid-template-columns: 12px auto auto auto;
+    align-items: center;
+    column-gap: 8px;
+    min-height: 24px;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.admin-light .billing-tooltip-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.admin-light .billing-tooltip-swatch.services {
+    background: #4ade80;
+}
+
+.admin-light .billing-tooltip-swatch.sales {
+    background: #ffd600;
+}
+
+.admin-light .billing-tooltip-label,
+.admin-light .billing-tooltip-row strong {
+    color: #e2e8f0;
+}
+
+.admin-light .billing-tooltip-percent {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.admin-light .billing-tooltip-divider {
+    height: 1px;
+    margin: 10px 0 8px 20px;
+    background: rgba(148, 163, 184, 0.25);
+}
+
+.admin-light .billing-tooltip-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-left: 20px;
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.admin-light .billing-tooltip-total strong {
+    color: #4ade80;
+}
+
+@media (max-width: 700px) {
+    .admin-light .billing-custom-tooltip {
+        min-width: 280px;
+        padding: 14px 15px;
+    }
+
+    .admin-light .billing-tooltip-row {
+        font-size: 0.76rem;
+    }
+}
+
 /* Client details modal: framed profile view with a clear history hierarchy. */
 .admin-light #modal-client-details {
     align-items: center;

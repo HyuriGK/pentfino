@@ -1571,19 +1571,70 @@ const admin = {
         const formatPercent = (value, total) => total > 0
             ? `${((value / total) * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
             : '0,0%';
-        const tooltipPositionerName = 'billingBarTopRight';
+        canvas.parentElement?.querySelector('.billing-custom-tooltip')?.remove();
 
-        if (Chart.Tooltip?.positioners) {
-            Chart.Tooltip.positioners[tooltipPositionerName] = elements => {
-                const element = elements[0]?.element;
-                if (!element) return false;
+        const externalTooltipHandler = ({ chart, tooltip }) => {
+            const panel = chart.canvas.parentElement;
+            if (!panel) return;
 
-                return {
-                    x: element.x + (element.width || 0) / 2 + 4,
-                    y: element.y - 3
-                };
-            };
-        }
+            let tooltipEl = panel.querySelector('.billing-custom-tooltip');
+            if (!tooltipEl) {
+                tooltipEl = document.createElement('div');
+                tooltipEl.className = 'billing-custom-tooltip';
+                panel.appendChild(tooltipEl);
+            }
+
+            if (tooltip.opacity === 0 || !tooltip.dataPoints?.length) {
+                tooltipEl.style.display = 'none';
+                return;
+            }
+
+            const index = tooltip.dataPoints[0].dataIndex;
+            const serviceValue = Number(servicesData[index] || 0);
+            const salesValue = Number(salesData[index] || 0);
+            const dayTotal = serviceValue + salesValue;
+            const label = labels[index] || '--';
+            const sourceRow = (source, value, percentage, colorClass) => `
+                <div class="billing-tooltip-row">
+                    <span class="billing-tooltip-swatch ${colorClass}"></span>
+                    <span class="billing-tooltip-label">${source}:</span>
+                    <strong>${formatCurrency(value)}</strong>
+                    <span class="billing-tooltip-percent">(${percentage})</span>
+                </div>
+            `;
+
+            const tooltipContent = type === 'all'
+                ? [
+                    sourceRow('Serviços', serviceValue, formatPercent(serviceValue, dayTotal), 'services'),
+                    sourceRow('Vendas', salesValue, formatPercent(salesValue, dayTotal), 'sales'),
+                    '<div class="billing-tooltip-divider"></div>',
+                    `<div class="billing-tooltip-total"><span>Total</span><strong>${formatCurrency(dayTotal)}</strong></div>`
+                ].join('')
+                : sourceRow(typeLabels[type] || 'Faturamento', Number(tooltip.dataPoints[0].parsed.y || 0), '100,0%', type);
+
+            tooltipEl.innerHTML = `<div class="billing-tooltip-title">Dia ${label}</div>${tooltipContent}`;
+
+            const element = chart.getDatasetMeta(0).data[index];
+            if (!element) return;
+
+            tooltipEl.style.display = 'block';
+            tooltipEl.style.visibility = 'hidden';
+
+            const canvasLeft = chart.canvas.offsetLeft;
+            const canvasTop = chart.canvas.offsetTop;
+            const anchorX = canvasLeft + element.x + (element.width || 0) / 2 + 8;
+            const anchorY = canvasTop + element.y;
+            const minLeft = canvasLeft + 6;
+            const maxLeft = canvasLeft + chart.width - tooltipEl.offsetWidth - 6;
+            const left = Math.min(Math.max(anchorX, minLeft), Math.max(minLeft, maxLeft));
+            let top = anchorY - tooltipEl.offsetHeight - 10;
+
+            if (top < canvasTop + 6) top = anchorY + 10;
+
+            tooltipEl.style.left = `${left}px`;
+            tooltipEl.style.top = `${top}px`;
+            tooltipEl.style.visibility = 'visible';
+        };
 
         this.billingChart = new Chart(ctx, {
             type: 'bar',
@@ -1608,44 +1659,8 @@ const admin = {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        position: tooltipPositionerName,
-                        xAlign: 'left',
-                        yAlign: 'bottom',
-                        backgroundColor: '#05090d',
-                        borderColor: 'rgba(148, 163, 184, 0.45)',
-                        borderWidth: 1,
-                        cornerRadius: 9,
-                        displayColors: true,
-                        caretPadding: 8,
-                        padding: { top: 14, right: 18, bottom: 15, left: 18 },
-                        bodySpacing: 7,
-                        boxPadding: 5,
-                        titleMarginBottom: 11,
-                        titleFont: { family: 'Outfit, sans-serif', size: 15, weight: '800' },
-                        bodyFont: { family: 'Inter, sans-serif', size: 14, weight: '700', lineHeight: 1.35 },
-                        titleAlign: 'left',
-                        bodyAlign: 'left',
-                        titleColor: '#f8fafc',
-                        bodyColor: '#e2e8f0',
-                        callbacks: {
-                            title: items => `Dia ${items[0]?.label || '--'}`,
-                            label: context => {
-                                const index = context.dataIndex;
-                                const serviceValue = Number(servicesData[index] || 0);
-                                const salesValue = Number(salesData[index] || 0);
-                                const dayTotal = serviceValue + salesValue;
-
-                                if (type === 'all') {
-                                    return [
-                                        `Serviços: ${formatCurrency(serviceValue)} (${formatPercent(serviceValue, dayTotal)})`,
-                                        `Vendas: ${formatCurrency(salesValue)} (${formatPercent(salesValue, dayTotal)})`,
-                                        `Total: ${formatCurrency(dayTotal)}`
-                                    ];
-                                }
-
-                                return `${typeLabels[type] || 'Faturamento'}: ${formatCurrency(context.parsed.y)}`;
-                            }
-                        }
+                        enabled: false,
+                        external: externalTooltipHandler
                     }
                 },
                 scales: {
