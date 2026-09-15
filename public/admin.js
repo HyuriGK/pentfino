@@ -263,6 +263,7 @@ const admin = {
     selectedBillingType: 'all',
 
     async init() {
+        this.setupProfessionalPhotoPicker();
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         const initialLoads = [];
         if (['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) initialLoads.push(this.loadData());
@@ -2037,6 +2038,103 @@ const admin = {
         }).join('');
     },
 
+    setupProfessionalPhotoPicker() {
+        const fileInput = document.getElementById('modal-prof-photo-file');
+        if (!fileInput || fileInput.dataset.bound === 'true') return;
+
+        fileInput.dataset.bound = 'true';
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                auth.notify('Selecione uma imagem JPG, PNG ou WEBP.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                auth.notify('A foto precisa ter no máximo 5 MB.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            try {
+                const photoUrl = await this.prepareProfessionalPhoto(file);
+                document.getElementById('modal-prof-photo').value = photoUrl;
+                this.updateProfessionalPhotoPreview(photoUrl);
+            } catch (err) {
+                console.error('Erro ao preparar foto do barbeiro:', err);
+                auth.notify('Não foi possível preparar essa foto.', 'error');
+                fileInput.value = '';
+            }
+        });
+
+        document.getElementById('modal-prof-photo-clear')?.addEventListener('click', () => {
+            fileInput.value = '';
+            document.getElementById('modal-prof-photo').value = '';
+            this.updateProfessionalPhotoPreview('');
+        });
+
+        document.getElementById('modal-prof-name')?.addEventListener('input', () => {
+            if (!document.getElementById('modal-prof-photo').value) this.updateProfessionalPhotoPreview('');
+        });
+    },
+
+    prepareProfessionalPhoto(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('Falha ao ler o arquivo'));
+            reader.onload = () => {
+                const image = new Image();
+                image.onerror = () => reject(new Error('Arquivo de imagem inválido'));
+                image.onload = () => {
+                    const maxSize = 900;
+                    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+                    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+                    const context = canvas.getContext('2d');
+                    context.fillStyle = '#101920';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.82));
+                };
+                image.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    },
+
+    updateProfessionalPhotoPreview(photoUrl = '') {
+        const preview = document.getElementById('modal-prof-photo-preview');
+        const clearButton = document.getElementById('modal-prof-photo-clear');
+        if (!preview) return;
+
+        preview.replaceChildren();
+        if (photoUrl) {
+            const image = document.createElement('img');
+            image.src = photoUrl;
+            image.alt = 'Foto do barbeiro';
+            preview.appendChild(image);
+            clearButton?.classList.remove('hidden');
+            return;
+        }
+
+        const initials = document.getElementById('modal-prof-name')?.value
+            ?.split(' ')
+            .filter(Boolean)
+            .map(part => part[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase() || 'BP';
+        const fallback = document.createElement('span');
+        fallback.innerText = initials;
+        preview.appendChild(fallback);
+        clearButton?.classList.add('hidden');
+    },
+
     async editProfessional(id) {
         const prof = this.professionals.find(p => p.id === id);
         if (!prof) return;
@@ -2045,6 +2143,8 @@ const admin = {
         document.getElementById('modal-prof-name').value = prof.name;
         document.getElementById('modal-prof-phone').value = prof.phone || '';
         document.getElementById('modal-prof-photo').value = prof.photo_url || '';
+        document.getElementById('modal-prof-photo-file').value = '';
+        this.updateProfessionalPhotoPreview(prof.photo_url || '');
         document.getElementById('modal-prof-commission').value = prof.commission || '';
         document.getElementById('modal-prof-product-commission').value = prof.product_commission || '';
         
@@ -2278,6 +2378,8 @@ const admin = {
                 pName.value = '';
                 document.getElementById('modal-prof-phone').value = '';
                 document.getElementById('modal-prof-photo').value = '';
+                document.getElementById('modal-prof-photo-file').value = '';
+                this.updateProfessionalPhotoPreview('');
                 document.getElementById('modal-prof-commission').value = '';
                 document.getElementById('modal-prof-product-commission').value = '';
             }

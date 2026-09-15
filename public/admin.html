@@ -639,8 +639,13 @@
     <!-- MODAL NEW PROFESSIONAL -->
     <div id="modal-professional" class="modal-overlay hidden modal-side-panel">
         <div class="modal-content professional-modal-content">
-            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="modal-title">Novo Barbeiro</h2>
+            <header class="modal-header professional-modal-header">
+                <div>
+                    <span class="professional-modal-kicker">Equipe</span>
+                    <h2 class="modal-title">Novo Barbeiro</h2>
+                    <p class="professional-modal-subtitle">Cadastre o profissional e personalize como ele aparecerá para seus clientes.</p>
+                </div>
+                <button type="button" class="btn-icon-close" onclick="admin.closeModal('professional')" aria-label="Fechar modal">×</button>
             </header>
             <div class="input-group-new">
                 <label>Nome do Barbeiro</label>
@@ -650,9 +655,23 @@
                 <label>WhatsApp</label>
                 <input autocomplete="off" type="tel" id="modal-prof-phone" placeholder="Ex: (11) 99999-9999">
             </div>
-            <div class="input-group-new">
-                <label>Imagem (URL)</label>
-                <input autocomplete="off" type="text" id="modal-prof-photo" placeholder="https://...">
+            <div class="input-group-new professional-photo-group">
+                <label>Foto do perfil</label>
+                <div class="professional-photo-picker">
+                    <div id="modal-prof-photo-preview" class="professional-photo-preview" aria-hidden="true">
+                        <span>BP</span>
+                    </div>
+                    <div class="professional-photo-picker-copy">
+                        <strong>Mostre quem atende seus clientes</strong>
+                        <p>JPG, PNG ou WEBP · até 5 MB</p>
+                        <div class="professional-photo-picker-actions">
+                            <label for="modal-prof-photo-file" class="btn btn-ghost">Selecionar foto</label>
+                            <button type="button" id="modal-prof-photo-clear" class="professional-photo-clear hidden">Remover</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="modal-prof-photo-file" class="professional-photo-file" accept="image/jpeg,image/png,image/webp">
+                <input type="hidden" id="modal-prof-photo">
             </div>
             <div class="input-group-new">
                 <label>Comissão Serviços (%)</label>
