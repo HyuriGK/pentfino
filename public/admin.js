@@ -307,6 +307,13 @@ const admin = {
         this.openModal('share');
     },
 
+    openShareLink() {
+        const link = document.getElementById('share-link-input')?.value;
+        if (!link) return;
+        const newWindow = window.open(link, '_blank', 'noopener,noreferrer');
+        if (newWindow) newWindow.opener = null;
+    },
+
     confirmLogout() {
         this.openModal('logout');
     },
