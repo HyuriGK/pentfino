@@ -5415,6 +5415,108 @@ button.btn > svg {
     border-color: var(--border) !important;
 }
 
+/* Booking page: keep the visual sidebar quiet so the form remains the focus. */
+@media (min-width: 1025px) {
+    .booking-sidebar {
+        flex: 0 0 clamp(340px, 31vw, 460px);
+        padding: 42px 40px;
+    }
+
+    .booking-sidebar-content {
+        padding: 0;
+    }
+
+    .booking-sidebar .logo {
+        font-size: 1.05rem;
+    }
+
+    .booking-sidebar .logo-img {
+        width: 34px !important;
+        height: 34px !important;
+        margin-right: 8px !important;
+    }
+
+    .sidebar-hero-title {
+        max-width: 330px;
+        font-size: clamp(2rem, 3vw, 3.1rem);
+        line-height: 1.04;
+        letter-spacing: -1.4px;
+        margin-bottom: 1rem;
+    }
+
+    .booking-summary-box {
+        margin-top: clamp(3.5rem, 8vh, 5rem);
+    }
+
+    .sidebar-hero-title::after {
+        display: block;
+        margin-top: 0.12em;
+        font-size: 0.88em;
+    }
+
+    .sidebar-desc {
+        max-width: 320px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+
+    .booking-summary-box #active-booking-summary {
+        max-width: 360px;
+        padding: 12px 14px;
+        border-radius: 10px;
+    }
+
+    .booking-body .summary-item {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 8px 0;
+        font-size: 0.8rem;
+    }
+
+    .booking-body .summary-item .value {
+        text-align: right;
+    }
+
+    .booking-main {
+        padding: 64px clamp(32px, 5vw, 80px) 46px;
+    }
+
+    .step-container {
+        max-width: 700px;
+    }
+
+    .success-screen {
+        max-width: 520px;
+        margin: 0 auto;
+    }
+
+    .booking-body .success-icon {
+        width: 58px;
+        height: 58px;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .success-title {
+        font-size: clamp(2rem, 3vw, 2.7rem);
+        letter-spacing: -1px;
+    }
+
+    .success-desc {
+        margin-bottom: 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .booking-body .success-card {
+        max-width: 360px;
+        margin: 0 auto;
+        padding: 14px 16px;
+    }
+}
+
 @media (max-width: 900px) {
     .admin-light .dashboard-header {
         align-items: flex-start;
