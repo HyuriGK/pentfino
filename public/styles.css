@@ -5806,11 +5806,52 @@ button.btn > svg {
 }
 
 /* Inventory modal: give the product form more horizontal breathing room. */
+.admin-light #modal-inventory {
+    align-items: center;
+    justify-content: center;
+    padding: 16px !important;
+}
+
 .admin-light #modal-inventory .inventory-modal-content {
-    width: min(100%, 800px) !important;
-    max-width: 800px !important;
-    padding: 32px 40px 30px;
+    width: min(100%, 960px) !important;
+    max-width: 960px !important;
+    height: auto !important;
+    max-height: calc(100vh - 32px) !important;
+    padding: 22px 40px 20px;
+    overflow: hidden;
     border-radius: 16px;
+}
+
+.admin-light #modal-inventory .inventory-modal-content .modal-header {
+    margin-bottom: 16px;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > .input-group-new {
+    margin-bottom: 12px;
+}
+
+.admin-light #modal-inventory .inventory-modal-content .input-group-new label {
+    margin-bottom: 7px;
+}
+
+.admin-light #modal-inventory .inventory-modal-content .input-group-new input {
+    min-height: 48px;
+    padding-block: 11px;
+}
+
+.admin-light #modal-inventory .inventory-modal-content textarea {
+    height: 64px !important;
+    min-height: 64px !important;
+    padding-block: 10px !important;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > div[style*="grid-template-columns"] {
+    gap: 16px !important;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > .btn-full {
+    min-height: 48px;
+    margin-top: 8px !important;
 }
 
 .admin-light #modal-share .share-actions {
@@ -5831,7 +5872,7 @@ button.btn > svg {
 }
 
 .admin-light #modal-inventory .inventory-modal-content > .input-group-new {
-    margin-bottom: 18px;
+    margin-bottom: 12px;
 }
 
 .admin-light #modal-inventory .inventory-modal-content > div[style*="grid-template-columns"] {
@@ -5841,6 +5882,12 @@ button.btn > svg {
 @media (max-width: 760px) {
     .admin-light #modal-inventory .inventory-modal-content {
         padding: 24px 20px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .admin-light #modal-inventory .inventory-modal-content::-webkit-scrollbar {
+        display: none;
     }
 }
 
