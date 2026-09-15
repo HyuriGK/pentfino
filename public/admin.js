@@ -1459,8 +1459,8 @@ const admin = {
 
     setBillingType(type) {
         this.selectedBillingType = ['all', 'services', 'sales'].includes(type) ? type : 'all';
-        document.querySelectorAll('#billing-chart-filters .billing-filter-btn, .billing-chart-filters .billing-filter-btn')
-            .forEach(button => button.classList.toggle('active', button.getAttribute('onclick')?.includes(`'${this.selectedBillingType}'`)));
+        const selector = document.getElementById('billing-type-selector');
+        if (selector) selector.value = this.selectedBillingType;
         this.loadBillingData();
     },
 
@@ -1493,7 +1493,6 @@ const admin = {
         const monthHeader = document.getElementById('billing-chart-month');
         if (monthHeader) {
             monthHeader.innerText = `${monthNames[month]} ${year}`;
-            if (monthHeader.parentElement) monthHeader.parentElement.firstChild.textContent = 'Mês selecionado: ';
         }
 
         await this.loadSales();

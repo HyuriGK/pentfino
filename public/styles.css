@@ -6116,7 +6116,7 @@ textarea:focus-visible,
     display: flex;
     gap: 8px;
     width: 100%;
-    margin-bottom: 12px;
+    margin-bottom: 18px;
     padding: 8px;
     overflow-x: auto;
     border: 1px solid var(--border-bright);
@@ -6132,27 +6132,53 @@ textarea:focus-visible,
     font-weight: 800 !important;
 }
 
-.admin-light .billing-month-btn.active,
-.admin-light .billing-filter-btn.active {
+.admin-light .billing-month-btn.active {
     background: var(--primary) !important;
     color: #111 !important;
     border-color: var(--primary) !important;
 }
 
-.admin-light .billing-chart-filters {
+.admin-light .billing-chart-header {
     display: flex;
-    gap: 8px;
-    margin-bottom: 18px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 2rem;
 }
 
-.admin-light .billing-filter-btn {
-    min-width: 92px;
-    min-height: 34px;
-    padding: 6px 14px !important;
-    border-radius: 7px !important;
+.admin-light .billing-chart-heading-copy {
+    min-width: 0;
+}
+
+.admin-light .billing-chart-header h3 {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.admin-light .billing-chart-period {
+    margin-top: 7px;
     color: var(--text-muted);
-    font-size: 0.76rem !important;
-    font-weight: 800 !important;
+    font-size: 0.8rem;
+}
+
+.admin-light .billing-type-select {
+    min-width: 142px;
+    min-height: 38px;
+    padding: 7px 12px !important;
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-align: left !important;
+    text-align-last: left !important;
+    appearance: auto !important;
+    -webkit-appearance: auto !important;
 }
 
 .admin-light #billingDailyChart {
@@ -6164,6 +6190,15 @@ textarea:focus-visible,
 }
 
 @media (max-width: 700px) {
+    .admin-light .billing-chart-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-light .billing-type-select {
+        width: 100%;
+    }
+
     .admin-light .billing-chart-container {
         min-height: 440px;
     }
