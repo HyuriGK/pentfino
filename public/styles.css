@@ -6789,3 +6789,34 @@ textarea:focus-visible,
     }
 }
 
+/* Professional creation modal: centered and wider on desktop. */
+.admin-light #modal-professional {
+    align-items: center;
+    justify-content: center;
+    padding: 24px !important;
+}
+
+.admin-light #modal-professional .professional-modal-content {
+    width: min(100%, 800px) !important;
+    max-width: 800px !important;
+    height: auto;
+    max-height: calc(100vh - 48px);
+    padding: 32px 40px 30px;
+    overflow-y: auto;
+    border-radius: 16px;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-professional {
+        align-items: flex-end;
+        padding: 10px !important;
+    }
+
+    .admin-light #modal-professional .professional-modal-content {
+        width: 100% !important;
+        max-width: none !important;
+        max-height: calc(100vh - 20px);
+        padding: 24px 20px;
+    }
+}
+
