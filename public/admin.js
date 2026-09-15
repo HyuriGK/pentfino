@@ -1490,7 +1490,10 @@ const admin = {
 
     billingDateParts(value) {
         const raw = String(value || '');
-        const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        // Date-only fields (like appointment_date) must stay date-only. Timestamps
+        // need to be converted to the local timezone before extracting the day,
+        // otherwise a sale near midnight can appear on the following day.
+        const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (match) {
             return { year: Number(match[1]), month: Number(match[2]) - 1, day: Number(match[3]) };
         }
