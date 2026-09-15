@@ -1037,7 +1037,7 @@ const admin = {
                     <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${statusLabels[h.status] || h.status}</span></td>
                     <td style="padding: 15px; text-align: center;">
-                        <button class="btn btn-ghost" style="color: var(--danger); width: 32px; height: 32px; padding: 0; font-size: 1.2rem;" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
+                        <button class="btn-queue-cancel" aria-label="Excluir atendimento" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
                     </td>
                 </tr>
             `).join('') : '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
