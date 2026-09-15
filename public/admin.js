@@ -2144,7 +2144,7 @@ const admin = {
                 <td>
                     <div class="service-actions">
                         <button class="btn btn-ghost btn-sm" onclick="admin.editService(${s.id})">Editar</button>
-                        <button class="btn btn-ghost btn-sm btn-delete" onclick="admin.deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}')">Excluir</button>
+                        <button class="btn-queue-cancel" aria-label="Excluir serviço" onclick="admin.deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}')">×</button>
                     </div>
                 </td>
             </tr>
