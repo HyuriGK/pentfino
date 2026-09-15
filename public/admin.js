@@ -574,6 +574,19 @@ const admin = {
                 return auth.notify(data.message || 'Nao foi possivel salvar o usuario.', 'error');
             }
 
+            const savedUser = data.user;
+            const isCurrentUser = savedUser && auth.user && String(savedUser.id) === String(auth.user.id);
+            if (isCurrentUser) {
+                auth.user = {
+                    ...auth.user,
+                    ...savedUser,
+                    shop_name: savedUser.shop_name,
+                    role: savedUser.is_admin ? 'administrador' : 'operador'
+                };
+                authStorage.write('barberpoint_user', JSON.stringify(auth.user));
+                auth.applyDashboardAccess();
+            }
+
             this.cancelUserEdit();
             auth.notify(id ? 'Usuario atualizado com sucesso!' : 'Usuario criado com sucesso!', 'success');
             this.loadUsers();
