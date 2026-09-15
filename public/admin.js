@@ -1325,7 +1325,7 @@ const admin = {
                 </td>
                 <td style="color: var(--primary); font-weight: 800; font-size: 1.1rem;">R$ ${parseFloat(s.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td>
-                    <button class="btn btn-ghost" style="color: var(--danger); font-size: 1.2rem; width: 32px; height: 32px; padding: 0;" onclick="admin.deleteSale(${s.id}, '${s.item_name.replace(/'/g, "\\'")}')">×</button>
+                    <button class="btn-queue-cancel" aria-label="Excluir venda" onclick="admin.deleteSale(${s.id}, '${s.item_name.replace(/'/g, "\\'")}')">×</button>
                 </td>
             </tr>
         `).join('');
