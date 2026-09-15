@@ -1120,43 +1120,49 @@
     <script src="admin.js"></script>
     <!-- Client Details Modal (Full Screen) -->
     <div id="modal-client-details" class="modal-overlay modal-full hidden">
-        <div class="modal-content glass"
-            style="max-width: 1000px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header" style="flex-shrink: 0;">
-                <div>
-                    <h2 id="detail-client-name"
-                        style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 4px;">--</h2>
-                    <p id="detail-client-phone" style="color: var(--text-muted); font-size: 0.9rem;">--</p>
+        <div class="modal-content glass client-details-content">
+            <div class="client-details-header">
+                <div class="client-detail-identity">
+                    <div id="detail-client-initials" class="client-detail-avatar">--</div>
+                    <div>
+                        <span class="client-detail-kicker">Perfil do cliente</span>
+                        <h2 id="detail-client-name" class="client-detail-name">--</h2>
+                        <p id="detail-client-phone" class="client-detail-phone">--</p>
+                    </div>
                 </div>
                 <button class="btn-icon-close" onclick="admin.closeModal('client-details')">×</button>
             </div>
 
-            <div class="modal-body" style="overflow-y: auto; padding: 0 40px 40px 40px;">
+            <div class="modal-body client-details-body">
                 <!-- KPI Cards -->
-                <div class="stat-grid" style="margin-bottom: 40px;">
-                    <div class="stat-card glass">
+                <div class="stat-grid client-detail-stats">
+                    <div class="stat-card glass client-detail-stat">
                         <label class="input-label-mini">Faturamento Total</label>
-                        <h3 id="detail-total-spent" style="font-size: 2rem; color: var(--primary);">R$ 0,00</h3>
+                        <h3 id="detail-total-spent">R$ 0,00</h3>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card glass client-detail-stat">
                         <label class="input-label-mini">Total de Visitas</label>
-                        <h3 id="detail-visit-count" style="font-size: 2rem; color: var(--primary);">0</h3>
+                        <h3 id="detail-visit-count">0</h3>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card glass client-detail-stat">
                         <label class="input-label-mini">Ticket Médio</label>
-                        <h3 id="detail-avg-ticket" style="font-size: 2rem; color: var(--primary);">R$ 0,00</h3>
+                        <h3 id="detail-avg-ticket">R$ 0,00</h3>
                     </div>
-                    <div class="stat-card glass">
+                    <div class="stat-card glass client-detail-stat">
                         <label class="input-label-mini">Intervalo Médio</label>
-                        <h3 id="detail-avg-interval" style="font-size: 2rem; color: var(--primary);">--</h3>
+                        <h3 id="detail-avg-interval">--</h3>
                     </div>
                 </div>
 
-                <h3
-                    style="margin-bottom: 24px; font-size: 1.25rem; font-family: 'Outfit', sans-serif; letter-spacing: -0.5px; color: var(--primary);">
-                    Histórico de Atendimentos</h3>
-                <div class="table-responsive">
-                    <table class="data-table">
+                <div class="client-history-heading">
+                    <div>
+                        <span class="client-detail-kicker">Atendimentos</span>
+                        <h3>Histórico de Atendimentos</h3>
+                    </div>
+                    <span class="client-history-caption">Serviços realizados pelo cliente</span>
+                </div>
+                <div class="table-responsive client-history-table-shell">
+                    <table class="data-table client-history-table">
                         <thead>
                             <tr>
                                 <th>Data</th>
@@ -1164,6 +1170,7 @@
                                 <th>Barbeiro</th>
                                 <th>Valor</th>
                                 <th>Status</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="client-history-table-body">

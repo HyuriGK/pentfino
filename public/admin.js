@@ -979,6 +979,13 @@ const admin = {
             // Fill headers
             document.getElementById('detail-client-name').innerText = client.name;
             document.getElementById('detail-client-phone').innerText = client.phone;
+            document.getElementById('detail-client-initials').innerText = client.name
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(namePart => namePart[0])
+                .join('')
+                .toUpperCase() || 'CL';
             
             // Fill KPIs
             const totalSpent = parseFloat(stats.total_spent || 0);
@@ -1010,18 +1017,23 @@ const admin = {
             
             // Render History
             const historyContainer = document.getElementById('client-history-table-body');
+            const statusLabels = {
+                completed: 'Concluído',
+                canceled: 'Cancelado',
+                pending: 'Pendente'
+            };
             historyContainer.innerHTML = history.length > 0 ? history.map(h => `
                 <tr style="background: rgba(255,255,255,0.02)">
                     <td style="padding: 15px;">${new Date(h.created_at).toLocaleDateString('pt-BR')} ${h.appointment_time}</td>
                     <td style="padding: 15px;">${h.service_name}</td>
                     <td style="padding: 15px; color: var(--primary); font-weight: 600;">${h.professional_name || 'Geral'}</td>
                     <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${h.status}</span></td>
+                    <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${statusLabels[h.status] || h.status}</span></td>
                     <td style="padding: 15px; text-align: center;">
                         <button class="btn btn-ghost" style="color: var(--danger); width: 32px; height: 32px; padding: 0; font-size: 1.2rem;" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
                     </td>
                 </tr>
-            `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
+            `).join('') : '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
             
             this.openModal('client-details');
         } catch (err) {
