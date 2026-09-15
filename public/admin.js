@@ -99,33 +99,42 @@ const auth = {
     },
 
     notify(message, type = 'info') {
-        const icon = type === 'error' ? '×' : (type === 'success' ? '✓' : 'i');
-        const bgColor = type === 'error' ? 'var(--danger)' : (type === 'success' ? 'var(--success)' : 'var(--primary)');
-        
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: ${bgColor};
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 10000;
-            animation: slideIn 0.3s ease-out;
-            font-weight: 600;
-        `;
-        toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
-        document.body.appendChild(toast);
+        const variant = ['success', 'error', 'info'].includes(type) ? type : 'info';
+        const icon = variant === 'error' ? '×' : (variant === 'success' ? '✓' : 'i');
+        const title = variant === 'error' ? 'Não foi possível concluir' : (variant === 'success' ? 'Concluído' : 'Atenção');
+        const container = document.getElementById('toast-container') || (() => {
+            const element = document.createElement('div');
+            element.id = 'toast-container';
+            element.className = 'app-toast-container';
+            element.setAttribute('aria-live', 'polite');
+            document.body.appendChild(element);
+            return element;
+        })();
 
-        setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease-in forwards';
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
+        const toast = document.createElement('div');
+        toast.className = `app-toast app-toast--${variant}`;
+        toast.setAttribute('role', variant === 'error' ? 'alert' : 'status');
+        toast.innerHTML = `
+            <span class="app-toast-icon" aria-hidden="true">${icon}</span>
+            <span class="app-toast-content">
+                <strong class="app-toast-title">${title}</strong>
+                <span class="app-toast-message">${message}</span>
+            </span>
+            <span class="app-toast-progress" aria-hidden="true"></span>
+        `;
+        container.appendChild(toast);
+
+        const closeToast = () => {
+            if (!toast.isConnected) return;
+            toast.classList.add('is-closing');
+            setTimeout(() => {
+                toast.remove();
+                if (!container.children.length) container.remove();
+            }, 260);
+        };
+
+        // The progress bar and dismissal share the same fixed three-second lifetime.
+        setTimeout(closeToast, 3000);
     },
 
     toggleForm(type) {
