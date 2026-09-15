@@ -112,17 +112,27 @@ pool.on('connect', () => {
         CREATE TABLE IF NOT EXISTS sales (
             id SERIAL PRIMARY KEY,
             barber_id INTEGER REFERENCES barbers(id),
-            inventory_id INTEGER REFERENCES inventory(id),
+            item_id INTEGER REFERENCES inventory(id),
             client_id INTEGER REFERENCES clients(id),
             professional_id INTEGER REFERENCES professionals(id),
             quantity INTEGER NOT NULL,
+            price_at_sale DECIMAL(10,2) DEFAULT 0,
             total_price DECIMAL(10,2) NOT NULL,
+            commission_rate DECIMAL(5,2) DEFAULT 0,
+            commission_value DECIMAL(10,2) DEFAULT 0,
             sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (sales):', e));
     // Migration for existing table
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS item_id INTEGER REFERENCES inventory(id)')
+        .then(() => pool.query('UPDATE sales SET item_id = inventory_id WHERE item_id IS NULL AND inventory_id IS NOT NULL'))
+        .catch(() => {});
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS client_id INTEGER REFERENCES clients(id)').catch(() => {});
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS professional_id INTEGER REFERENCES professionals(id)').catch(() => {});
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS price_at_sale DECIMAL(10,2) DEFAULT 0').catch(() => {});
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5,2) DEFAULT 0').catch(() => {});
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_value DECIMAL(10,2) DEFAULT 0').catch(() => {});
+    pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP').catch(() => {});
     pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE').catch(() => {});
     pool.query("ALTER TABLE barbers ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '{}'::jsonb").catch(() => {});
     pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE').catch(() => {});
@@ -835,7 +845,7 @@ app.get('/api/sales/:barberId', authenticateToken, requireAnyPermission('vendas'
              LEFT JOIN clients c ON s.client_id = c.id
              LEFT JOIN professionals p ON s.professional_id = p.id
              WHERE s.barber_id = $1 
-             ORDER BY s.created_at DESC`,
+             ORDER BY s.sale_date DESC`,
             [barberId]
         );
         res.json(result.rows);

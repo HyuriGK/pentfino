@@ -6106,3 +6106,69 @@ textarea:focus-visible,
     color: #fff !important;
 }
 
+/* Billing chart controls and always-visible daily bar chart. */
+.admin-light .billing-chart-container {
+    min-height: 500px;
+}
+
+.admin-light .billing-month-selector {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+}
+
+.admin-light .billing-month-btn {
+    flex: 1 0 54px;
+    min-height: 36px;
+    padding: 7px 10px !important;
+    border-radius: 7px !important;
+    font-size: 0.76rem !important;
+    font-weight: 800 !important;
+}
+
+.admin-light .billing-month-btn.active,
+.admin-light .billing-filter-btn.active {
+    background: var(--primary) !important;
+    color: #111 !important;
+    border-color: var(--primary) !important;
+}
+
+.admin-light .billing-chart-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.admin-light .billing-filter-btn {
+    min-width: 92px;
+    min-height: 34px;
+    padding: 6px 14px !important;
+    border-radius: 7px !important;
+    color: var(--text-muted);
+    font-size: 0.76rem !important;
+    font-weight: 800 !important;
+}
+
+.admin-light #billingDailyChart {
+    display: block;
+    width: 100% !important;
+    height: 340px !important;
+    max-height: none !important;
+    flex: 1 1 auto;
+}
+
+@media (max-width: 700px) {
+    .admin-light .billing-chart-container {
+        min-height: 440px;
+    }
+
+    .admin-light #billingDailyChart {
+        height: 280px !important;
+    }
+}
+

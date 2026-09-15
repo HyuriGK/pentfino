@@ -23,7 +23,8 @@
             if (hasStoredSession) document.documentElement.classList.add('session-restore-pending');
         } catch (_) { /* The regular login screen remains available if storage is blocked. */ }
     </script>
-    <!-- FullCalendar CDNs -->
+    <!-- Chart and FullCalendar CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales-all.global.min.js"></script>
 </head>
@@ -267,6 +268,25 @@
                     <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;">Evolução Diária de Receita</h3>
                         <div style="font-size: 0.8rem; color: var(--text-muted);">Mês Atual: <span id="billing-chart-month">Novembro</span></div>
+                    </div>
+                    <div id="billing-month-selector" class="glass billing-month-selector" aria-label="Selecionar mês">
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(0)">Jan</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(1)">Fev</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(2)">Mar</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(3)">Abr</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(4)">Mai</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(5)">Jun</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(6)">Jul</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(7)">Ago</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(8)">Set</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(9)">Out</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(10)">Nov</button>
+                        <button class="btn btn-ghost billing-month-btn" onclick="admin.setBillingMonth(11)">Dez</button>
+                    </div>
+                    <div id="billing-chart-filters" class="billing-chart-filters" role="group" aria-label="Filtrar faturamento">
+                        <button class="btn btn-ghost billing-filter-btn active" onclick="admin.setBillingType('all')">Todos</button>
+                        <button class="btn btn-ghost billing-filter-btn" onclick="admin.setBillingType('services')">Serviços</button>
+                        <button class="btn btn-ghost billing-filter-btn" onclick="admin.setBillingType('sales')">Vendas</button>
                     </div>
                     <div id="billing-chart-empty" class="billing-chart-empty hidden">
                         <div class="billing-chart-empty-icon">₿</div>

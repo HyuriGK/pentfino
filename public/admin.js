@@ -250,6 +250,8 @@ const admin = {
     professionals: [],
     services: [],
     editingInventoryId: null,
+    selectedBillingMonth: new Date().getMonth(),
+    selectedBillingType: 'all',
 
     async init() {
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
@@ -631,7 +633,7 @@ const admin = {
             });
 
             const profSales = salesData.filter(s => {
-                const sDate = new Date(s.created_at);
+                const sDate = new Date(s.sale_date || s.created_at);
                 const isCorrectMonth = sDate.getMonth() === this.selectedCommMonth && sDate.getFullYear() === currentYear;
                 return String(s.professional_id) === String(p.id) && isCorrectMonth;
             });
@@ -718,7 +720,7 @@ const admin = {
         });
 
         const profSales = (this.sales || []).filter(s => {
-            const sDate = new Date(s.created_at);
+            const sDate = new Date(s.sale_date || s.created_at);
             const isCorrectMonth = sDate.getMonth() === this.selectedCommMonth && sDate.getFullYear() === currentYear;
             return String(s.professional_id) === String(profId) && isCorrectMonth;
         });
@@ -760,8 +762,8 @@ const admin = {
                 type: 'Serviço'
             })),
             ...profSales.map(s => ({
-                date: new Date(s.created_at),
-                time: new Date(s.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                date: new Date(s.sale_date || s.created_at),
+                time: new Date(s.sale_date || s.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
                 client: s.client_name || 'Consumidor',
                 desc: `Venda: ${s.item_name}`,
                 gen: parseFloat(s.total_price || 0),
@@ -1297,8 +1299,8 @@ const admin = {
         container.innerHTML = this.sales.map(s => `
             <tr>
                 <td style="color: var(--text-muted); font-size: 0.8rem;">
-                    ${new Date(s.created_at).toLocaleDateString('pt-BR')}<br>
-                    <small>${new Date(s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                    ${new Date(s.sale_date || s.created_at).toLocaleDateString('pt-BR')}<br>
+                    <small>${new Date(s.sale_date || s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
                 </td>
                 <td style="font-weight: 500;">${s.client_name || '<span style="color: var(--text-muted); font-style: italic;">Consumidor</span>'}</td>
                 <td><strong style="color: var(--text-main);">${s.item_name}</strong></td>
@@ -1348,7 +1350,7 @@ const admin = {
 
         // Sum Sales (Products)
         (this.sales || []).forEach(s => {
-            const d = new Date(s.created_at);
+            const d = new Date(s.sale_date || s.created_at);
             if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                 const day = d.getDate();
                 const val = parseFloat(s.total_price || 0);
@@ -1443,6 +1445,146 @@ const admin = {
                     x: {
                         grid: { display: false },
                         ticks: { color: chartMuted }
+                    }
+                }
+            }
+        });
+    },
+
+    setBillingMonth(month) {
+        this.selectedBillingMonth = Number(month);
+        this.updateBillingMonthUI();
+        this.loadBillingData();
+    },
+
+    setBillingType(type) {
+        this.selectedBillingType = ['all', 'services', 'sales'].includes(type) ? type : 'all';
+        document.querySelectorAll('#billing-chart-filters .billing-filter-btn, .billing-chart-filters .billing-filter-btn')
+            .forEach(button => button.classList.toggle('active', button.getAttribute('onclick')?.includes(`'${this.selectedBillingType}'`)));
+        this.loadBillingData();
+    },
+
+    updateBillingMonthUI() {
+        document.querySelectorAll('#billing-month-selector .billing-month-btn')
+            .forEach((button, index) => button.classList.toggle('active', index === this.selectedBillingMonth));
+    },
+
+    billingDateParts(value) {
+        const raw = String(value || '');
+        const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            return { year: Number(match[1]), month: Number(match[2]) - 1, day: Number(match[3]) };
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return { year: date.getFullYear(), month: date.getMonth(), day: date.getDate() };
+    },
+
+    async loadBillingData() {
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const month = Number.isInteger(this.selectedBillingMonth) ? this.selectedBillingMonth : new Date().getMonth();
+        const year = new Date().getFullYear();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const servicesData = Array(daysInMonth).fill(0);
+        const salesData = Array(daysInMonth).fill(0);
+
+        this.updateBillingMonthUI();
+        const monthHeader = document.getElementById('billing-chart-month');
+        if (monthHeader) {
+            monthHeader.innerText = `${monthNames[month]} ${year}`;
+            if (monthHeader.parentElement) monthHeader.parentElement.firstChild.textContent = 'Mês selecionado: ';
+        }
+
+        await this.loadSales();
+
+        (this.allAppointments || []).forEach(appointment => {
+            if (appointment.status !== 'completed') return;
+            const date = this.billingDateParts(appointment.appointment_date);
+            if (!date || date.year !== year || date.month !== month) return;
+            servicesData[date.day - 1] += parseFloat(appointment.service_price || 0);
+        });
+
+        (this.sales || []).forEach(sale => {
+            const date = this.billingDateParts(sale.sale_date || sale.created_at);
+            if (!date || date.year !== year || date.month !== month) return;
+            salesData[date.day - 1] += parseFloat(sale.total_price || 0);
+        });
+
+        const type = this.selectedBillingType || 'all';
+        const dailyData = servicesData.map((serviceValue, index) => {
+            if (type === 'services') return serviceValue;
+            if (type === 'sales') return salesData[index];
+            return serviceValue + salesData[index];
+        });
+        const totalMonth = dailyData.reduce((total, value) => total + value, 0);
+        const goal = 15000;
+        const remaining = Math.max(0, goal - totalMonth);
+        const percent = Math.min(100, (totalMonth / goal) * 100);
+
+        document.getElementById('billing-total-month')?.replaceChildren(`R$ ${totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
+        const remainingEl = document.getElementById('billing-remaining');
+        if (remainingEl) {
+            remainingEl.style.color = totalMonth >= goal ? 'var(--success)' : '';
+            remainingEl.innerText = totalMonth >= goal ? 'Meta Atingida!' : `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        }
+        const statusEl = document.getElementById('billing-goal-status');
+        if (statusEl) statusEl.innerText = `${percent.toFixed(1)}% da meta atingida`;
+
+        this.renderBillingChart(dailyData, monthNames[month], type);
+    },
+
+    renderBillingChart(data, monthName, type = 'all') {
+        const canvas = document.getElementById('billingDailyChart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        if (this.billingChart) this.billingChart.destroy();
+
+        document.getElementById('billing-chart-empty')?.classList.add('hidden');
+        canvas.classList.remove('hidden');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const styles = getComputedStyle(document.body);
+        const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#94a3b8';
+        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(148, 163, 184, 0.16)' : 'rgba(255,255,255,0.08)';
+        const labels = data.map((_, index) => String(index + 1).padStart(2, '0'));
+        const typeLabels = { all: 'Todos', services: 'Serviços', sales: 'Vendas' };
+
+        this.billingChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: `${typeLabels[type] || 'Todos'} — ${monthName}`,
+                    data,
+                    backgroundColor: 'rgba(34, 197, 94, 0.72)',
+                    borderColor: '#22c55e',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    hoverBackgroundColor: '#4ade80'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 350 },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: context => `R$ ${Number(context.parsed.y || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: chartGrid },
+                        ticks: { color: chartMuted, callback: value => `R$ ${value}` }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: chartMuted, autoSkip: false, maxRotation: 0, minRotation: 0, font: { size: 10 } }
                     }
                 }
             }
@@ -1668,6 +1810,9 @@ const admin = {
             await this.loadSales();
             await this.loadInventory();
             await this.loadData();
+            if (!document.getElementById('tab-billing')?.classList.contains('hidden')) {
+                await this.loadBillingData();
+            }
             this.closeModal('sales');
             auth.notify('Venda registrada com sucesso!', 'success');
         } catch (err) { alert('Erro ao registrar venda: ' + err.message); }
