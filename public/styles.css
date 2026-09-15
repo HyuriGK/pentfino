@@ -6356,6 +6356,7 @@ textarea:focus-visible,
 .admin-light #modal-client-details .client-history-table {
     width: 100%;
     min-width: 820px;
+    margin-top: 0 !important;
     border-collapse: collapse;
 }
 
