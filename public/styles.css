@@ -5523,14 +5523,15 @@ button.btn > svg {
 }
 
 .admin-light .billing-chart-empty {
-    min-height: clamp(300px, 42vh, 520px);
-    flex: 1 1 auto;
+    min-height: 240px;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     gap: 8px;
-    padding: 28px 36px 40px;
+    padding: 28px 36px;
+    margin-bottom: 0;
     text-align: left;
     border: 0;
     border-radius: 0;
@@ -5540,6 +5541,7 @@ button.btn > svg {
 .admin-light .billing-chart-container {
     display: flex;
     flex-direction: column;
+    margin-bottom: 24px;
 }
 
 .admin-light .billing-chart-empty-icon {
