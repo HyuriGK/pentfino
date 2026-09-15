@@ -1608,12 +1608,14 @@ const admin = {
 
             const tooltipContent = type === 'all'
                 ? [
-                    sourceRow('Serviços', serviceValue, formatPercent(serviceValue, dayTotal), 'services'),
-                    sourceRow('Vendas', salesValue, formatPercent(salesValue, dayTotal), 'sales'),
+                    `<div class="billing-tooltip-table">${[
+                        sourceRow('Serviços', serviceValue, formatPercent(serviceValue, dayTotal), 'services'),
+                        sourceRow('Vendas', salesValue, formatPercent(salesValue, dayTotal), 'sales')
+                    ].join('')}</div>`,
                     '<div class="billing-tooltip-divider"></div>',
                     `<div class="billing-tooltip-total"><span>Total</span><strong>${formatCurrency(dayTotal)}</strong></div>`
                 ].join('')
-                : sourceRow(typeLabels[type] || 'Faturamento', Number(tooltip.dataPoints[0].parsed.y || 0), '100,0%', type);
+                : `<div class="billing-tooltip-table">${sourceRow(typeLabels[type] || 'Faturamento', Number(tooltip.dataPoints[0].parsed.y || 0), '100,0%', type)}</div>`;
 
             tooltipEl.innerHTML = `<div class="billing-tooltip-title">Dia ${label}</div>${tooltipContent}`;
 

@@ -6253,7 +6253,7 @@ textarea:focus-visible,
     position: absolute;
     z-index: 20;
     display: none;
-    min-width: 320px;
+    min-width: 370px;
     max-width: calc(100% - 12px);
     padding: 16px 18px;
     pointer-events: none;
@@ -6275,10 +6275,10 @@ textarea:focus-visible,
 
 .admin-light .billing-tooltip-row {
     display: grid;
-    grid-template-columns: 12px auto auto auto;
+    grid-template-columns: 12px minmax(104px, 1fr) minmax(84px, auto) minmax(68px, auto);
     align-items: center;
-    column-gap: 8px;
-    min-height: 24px;
+    column-gap: 0;
+    min-height: 30px;
     white-space: nowrap;
     font-family: 'Inter', sans-serif;
     font-size: 0.84rem;
@@ -6305,6 +6305,19 @@ textarea:focus-visible,
     color: #e2e8f0;
 }
 
+.admin-light .billing-tooltip-label {
+    padding-left: 10px;
+}
+
+.admin-light .billing-tooltip-row strong,
+.admin-light .billing-tooltip-percent {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    border-left: 1px solid rgba(148, 163, 184, 0.26);
+}
+
 .admin-light .billing-tooltip-percent {
     color: #94a3b8;
     font-weight: 700;
@@ -6312,16 +6325,16 @@ textarea:focus-visible,
 
 .admin-light .billing-tooltip-divider {
     height: 1px;
-    margin: 10px 0 8px 20px;
+    margin: 10px 0 8px;
     background: rgba(148, 163, 184, 0.25);
 }
 
 .admin-light .billing-tooltip-total {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    justify-content: space-between;
     gap: 24px;
-    padding-left: 20px;
+    padding-left: 26px;
     color: #f8fafc;
     font-family: 'Inter', sans-serif;
     font-size: 0.86rem;
@@ -6334,11 +6347,12 @@ textarea:focus-visible,
 
 @media (max-width: 700px) {
     .admin-light .billing-custom-tooltip {
-        min-width: 280px;
+        min-width: 300px;
         padding: 14px 15px;
     }
 
     .admin-light .billing-tooltip-row {
+        grid-template-columns: 12px minmax(86px, 1fr) minmax(76px, auto) minmax(58px, auto);
         font-size: 0.76rem;
     }
 }
