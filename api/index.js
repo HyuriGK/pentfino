@@ -533,22 +533,32 @@ app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('cli
 
 app.delete('/api/clients/:id', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
     const { id } = req.params;
+    let db;
     try {
         const clientRes = await pool.query('SELECT name, phone FROM clients WHERE id = $1', [id]);
         if (clientRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Cliente não encontrado' });
         
         const { name, phone } = clientRes.rows[0];
+        db = await pool.connect();
         
+        await db.query('BEGIN');
         // Delete associated appointments
-        await pool.query('DELETE FROM appointments WHERE client_name = $1 AND client_phone = $2', [name, phone]);
+        await db.query('DELETE FROM appointments WHERE client_name = $1 AND client_phone = $2', [name, phone]);
+
+        // Keep sales history, but remove the reference to the deleted client.
+        await db.query('UPDATE sales SET client_id = NULL WHERE client_id = $1', [id]);
         
         // Delete the client
-        await pool.query('DELETE FROM clients WHERE id = $1', [id]);
+        await db.query('DELETE FROM clients WHERE id = $1', [id]);
+        await db.query('COMMIT');
         
         res.json({ success: true });
     } catch (err) {
+        if (db) await db.query('ROLLBACK').catch(() => {});
         console.error(err);
         res.status(500).send('Server Error');
+    } finally {
+        if (db) db.release();
     }
 });
 

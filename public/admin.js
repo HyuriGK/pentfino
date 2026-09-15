@@ -1031,11 +1031,23 @@ const admin = {
     async deleteClient(id, name) {
         this.openDeleteConfirm(`Deseja remover o cliente <strong>${name}</strong> e todo o seu histórico? Esta ação é irreversível.`, async () => {
             try {
-                await auth.apiRequest(`/api/clients/${id}`, { method: 'DELETE' });
-                this.loadClients();
+                const res = await auth.apiRequest(`/api/clients/${id}`, { method: 'DELETE' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    throw new Error(data.message || 'Não foi possível excluir o cliente.');
+                }
+
+                this.allClients = (this.allClients || []).filter(client => String(client.id) !== String(id));
+                this.renderClients(this.allClients);
+                await this.loadClients();
+                await this.loadData();
                 this.closeModal('client-details');
                 this.closeModal('delete-confirm');
-            } catch (err) { alert('Erro ao excluir cliente'); }
+                auth.notify('Cliente removido com sucesso!', 'success');
+            } catch (err) {
+                console.error('Erro ao excluir cliente:', err);
+                auth.notify(err.message || 'Erro ao excluir cliente.', 'error');
+            }
         });
     },
 
