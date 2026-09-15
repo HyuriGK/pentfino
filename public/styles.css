@@ -5753,6 +5753,28 @@ button.btn > svg {
     }
 }
 
+/* Inventory modal: give the product form more horizontal breathing room. */
+.admin-light #modal-inventory .inventory-modal-content {
+    width: min(100%, 720px) !important;
+    max-width: 720px !important;
+    padding: 32px 40px 30px;
+    border-radius: 16px;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > .input-group-new {
+    margin-bottom: 18px;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > div[style*="grid-template-columns"] {
+    gap: 16px !important;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-inventory .inventory-modal-content {
+        padding: 24px 20px;
+    }
+}
+
 .admin-light .inventory-empty-state {
     grid-column: 1 / -1;
     min-height: 190px;
