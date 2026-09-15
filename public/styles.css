@@ -6797,13 +6797,37 @@ textarea:focus-visible,
 }
 
 .admin-light #modal-professional .professional-modal-content {
-    width: min(100%, 800px) !important;
-    max-width: 800px !important;
-    height: auto;
-    max-height: calc(100vh - 48px);
-    padding: 32px 40px 30px;
-    overflow-y: auto;
+    width: min(100%, 960px) !important;
+    max-width: 960px !important;
+    height: auto !important;
+    max-height: calc(100vh - 32px) !important;
+    padding: 22px 40px 20px;
+    overflow: hidden;
     border-radius: 16px;
+}
+
+.admin-light #modal-professional .professional-modal-content .modal-header {
+    margin-bottom: 16px;
+}
+
+.admin-light #modal-professional .professional-modal-content .input-group-new {
+    margin-bottom: 12px;
+}
+
+.admin-light #modal-professional .professional-modal-content .input-group-new label {
+    margin-bottom: 7px;
+}
+
+.admin-light #modal-professional .professional-modal-content .input-group-new input {
+    min-height: 48px;
+    padding-block: 11px;
+}
+
+.admin-light #modal-professional #modal-prof-services-list.checkbox-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 10px !important;
 }
 
 @media (max-width: 760px) {
@@ -6817,6 +6841,16 @@ textarea:focus-visible,
         max-width: none !important;
         max-height: calc(100vh - 20px);
         padding: 24px 20px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .admin-light #modal-professional .professional-modal-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .admin-light #modal-professional #modal-prof-services-list.checkbox-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
