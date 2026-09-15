@@ -5614,7 +5614,7 @@ button.btn > svg {
 }
 
 .admin-light #modal-view-appointment .modal-content > .glass {
-    margin-bottom: 14px !important;
+    margin-bottom: 0 !important;
 }
 
 .admin-light #modal-view-appointment .appointment-details-card {
@@ -5646,6 +5646,7 @@ button.btn > svg {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
+    margin-top: 10px !important;
     flex-wrap: nowrap;
 }
 
