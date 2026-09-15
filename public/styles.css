@@ -5775,6 +5775,51 @@ button.btn > svg {
     }
 }
 
+/* Selection dialogs: keep their tables inside the modal without desktop scrollbars. */
+.admin-light #modal-select-item .modal-content {
+    width: min(100%, 1100px) !important;
+    max-width: 1100px !important;
+    padding: 32px 40px 30px;
+}
+
+.admin-light #modal-select-client .modal-content,
+.admin-light #modal-select-professional .modal-content {
+    width: min(100%, 960px) !important;
+    max-width: 960px !important;
+    padding: 32px 40px 30px;
+}
+
+.admin-light #modal-select-item .data-table-container,
+.admin-light #modal-select-client .data-table-container,
+.admin-light #modal-select-professional .data-table-container {
+    overflow-x: hidden !important;
+}
+
+/* The creation dialogs use the same comfortable horizontal rhythm. */
+.admin-light #modal-client .modal-content {
+    width: min(100%, 640px) !important;
+    max-width: 640px !important;
+}
+
+.admin-light #modal-professional .modal-content {
+    width: min(100%, 720px) !important;
+    max-width: 720px !important;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-select-item .modal-content,
+    .admin-light #modal-select-client .modal-content,
+    .admin-light #modal-select-professional .modal-content {
+        padding: 24px 20px;
+    }
+
+    .admin-light #modal-select-item .data-table-container,
+    .admin-light #modal-select-client .data-table-container,
+    .admin-light #modal-select-professional .data-table-container {
+        overflow-x: auto !important;
+    }
+}
+
 .admin-light .inventory-empty-state {
     grid-column: 1 / -1;
     min-height: 190px;
