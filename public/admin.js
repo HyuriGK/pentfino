@@ -187,8 +187,7 @@ const auth = {
     },
 
     applyDashboardAccess() {
-        const roleLabel = this.user.role === 'administrador' ? 'Administrador' : 'Operador';
-        document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop_name || this.user.shop} (${roleLabel})`;
+        document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop_name || this.user.shop}`;
         document.querySelectorAll('.admin-only').forEach(el => {
             el.classList.toggle('hidden', this.user.role !== 'administrador');
         });
