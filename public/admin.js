@@ -1542,10 +1542,10 @@ const admin = {
         const statusEl = document.getElementById('billing-goal-status');
         if (statusEl) statusEl.innerText = `${percent.toFixed(1)}% da meta atingida`;
 
-        this.renderBillingChart(dailyData, monthNames[month], type);
+        this.renderBillingChart(dailyData, monthNames[month], type, servicesData, salesData);
     },
 
-    renderBillingChart(data, monthName, type = 'all') {
+    renderBillingChart(data, monthName, type = 'all', servicesData = [], salesData = []) {
         const canvas = document.getElementById('billingDailyChart');
         if (!canvas || typeof Chart === 'undefined') return;
         if (this.billingChart) this.billingChart.destroy();
@@ -1560,6 +1560,10 @@ const admin = {
         const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(148, 163, 184, 0.16)' : 'rgba(255,255,255,0.08)';
         const labels = data.map((_, index) => String(index + 1).padStart(2, '0'));
         const typeLabels = { all: 'Todos', services: 'Serviços', sales: 'Vendas' };
+        const formatCurrency = value => `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        const formatPercent = (value, total) => total > 0
+            ? `${((value / total) * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+            : '0,0%';
 
         this.billingChart = new Chart(ctx, {
             type: 'bar',
@@ -1572,7 +1576,9 @@ const admin = {
                     borderColor: '#22c55e',
                     borderWidth: 1,
                     borderRadius: 4,
-                    hoverBackgroundColor: '#4ade80'
+                    hoverBackgroundColor: '#4ade80',
+                    barPercentage: 0.82,
+                    categoryPercentage: 0.82
                 }]
             },
             options: {
@@ -1582,8 +1588,35 @@ const admin = {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
+                        backgroundColor: '#05090d',
+                        borderColor: 'rgba(148, 163, 184, 0.45)',
+                        borderWidth: 1,
+                        cornerRadius: 9,
+                        displayColors: true,
+                        padding: 14,
+                        titleMarginBottom: 9,
+                        titleFont: { family: 'Outfit, sans-serif', size: 14, weight: '800' },
+                        bodyFont: { family: 'Inter, sans-serif', size: 13, weight: '700' },
+                        titleColor: '#f8fafc',
+                        bodyColor: '#e2e8f0',
                         callbacks: {
-                            label: context => `R$ ${Number(context.parsed.y || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                            title: items => `Dia ${items[0]?.label || '--'}`,
+                            label: context => {
+                                const index = context.dataIndex;
+                                const serviceValue = Number(servicesData[index] || 0);
+                                const salesValue = Number(salesData[index] || 0);
+                                const dayTotal = serviceValue + salesValue;
+
+                                if (type === 'all') {
+                                    return [
+                                        `Serviços: ${formatCurrency(serviceValue)} (${formatPercent(serviceValue, dayTotal)})`,
+                                        `Vendas: ${formatCurrency(salesValue)} (${formatPercent(salesValue, dayTotal)})`,
+                                        `Total: ${formatCurrency(dayTotal)}`
+                                    ];
+                                }
+
+                                return `${typeLabels[type] || 'Faturamento'}: ${formatCurrency(context.parsed.y)}`;
+                            }
                         }
                     }
                 },
