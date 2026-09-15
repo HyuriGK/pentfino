@@ -5288,11 +5288,21 @@ button.btn > svg {
 .admin-light .sidebar .sidebar-header {
     order: 0;
     width: 100%;
-    min-height: 58px;
+    min-height: 78px;
     margin: 0;
-    padding: 0 0 18px !important;
+    padding: 0 0 24px !important;
     border-top: 0;
     border-bottom: 1px solid var(--border);
+}
+
+.admin-light .sidebar .logo-img {
+    width: 46px;
+    height: 46px;
+}
+
+.admin-light .sidebar .logo-text {
+    font-size: 1.18rem;
+    line-height: 1.15;
 }
 
 .admin-light .sidebar nav .nav-item[onclick*="confirmLogout"] {
