@@ -706,7 +706,7 @@ const admin = {
     },
 
     updateMonthSelectorUI() {
-        const btns = document.querySelectorAll('.month-btn');
+        const btns = document.querySelectorAll('#commissions-month-selector .month-btn');
         btns.forEach((btn, idx) => {
             btn.classList.toggle('active', idx === this.selectedCommMonth);
         });
