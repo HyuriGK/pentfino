@@ -1567,8 +1567,7 @@ const admin = {
 
     formatMonthlyGoal(amount) {
         const numericAmount = Number(amount || 0);
-        const minimumFractionDigits = numericAmount === 0 ? 2 : 0;
-        return `R$ ${numericAmount.toLocaleString('pt-BR', { minimumFractionDigits, maximumFractionDigits: 2 })}`;
+        return `R$ ${numericAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     },
 
     updateBillingGoalUI() {
