@@ -899,8 +899,12 @@ const admin = {
             if (res.ok) {
                 this.closeModal('cancel-service');
                 this.loadData();
+                auth.notify('Hor\u00E1rio cancelado com sucesso.', 'success');
+            } else {
+                const data = await res.json().catch(() => ({}));
+                auth.notify(data.message || 'N\u00E3o foi poss\u00EDvel cancelar o hor\u00E1rio.', 'error');
             }
-        } catch (err) { alert('Erro ao cancelar serviço'); }
+        } catch (err) { auth.notify('Erro ao cancelar o hor\u00E1rio.', 'error'); }
     },
 
     updateStats(stats) {
