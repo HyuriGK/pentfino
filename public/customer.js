@@ -115,14 +115,19 @@ const app = {
 
     renderProfessionals() {
         const container = document.getElementById('professionals-list');
-        container.innerHTML = this.professionals.map(p => `
-            <div class="service-card glass" onclick="app.selectProfessional(${p.id}, this)">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="prof-avatar-mini" style="background-image: url('${p.photo_url || 'https://via.placeholder.com/40'}')"></div>
-                    <strong>${p.name}</strong>
+        container.innerHTML = this.professionals.map(p => {
+            const photoUrl = p.photo_url || 'https://via.placeholder.com/40';
+            return `
+                <div class="service-card glass" onclick="app.selectProfessional(${p.id}, this)">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="prof-avatar-mini">
+                            <img src="${photoUrl}" alt="Foto de ${p.name}">
+                        </div>
+                        <strong>${p.name}</strong>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     },
 
     selectProfessional(id, el) {

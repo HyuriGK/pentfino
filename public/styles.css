@@ -782,6 +782,7 @@ html.session-restore-pending #auth-view {
     width: 32px;
     height: 32px;
     border-radius: 50%;
+    overflow: hidden;
     background-size: cover;
     background-position: center;
     border: 1px solid var(--border-bright);
@@ -1447,7 +1448,17 @@ aside nav {
     color: var(--primary);
     background-size: cover;
     background-position: center;
+    overflow: hidden;
     flex-shrink: 0;
+}
+
+.prof-card-avatar img,
+.prof-avatar-mini img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .prof-card-info h3 {

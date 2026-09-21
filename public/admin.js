@@ -2110,12 +2110,14 @@ const admin = {
         container.innerHTML = this.professionals.map(p => {
             const initials = p.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             const services = p.services || [];
+            const photoUrl = p.photo_url ? this.escapeHtml(p.photo_url) : '';
+            const photoAlt = this.escapeHtml(`Foto de ${p.name}`);
             
             return `
                 <div class="professional-card">
                     <div class="prof-card-header">
-                        <div class="prof-card-avatar" ${p.photo_url ? `style="background-image: url('${p.photo_url}'); color: transparent;"` : ''}>
-                            ${p.photo_url ? '' : initials}
+                        <div class="prof-card-avatar${photoUrl ? ' has-photo' : ''}">
+                            ${photoUrl ? `<img src="${photoUrl}" alt="${photoAlt}">` : initials}
                         </div>
                         <div class="prof-card-info" style="flex: 1; min-width: 0;">
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
