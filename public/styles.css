@@ -4261,13 +4261,39 @@ aside nav {
 }
 
 .sidebar-hero-title::after {
-    content: " Reserve em poucos passos.";
-    color: var(--primary);
+    display: none;
 }
 
 .sidebar-desc {
     max-width: 420px;
     color: #b2bbc1;
+}
+
+.booking-sidebar-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 420px;
+    margin-top: 24px;
+}
+
+.booking-sidebar-steps span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 32px;
+    padding: 0 10px;
+    color: #aeb9c0;
+    background: rgba(8, 14, 19, 0.48);
+    border: 1px solid rgba(59, 74, 85, 0.8);
+    border-radius: 999px;
+    font-size: 0.72rem;
+}
+
+.booking-sidebar-steps b {
+    color: var(--primary);
+    font-size: 0.65rem;
+    font-weight: 800;
 }
 
 .booking-summary-box #active-booking-summary {
@@ -5603,16 +5629,19 @@ button.btn > svg {
     }
 
     .sidebar-hero-title::after {
-        display: block;
-        margin-top: 0.12em;
-        font-size: 0.88em;
+        display: none;
     }
 
     .sidebar-desc {
         max-width: 320px;
         font-size: 0.9rem;
         line-height: 1.5;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0;
+    }
+
+    .booking-sidebar-steps {
+        max-width: 360px;
+        margin-top: 18px;
     }
 
     .booking-summary-box #active-booking-summary {
