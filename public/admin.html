@@ -1000,9 +1000,39 @@
                 <textarea autocomplete="off" id="modal-inv-desc" placeholder="Descreva as qualidades do produto..." style="width: 100%; height: 80px; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright); outline: none; resize: none;"></textarea>
             </div>
 
-            <div class="input-group-new">
-                <label>Link da Foto (URL)</label>
-                <input autocomplete="off" type="text" id="modal-inv-photo" placeholder="https://exemplo.com/foto.jpg">
+            <div class="input-group-new inventory-photo-group">
+                <label>Imagem do produto</label>
+                <div class="professional-photo-picker inventory-photo-picker">
+                    <div id="modal-inv-photo-preview" class="professional-photo-preview inventory-photo-preview" aria-hidden="true">
+                        <span>PR</span>
+                    </div>
+                    <div class="professional-photo-picker-copy">
+                        <strong>Apresente seu produto</strong>
+                        <p>JPG, PNG ou WEBP &middot; at&eacute; 5 MB</p>
+                        <div class="professional-photo-picker-actions">
+                            <label for="modal-inv-photo-file" class="btn btn-ghost">Selecionar imagem</label>
+                            <button type="button" id="modal-inv-photo-edit" class="professional-photo-edit hidden">Ajustar enquadramento</button>
+                            <button type="button" id="modal-inv-photo-clear" class="professional-photo-clear hidden">Remover</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="modal-inv-photo-editor" class="professional-photo-editor hidden">
+                    <div id="modal-inv-photo-crop-frame" class="professional-photo-crop-frame">
+                        <img id="modal-inv-photo-crop-image" alt="Ajuste da imagem do produto">
+                        <span class="professional-photo-crop-guide">Arraste para enquadrar</span>
+                    </div>
+                    <div class="professional-photo-zoom-row">
+                        <label for="modal-inv-photo-zoom">Zoom</label>
+                        <input id="modal-inv-photo-zoom" type="range" min="1" max="3" step="0.05" value="1">
+                        <output id="modal-inv-photo-zoom-value" for="modal-inv-photo-zoom">100%</output>
+                    </div>
+                    <div class="professional-photo-editor-actions">
+                        <button type="button" id="modal-inv-photo-cancel" class="btn btn-ghost">Cancelar</button>
+                        <button type="button" id="modal-inv-photo-apply" class="btn btn-primary">Aplicar enquadramento</button>
+                    </div>
+                </div>
+                <input type="file" id="modal-inv-photo-file" class="professional-photo-file" accept="image/jpeg,image/png,image/webp">
+                <input type="hidden" id="modal-inv-photo">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">

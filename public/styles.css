@@ -6487,12 +6487,12 @@ button.btn > svg {
 }
 
 .admin-light #modal-inventory .inventory-modal-content {
-    width: min(100%, 960px) !important;
-    max-width: 960px !important;
+    width: min(100%, 640px) !important;
+    max-width: 640px !important;
     height: auto !important;
-    max-height: calc(100vh - 32px) !important;
-    padding: 22px 40px 20px;
-    overflow: hidden;
+    max-height: calc(100vh - 24px) !important;
+    padding: 20px 26px 18px;
+    overflow-y: auto;
     border-radius: 16px;
 }
 
@@ -7724,6 +7724,18 @@ textarea:focus-visible,
 
 .service-photo-preview {
     border-radius: 14px;
+}
+
+.inventory-photo-preview {
+    flex-basis: 64px;
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+}
+
+.admin-light #modal-inventory .inventory-photo-picker {
+    min-height: 82px;
+    padding: 9px;
 }
 
 .professional-photo-picker-copy {

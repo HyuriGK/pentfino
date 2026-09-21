@@ -288,10 +288,23 @@ const admin = {
         startOffsetX: 0,
         startOffsetY: 0
     },
+    inventoryPhotoCrop: {
+        image: null,
+        sourceUrl: '',
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        dragging: false,
+        startX: 0,
+        startY: 0,
+        startOffsetX: 0,
+        startOffsetY: 0
+    },
 
     async init() {
         this.setupProfessionalPhotoPicker();
         this.setupServicePhotoPicker();
+        this.setupInventoryPhotoPicker();
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         const initialLoads = [];
         if (['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) initialLoads.push(this.loadData());
@@ -1304,6 +1317,8 @@ const admin = {
         document.getElementById('modal-inv-name').value = item.item_name;
         document.getElementById('modal-inv-desc').value = item.description || '';
         document.getElementById('modal-inv-photo').value = item.photo_url || '';
+        document.getElementById('modal-inv-photo-file').value = '';
+        this.updateInventoryPhotoPreview(item.photo_url || '');
         document.getElementById('modal-inv-qty').value = item.quantity;
         document.getElementById('modal-inv-unit').value = item.unit || 'un';
         document.getElementById('modal-inv-min').value = item.min_quantity;
@@ -1311,7 +1326,7 @@ const admin = {
 
         const modal = document.getElementById('modal-inventory');
         modal.querySelector('.modal-title').innerText = 'Editar Produto';
-        modal.querySelector('.btn-primary').innerText = 'Salvar Alterações';
+        modal.querySelector('.btn-full').innerText = 'Salvar Alterações';
 
         this.openModal('inventory');
     },
@@ -2594,6 +2609,206 @@ const admin = {
         this.closeServicePhotoEditor();
     },
 
+    setupInventoryPhotoPicker() {
+        const fileInput = document.getElementById('modal-inv-photo-file');
+        if (!fileInput || fileInput.dataset.bound === 'true') return;
+
+        fileInput.dataset.bound = 'true';
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                auth.notify('Selecione uma imagem JPG, PNG ou WEBP.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                auth.notify('A imagem precisa ter no maximo 5 MB.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            try {
+                const photoUrl = await this.prepareProfessionalPhoto(file);
+                this.openInventoryPhotoEditor(photoUrl);
+            } catch (err) {
+                console.error('Erro ao preparar imagem do produto:', err);
+                auth.notify('Nao foi possivel preparar essa imagem.', 'error');
+                fileInput.value = '';
+            }
+        });
+
+        document.getElementById('modal-inv-photo-clear')?.addEventListener('click', () => {
+            fileInput.value = '';
+            document.getElementById('modal-inv-photo').value = '';
+            this.updateInventoryPhotoPreview('');
+        });
+
+        document.getElementById('modal-inv-photo-edit')?.addEventListener('click', () => {
+            const photoUrl = document.getElementById('modal-inv-photo')?.value;
+            if (photoUrl) this.openInventoryPhotoEditor(photoUrl);
+        });
+
+        document.getElementById('modal-inv-photo-cancel')?.addEventListener('click', () => {
+            this.closeInventoryPhotoEditor();
+        });
+
+        document.getElementById('modal-inv-photo-apply')?.addEventListener('click', () => {
+            this.applyInventoryPhotoCrop();
+        });
+
+        document.getElementById('modal-inv-photo-zoom')?.addEventListener('input', (event) => {
+            this.inventoryPhotoCrop.zoom = Number(event.target.value) || 1;
+            this.renderInventoryPhotoCrop();
+        });
+
+        const cropFrame = document.getElementById('modal-inv-photo-crop-frame');
+        cropFrame?.addEventListener('pointerdown', (event) => {
+            const crop = this.inventoryPhotoCrop;
+            if (!crop.image) return;
+            event.preventDefault();
+            crop.dragging = true;
+            crop.startX = event.clientX;
+            crop.startY = event.clientY;
+            crop.startOffsetX = crop.offsetX;
+            crop.startOffsetY = crop.offsetY;
+            cropFrame.classList.add('is-dragging');
+            cropFrame.setPointerCapture?.(event.pointerId);
+        });
+
+        cropFrame?.addEventListener('pointermove', (event) => {
+            const crop = this.inventoryPhotoCrop;
+            if (!crop.dragging) return;
+            crop.offsetX = crop.startOffsetX + event.clientX - crop.startX;
+            crop.offsetY = crop.startOffsetY + event.clientY - crop.startY;
+            this.renderInventoryPhotoCrop();
+        });
+
+        const stopPhotoDrag = () => {
+            this.inventoryPhotoCrop.dragging = false;
+            cropFrame?.classList.remove('is-dragging');
+        };
+        cropFrame?.addEventListener('pointerup', stopPhotoDrag);
+        cropFrame?.addEventListener('pointercancel', stopPhotoDrag);
+    },
+
+    openInventoryPhotoEditor(photoUrl) {
+        const editor = document.getElementById('modal-inv-photo-editor');
+        const cropImage = document.getElementById('modal-inv-photo-crop-image');
+        if (!editor || !cropImage || !photoUrl) return;
+
+        const image = new Image();
+        image.onerror = () => auth.notify('Nao foi possivel abrir essa imagem para enquadramento.', 'error');
+        image.onload = () => {
+            this.inventoryPhotoCrop = {
+                ...this.inventoryPhotoCrop,
+                image,
+                sourceUrl: photoUrl,
+                zoom: 1,
+                offsetX: 0,
+                offsetY: 0,
+                dragging: false
+            };
+            cropImage.src = photoUrl;
+            editor.classList.remove('hidden');
+            const zoomInput = document.getElementById('modal-inv-photo-zoom');
+            if (zoomInput) zoomInput.value = '1';
+            this.renderInventoryPhotoCrop();
+        };
+        image.src = photoUrl;
+    },
+
+    closeInventoryPhotoEditor() {
+        document.getElementById('modal-inv-photo-editor')?.classList.add('hidden');
+        const cropImage = document.getElementById('modal-inv-photo-crop-image');
+        if (cropImage) cropImage.removeAttribute('src');
+        this.inventoryPhotoCrop.image = null;
+        this.inventoryPhotoCrop.dragging = false;
+    },
+
+    renderInventoryPhotoCrop() {
+        const crop = this.inventoryPhotoCrop;
+        const frame = document.getElementById('modal-inv-photo-crop-frame');
+        const image = document.getElementById('modal-inv-photo-crop-image');
+        if (!crop.image || !frame || !image) return;
+
+        const frameSize = frame.clientWidth || 240;
+        const baseScale = Math.max(frameSize / crop.image.naturalWidth, frameSize / crop.image.naturalHeight);
+        const scale = baseScale * crop.zoom;
+        const displayWidth = crop.image.naturalWidth * scale;
+        const displayHeight = crop.image.naturalHeight * scale;
+        const maxOffsetX = Math.max(0, (displayWidth - frameSize) / 2);
+        const maxOffsetY = Math.max(0, (displayHeight - frameSize) / 2);
+
+        crop.offsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, crop.offsetX));
+        crop.offsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, crop.offsetY));
+
+        image.style.width = `${displayWidth}px`;
+        image.style.height = `${displayHeight}px`;
+        image.style.transform = `translate3d(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px), 0)`;
+
+        const zoomValue = document.getElementById('modal-inv-photo-zoom-value');
+        if (zoomValue) zoomValue.value = `${Math.round(crop.zoom * 100)}%`;
+        if (zoomValue) zoomValue.innerText = `${Math.round(crop.zoom * 100)}%`;
+    },
+
+    applyInventoryPhotoCrop() {
+        const crop = this.inventoryPhotoCrop;
+        const frame = document.getElementById('modal-inv-photo-crop-frame');
+        if (!crop.image || !frame) return;
+
+        const frameSize = frame.clientWidth || 240;
+        const baseScale = Math.max(frameSize / crop.image.naturalWidth, frameSize / crop.image.naturalHeight);
+        const scale = baseScale * crop.zoom;
+        const sourceSize = frameSize / scale;
+        const sourceX = crop.image.naturalWidth / 2 - (frameSize / 2 + crop.offsetX) / scale;
+        const sourceY = crop.image.naturalHeight / 2 - (frameSize / 2 + crop.offsetY) / scale;
+        const canvas = document.createElement('canvas');
+        canvas.width = 900;
+        canvas.height = 900;
+        const context = canvas.getContext('2d');
+        context.drawImage(crop.image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, canvas.width, canvas.height);
+
+        const photoUrl = canvas.toDataURL('image/jpeg', 0.88);
+        document.getElementById('modal-inv-photo').value = photoUrl;
+        this.updateInventoryPhotoPreview(photoUrl);
+        this.closeInventoryPhotoEditor();
+    },
+
+    updateInventoryPhotoPreview(photoUrl = '') {
+        const preview = document.getElementById('modal-inv-photo-preview');
+        const clearButton = document.getElementById('modal-inv-photo-clear');
+        if (!preview) return;
+
+        const editButton = document.getElementById('modal-inv-photo-edit');
+        preview.replaceChildren();
+        if (photoUrl) {
+            const image = document.createElement('img');
+            image.src = photoUrl;
+            image.alt = 'Imagem do produto';
+            preview.appendChild(image);
+            clearButton?.classList.remove('hidden');
+            editButton?.classList.remove('hidden');
+            return;
+        }
+
+        const initials = document.getElementById('modal-inv-name')?.value
+            ?.split(' ')
+            .filter(Boolean)
+            .map(part => part[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase() || 'PR';
+        const fallback = document.createElement('span');
+        fallback.innerText = initials;
+        preview.appendChild(fallback);
+        clearButton?.classList.add('hidden');
+        editButton?.classList.add('hidden');
+        this.closeInventoryPhotoEditor();
+    },
+
     async editProfessional(id) {
         const prof = this.professionals.find(p => p.id === id);
         if (!prof) return;
@@ -2897,6 +3112,22 @@ const admin = {
                 document.getElementById('modal-svc-duration-value').value = '';
                 document.getElementById('modal-svc-duration-unit').value = 'minutos';
             }
+        }
+        if (type === 'inventory') {
+            const modal = document.getElementById('modal-inventory');
+            modal?.querySelector('.modal-title')?.replaceChildren('Novo Produto');
+            modal?.querySelector('.btn-full')?.replaceChildren('Salvar no Estoque');
+
+            document.getElementById('modal-inv-edit-id').value = '';
+            document.getElementById('modal-inv-name').value = '';
+            document.getElementById('modal-inv-desc').value = '';
+            document.getElementById('modal-inv-photo').value = '';
+            document.getElementById('modal-inv-photo-file').value = '';
+            this.updateInventoryPhotoPreview('');
+            document.getElementById('modal-inv-qty').value = '';
+            document.getElementById('modal-inv-unit').value = '';
+            document.getElementById('modal-inv-price').value = '';
+            document.getElementById('modal-inv-min').value = '';
         }
 
         this.modalStack = this.modalStack.filter(id => id !== modalId);
