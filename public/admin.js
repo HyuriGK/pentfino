@@ -262,7 +262,7 @@ const admin = {
     selectedBillingMonth: new Date().getMonth(),
     selectedBillingYear: new Date().getFullYear(),
     selectedBillingType: 'all',
-    monthlyGoal: 15000,
+    monthlyGoal: 0,
     monthlyGoalDefined: false,
     professionalPhotoCrop: {
         image: null,
@@ -1436,19 +1436,24 @@ const admin = {
         });
 
         // Update KPIs
-        const goal = 15000;
+        const goal = Number(this.monthlyGoal) || 0;
         const remaining = Math.max(0, goal - totalMonth);
-        const percent = Math.min(100, (totalMonth / goal) * 100);
+        const percent = goal > 0 ? Math.min(100, (totalMonth / goal) * 100) : 0;
 
         const totalMonthEl = document.getElementById('billing-total-month');
         if (totalMonthEl) totalMonthEl.innerText = `R$ ${totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         
         const remainingEl = document.getElementById('billing-remaining');
         if (remainingEl) {
-            remainingEl.innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            if (totalMonth >= goal) {
-                remainingEl.style.color = 'var(--success)';
-                remainingEl.innerText = 'Meta Atingida! ðŸŽ‰';
+            if (goal <= 0) {
+                remainingEl.style.color = '';
+                remainingEl.innerText = 'R$ 0,00';
+            } else {
+                remainingEl.innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+                if (totalMonth >= goal) {
+                    remainingEl.style.color = 'var(--success)';
+                    remainingEl.innerText = 'Meta Atingida!';
+                }
             }
         }
         
@@ -1561,7 +1566,9 @@ const admin = {
     },
 
     formatMonthlyGoal(amount) {
-        return `R$ ${Number(amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        const numericAmount = Number(amount || 0);
+        const minimumFractionDigits = numericAmount === 0 ? 2 : 0;
+        return `R$ ${numericAmount.toLocaleString('pt-BR', { minimumFractionDigits, maximumFractionDigits: 2 })}`;
     },
 
     updateBillingGoalUI() {
@@ -1678,8 +1685,13 @@ const admin = {
         document.getElementById('billing-total-month')?.replaceChildren(`R$ ${totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
         const remainingEl = document.getElementById('billing-remaining');
         if (remainingEl) {
-            remainingEl.style.color = totalMonth >= goal ? 'var(--success)' : '';
-            remainingEl.innerText = totalMonth >= goal ? 'Meta Atingida!' : `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            if (goal <= 0) {
+                remainingEl.style.color = '';
+                remainingEl.innerText = 'R$ 0,00';
+            } else {
+                remainingEl.style.color = totalMonth >= goal ? 'var(--success)' : '';
+                remainingEl.innerText = totalMonth >= goal ? 'Meta Atingida!' : `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            }
         }
         const statusEl = document.getElementById('billing-goal-status');
         if (statusEl) statusEl.innerText = `${percent.toFixed(1)}% da meta atingida`;

@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'BarberPoint_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
-const DEFAULT_MONTHLY_GOAL = 15000;
+const DEFAULT_MONTHLY_GOAL = 0;
 const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos'];
 const DEFAULT_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map(key => [key, true]));
 
