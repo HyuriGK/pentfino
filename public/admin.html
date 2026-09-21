@@ -1080,8 +1080,13 @@
                 </svg>
             </div>
             <h2 class="modal-title" style="margin-bottom: 12px;">Confirmar Exclusão</h2>
-            <p style="color: var(--text-muted); margin-bottom: 32px;" id="delete-confirm-text">Deseja realmente excluir
+            <p style="color: var(--text-muted); margin-bottom: 18px;" id="delete-confirm-text">Deseja realmente excluir
                 este item? Esta ação não pode ser desfeita.</p>
+            <div id="delete-confirmation-field" class="cancel-confirm-field hidden" style="text-align: left; margin-bottom: 24px;">
+                <label for="delete-confirmation">Digite <strong>CONFIRMAR</strong> para continuar</label>
+                <input autocomplete="off" type="text" id="delete-confirmation" placeholder="CONFIRMAR"
+                    oninput="admin.validateDeleteConfirmation(this.value)">
+            </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <button class="btn btn-ghost" onclick="admin.closeModal('delete-confirm')">Cancelar</button>
                 <button class="btn btn-primary" style="background: var(--danger); color: #fff; border: none;"

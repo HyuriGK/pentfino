@@ -373,9 +373,11 @@ app.get('/api/appointments/:barberId', authenticateToken, requireAnyPermission('
         const { barberId } = req.params;
         // Fetch all appointments for the calendar (pending, completed, canceled)
         const result = await pool.query(`
-            SELECT a.*, s.name as service_name, s.price as service_price, s.duration as service_duration, p.name as professional_name
+            SELECT a.*, COALESCE(s.name, 'Servi\u00E7o removido') as service_name,
+                   COALESCE(s.price, 0) as service_price, COALESCE(s.duration, '-') as service_duration,
+                   p.name as professional_name
             FROM appointments a
-            JOIN services s ON a.service_id = s.id
+            LEFT JOIN services s ON a.service_id = s.id
             LEFT JOIN professionals p ON a.professional_id = p.id
             WHERE a.barber_id = $1
             ORDER BY a.appointment_date ASC, a.appointment_time ASC
@@ -515,9 +517,9 @@ app.get('/api/stats/:barberId', authenticateToken, requireAnyPermission('dashboa
         const { barberId } = req.params;
         // Total from services
         const svcResult = await pool.query(`
-            SELECT COALESCE(SUM(s.price), 0) as revenue, COUNT(*) as count 
+            SELECT COALESCE(SUM(COALESCE(s.price, 0)), 0) as revenue, COUNT(a.id) as count
             FROM appointments a
-            JOIN services s ON a.service_id = s.id
+            LEFT JOIN services s ON a.service_id = s.id
             WHERE a.barber_id = $1 AND a.status = 'completed'
         `, [barberId]);
 
@@ -632,18 +634,19 @@ app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('cli
         if (!client) return res.status(404).send('Client not found');
 
         const appointmentsResult = await pool.query(`
-            SELECT a.*, s.name as service_name, s.price as service_price, p.name as professional_name 
+            SELECT a.*, COALESCE(s.name, 'Servi\u00E7o removido') as service_name,
+                   COALESCE(s.price, 0) as service_price, p.name as professional_name
             FROM appointments a
-            JOIN services s ON a.service_id = s.id
+            LEFT JOIN services s ON a.service_id = s.id
             LEFT JOIN professionals p ON a.professional_id = p.id
             WHERE a.client_name = $1 AND a.client_phone = $2
             ORDER BY a.appointment_date DESC, a.appointment_time DESC
         `, [client.name, client.phone]);
 
         const statsResult = await pool.query(`
-            SELECT SUM(s.price) as total_spent, COUNT(a.id) as service_count
+            SELECT COALESCE(SUM(COALESCE(s.price, 0)), 0) as total_spent, COUNT(a.id) as service_count
             FROM appointments a
-            JOIN services s ON a.service_id = s.id
+            LEFT JOIN services s ON a.service_id = s.id
             WHERE a.client_name = $1 AND a.client_phone = $2 AND a.status = 'completed'
         `, [client.name, client.phone]);
 
@@ -732,13 +735,33 @@ app.patch('/api/services/:id', authenticateToken, requireAnyPermission('servicos
 
 app.delete('/api/services/:id', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
     const { id } = req.params;
+    let db;
     try {
-        await pool.query('DELETE FROM professional_services WHERE service_id = $1', [id]);
-        await pool.query('DELETE FROM services WHERE id = $1', [id]);
-        res.json({ success: true });
+        db = await pool.connect();
+        await db.query('BEGIN');
+
+        const serviceResult = await db.query(
+            'SELECT id, name FROM services WHERE id = $1 AND barber_id = $2',
+            [id, req.user.id]
+        );
+        if (serviceResult.rows.length === 0) {
+            await db.query('ROLLBACK');
+            return res.status(404).json({ success: false, message: 'Servi\u00E7o n\u00E3o encontrado.' });
+        }
+
+        await db.query('DELETE FROM professional_services WHERE service_id = $1', [id]);
+        // Keep historical appointments, even when their catalog service is removed.
+        await db.query('UPDATE appointments SET service_id = NULL WHERE service_id = $1', [id]);
+        await db.query('DELETE FROM services WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
+        await db.query('COMMIT');
+
+        res.json({ success: true, service: serviceResult.rows[0] });
     } catch (err) {
+        if (db) await db.query('ROLLBACK').catch(() => {});
         console.error(err);
-        res.status(500).send('Server Error');
+        res.status(500).json({ success: false, message: 'N\u00E3o foi poss\u00EDvel excluir o servi\u00E7o.' });
+    } finally {
+        if (db) db.release();
     }
 });
 

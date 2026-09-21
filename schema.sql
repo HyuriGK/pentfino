@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS services (
 CREATE TABLE IF NOT EXISTS appointments (
     id SERIAL PRIMARY KEY,
     barber_id INTEGER REFERENCES barbers(id),
-    service_id INTEGER REFERENCES services(id),
+    service_id INTEGER REFERENCES services(id) ON DELETE SET NULL,
     client_name VARCHAR(100) NOT NULL,
     client_phone VARCHAR(20) NOT NULL,
     appointment_time TEXT NOT NULL,

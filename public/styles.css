@@ -4230,6 +4230,39 @@ aside nav {
     border-radius: 6px;
 }
 
+.admin-light #modal-delete-confirm .cancel-confirm-field {
+    display: grid;
+    gap: 8px;
+    text-align: left;
+}
+
+.admin-light #modal-delete-confirm .cancel-confirm-field label {
+    color: var(--text-muted);
+    font-size: 0.84rem;
+}
+
+.admin-light #modal-delete-confirm .cancel-confirm-field strong {
+    color: var(--text-main);
+    letter-spacing: 0.04em;
+}
+
+.admin-light #modal-delete-confirm .cancel-confirm-field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    text-transform: uppercase;
+}
+
+.admin-light #modal-delete-confirm #btn-do-delete:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .admin-light #modal-delete-confirm .modal-content {
     background: #101920;
     border-radius: 8px;

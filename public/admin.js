@@ -1112,11 +1112,33 @@ const admin = {
         });
     },
 
-    openDeleteConfirm(text, onConfirm) {
+    openDeleteConfirm(text, onConfirm, { requiresTyping = false } = {}) {
         document.getElementById('delete-confirm-text').innerHTML = text;
         const btn = document.getElementById('btn-do-delete');
-        btn.onclick = onConfirm;
+        const confirmationField = document.getElementById('delete-confirmation-field');
+        const confirmationInput = document.getElementById('delete-confirmation');
+
+        confirmationField?.classList.toggle('hidden', !requiresTyping);
+        if (confirmationInput) {
+            confirmationInput.value = '';
+            confirmationInput.oninput = () => this.validateDeleteConfirmation(confirmationInput.value);
+        }
+
+        btn.disabled = requiresTyping;
+        btn.onclick = async () => {
+            if (requiresTyping && confirmationInput?.value.trim() !== 'CONFIRMAR') return;
+            await onConfirm();
+        };
         this.openModal('delete-confirm');
+
+        if (requiresTyping) {
+            setTimeout(() => confirmationInput?.focus(), 0);
+        }
+    },
+
+    validateDeleteConfirmation(value) {
+        const button = document.getElementById('btn-do-delete');
+        if (button) button.disabled = String(value || '').trim() !== 'CONFIRMAR';
     },
 
     openWhatsAppConfirm(clientId) {
@@ -2529,14 +2551,24 @@ const admin = {
     },
 
     async deleteService(id, name) {
-        this.openDeleteConfirm(`Deseja excluir o servi&ccedil;o <strong>${name}</strong>? Ele ser&aacute; removido da tabela de servi&ccedil;os e dos v&iacute;nculos com barbeiros.`, async () => {
+        const safeName = this.escapeHtml(name);
+        this.openDeleteConfirm(`Deseja excluir o servi&ccedil;o <strong>${safeName}</strong>? Ele ser&aacute; removido da tabela de servi&ccedil;os e dos v&iacute;nculos com barbeiros.`, async () => {
             try {
-                await auth.apiRequest(`/api/services/${id}`, { method: 'DELETE' });
+                const response = await auth.apiRequest(`/api/services/${id}`, { method: 'DELETE' });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || result.success === false) {
+                    throw new Error(result.message || 'Não foi possível excluir o serviço.');
+                }
+
                 await this.loadServices();
                 await this.loadProfessionals();
                 this.closeModal('delete-confirm');
-            } catch (err) { alert('Erro ao excluir servico'); }
-        });
+                auth.notify(`Serviço "${name}" excluído com sucesso.`, 'success');
+            } catch (err) {
+                console.error('Erro ao excluir serviço:', err);
+                auth.notify(err.message || 'Não foi possível excluir o serviço.', 'error');
+            }
+        }, { requiresTyping: true });
     },
 
     async saveService() {
