@@ -4644,18 +4644,6 @@ aside nav {
     text-align: right;
 }
 
-.confirmation-row-total {
-    margin-top: 3px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--border-bright);
-}
-
-.confirmation-row-total strong {
-    color: var(--primary);
-    font-size: 1rem;
-    font-weight: 800;
-}
-
 .booking-body .success-screen > .btn {
     min-width: 210px;
     margin-right: auto;

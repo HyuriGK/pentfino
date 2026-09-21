@@ -250,10 +250,6 @@ const app = {
                             <span>Barbeiro</span>
                             <strong>${this.booking.professional?.name || 'Não selecionado'}</strong>
                         </div>
-                        <div class="confirmation-row confirmation-row-total">
-                            <span>Valor</span>
-                            <strong>R$ ${this.booking.service.price}</strong>
-                        </div>
                     </div>
                 `;
                 this.showStep('success');
