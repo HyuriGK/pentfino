@@ -4544,6 +4544,13 @@ aside nav {
     box-shadow: 0 14px 34px rgba(255, 214, 0, 0.16);
 }
 
+.booking-body .success-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    transform: scale(1.2);
+}
+
 .booking-body .success-icon::after {
     content: "";
     position: absolute;
