@@ -5629,6 +5629,16 @@ button.btn > svg {
     flex-shrink: 0;
 }
 
+/* Keep the menu compact while preserving a visible hover gap between items. */
+.admin-light .sidebar {
+    gap: 4px;
+}
+
+.admin-light .sidebar nav .nav-item {
+    min-height: 42px;
+    padding: 9px 12px;
+}
+
 .admin-light .sidebar nav .nav-item[onclick*="openShareModal"] {
     order: 2;
     margin-top: auto !important;
