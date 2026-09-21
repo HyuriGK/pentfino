@@ -7583,6 +7583,100 @@ textarea:focus-visible,
     cursor: pointer;
 }
 
+.professional-photo-edit {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--primary);
+    font-size: 0.72rem;
+    cursor: pointer;
+}
+
+.professional-photo-editor {
+    display: grid;
+    gap: 14px;
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid #2c3d48;
+    border-radius: 14px;
+    background: rgba(7, 14, 19, 0.72);
+}
+
+.professional-photo-crop-frame {
+    position: relative;
+    width: min(100%, 260px);
+    aspect-ratio: 1;
+    margin: 0 auto;
+    overflow: hidden;
+    touch-action: none;
+    cursor: grab;
+    border: 1px solid rgba(255, 214, 0, 0.55);
+    border-radius: 14px;
+    background: #0a151c;
+}
+
+.professional-photo-crop-frame.is-dragging {
+    cursor: grabbing;
+}
+
+.professional-photo-crop-frame img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: none;
+    user-select: none;
+    pointer-events: none;
+}
+
+.professional-photo-crop-guide {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    padding: 5px 8px;
+    color: rgba(255, 255, 255, 0.86);
+    background: rgba(3, 8, 12, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    font-size: 0.68rem;
+    pointer-events: none;
+}
+
+.professional-photo-zoom-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.professional-photo-zoom-row label,
+.professional-photo-zoom-row output {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.professional-photo-zoom-row output {
+    min-width: 42px;
+    color: var(--primary);
+    text-align: right;
+}
+
+.professional-photo-zoom-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary);
+}
+
+.professional-photo-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.professional-photo-editor-actions .btn {
+    min-height: 38px;
+    padding: 8px 12px;
+    font-size: 0.74rem;
+}
+
 .professional-photo-file {
     position: absolute;
     width: 1px;
@@ -7623,6 +7717,14 @@ textarea:focus-visible,
 
     .professional-photo-picker-copy {
         flex: 1;
+    }
+
+    .professional-photo-editor-actions {
+        flex-direction: column-reverse;
+    }
+
+    .professional-photo-editor-actions .btn {
+        width: 100%;
     }
 
     .admin-light #modal-professional #modal-prof-services-list.checkbox-grid {

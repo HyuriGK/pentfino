@@ -261,6 +261,18 @@ const admin = {
     editingInventoryId: null,
     selectedBillingMonth: new Date().getMonth(),
     selectedBillingType: 'all',
+    professionalPhotoCrop: {
+        image: null,
+        sourceUrl: '',
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        dragging: false,
+        startX: 0,
+        startY: 0,
+        startOffsetX: 0,
+        startOffsetY: 0
+    },
 
     async init() {
         this.setupProfessionalPhotoPicker();
@@ -2065,8 +2077,7 @@ const admin = {
 
             try {
                 const photoUrl = await this.prepareProfessionalPhoto(file);
-                document.getElementById('modal-prof-photo').value = photoUrl;
-                this.updateProfessionalPhotoPreview(photoUrl);
+                this.openProfessionalPhotoEditor(photoUrl);
             } catch (err) {
                 console.error('Erro ao preparar foto do barbeiro:', err);
                 auth.notify('Não foi possível preparar essa foto.', 'error');
@@ -2080,6 +2091,53 @@ const admin = {
             this.updateProfessionalPhotoPreview('');
         });
 
+        document.getElementById('modal-prof-photo-edit')?.addEventListener('click', () => {
+            const photoUrl = document.getElementById('modal-prof-photo')?.value;
+            if (photoUrl) this.openProfessionalPhotoEditor(photoUrl);
+        });
+
+        document.getElementById('modal-prof-photo-cancel')?.addEventListener('click', () => {
+            this.closeProfessionalPhotoEditor();
+        });
+
+        document.getElementById('modal-prof-photo-apply')?.addEventListener('click', () => {
+            this.applyProfessionalPhotoCrop();
+        });
+
+        document.getElementById('modal-prof-photo-zoom')?.addEventListener('input', (event) => {
+            this.professionalPhotoCrop.zoom = Number(event.target.value) || 1;
+            this.renderProfessionalPhotoCrop();
+        });
+
+        const cropFrame = document.getElementById('modal-prof-photo-crop-frame');
+        cropFrame?.addEventListener('pointerdown', (event) => {
+            const crop = this.professionalPhotoCrop;
+            if (!crop.image) return;
+            event.preventDefault();
+            crop.dragging = true;
+            crop.startX = event.clientX;
+            crop.startY = event.clientY;
+            crop.startOffsetX = crop.offsetX;
+            crop.startOffsetY = crop.offsetY;
+            cropFrame.classList.add('is-dragging');
+            cropFrame.setPointerCapture?.(event.pointerId);
+        });
+
+        cropFrame?.addEventListener('pointermove', (event) => {
+            const crop = this.professionalPhotoCrop;
+            if (!crop.dragging) return;
+            crop.offsetX = crop.startOffsetX + event.clientX - crop.startX;
+            crop.offsetY = crop.startOffsetY + event.clientY - crop.startY;
+            this.renderProfessionalPhotoCrop();
+        });
+
+        const stopPhotoDrag = () => {
+            this.professionalPhotoCrop.dragging = false;
+            cropFrame?.classList.remove('is-dragging');
+        };
+        cropFrame?.addEventListener('pointerup', stopPhotoDrag);
+        cropFrame?.addEventListener('pointercancel', stopPhotoDrag);
+
         document.getElementById('modal-prof-name')?.addEventListener('input', () => {
             if (!document.getElementById('modal-prof-photo').value) this.updateProfessionalPhotoPreview('');
         });
@@ -2089,32 +2147,100 @@ const admin = {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onerror = () => reject(new Error('Falha ao ler o arquivo'));
-            reader.onload = () => {
-                const image = new Image();
-                image.onerror = () => reject(new Error('Arquivo de imagem inválido'));
-                image.onload = () => {
-                    const maxSize = 900;
-                    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
-                    const canvas = document.createElement('canvas');
-                    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-                    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-
-                    const context = canvas.getContext('2d');
-                    context.fillStyle = '#101920';
-                    context.fillRect(0, 0, canvas.width, canvas.height);
-                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.82));
-                };
-                image.src = reader.result;
-            };
+            reader.onload = () => resolve(reader.result);
             reader.readAsDataURL(file);
         });
+    },
+
+    openProfessionalPhotoEditor(photoUrl) {
+        const editor = document.getElementById('modal-prof-photo-editor');
+        const cropImage = document.getElementById('modal-prof-photo-crop-image');
+        if (!editor || !cropImage || !photoUrl) return;
+
+        const image = new Image();
+        image.onerror = () => auth.notify('Não foi possível abrir essa foto para enquadramento.', 'error');
+        image.onload = () => {
+            this.professionalPhotoCrop = {
+                ...this.professionalPhotoCrop,
+                image,
+                sourceUrl: photoUrl,
+                zoom: 1,
+                offsetX: 0,
+                offsetY: 0,
+                dragging: false
+            };
+            cropImage.src = photoUrl;
+            editor.classList.remove('hidden');
+            const zoomInput = document.getElementById('modal-prof-photo-zoom');
+            if (zoomInput) zoomInput.value = '1';
+            this.renderProfessionalPhotoCrop();
+        };
+        image.src = photoUrl;
+    },
+
+    closeProfessionalPhotoEditor() {
+        document.getElementById('modal-prof-photo-editor')?.classList.add('hidden');
+        const cropImage = document.getElementById('modal-prof-photo-crop-image');
+        if (cropImage) cropImage.removeAttribute('src');
+        this.professionalPhotoCrop.image = null;
+        this.professionalPhotoCrop.dragging = false;
+    },
+
+    renderProfessionalPhotoCrop() {
+        const crop = this.professionalPhotoCrop;
+        const frame = document.getElementById('modal-prof-photo-crop-frame');
+        const image = document.getElementById('modal-prof-photo-crop-image');
+        if (!crop.image || !frame || !image) return;
+
+        const frameSize = frame.clientWidth || 240;
+        const baseScale = Math.max(frameSize / crop.image.naturalWidth, frameSize / crop.image.naturalHeight);
+        const scale = baseScale * crop.zoom;
+        const displayWidth = crop.image.naturalWidth * scale;
+        const displayHeight = crop.image.naturalHeight * scale;
+        const maxOffsetX = Math.max(0, (displayWidth - frameSize) / 2);
+        const maxOffsetY = Math.max(0, (displayHeight - frameSize) / 2);
+
+        crop.offsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, crop.offsetX));
+        crop.offsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, crop.offsetY));
+
+        image.style.width = `${displayWidth}px`;
+        image.style.height = `${displayHeight}px`;
+        image.style.transform = `translate3d(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px), 0)`;
+
+        const zoomValue = document.getElementById('modal-prof-photo-zoom-value');
+        if (zoomValue) zoomValue.value = `${Math.round(crop.zoom * 100)}%`;
+        if (zoomValue) zoomValue.innerText = `${Math.round(crop.zoom * 100)}%`;
+    },
+
+    applyProfessionalPhotoCrop() {
+        const crop = this.professionalPhotoCrop;
+        const frame = document.getElementById('modal-prof-photo-crop-frame');
+        if (!crop.image || !frame) return;
+
+        const frameSize = frame.clientWidth || 240;
+        const baseScale = Math.max(frameSize / crop.image.naturalWidth, frameSize / crop.image.naturalHeight);
+        const scale = baseScale * crop.zoom;
+        const sourceSize = frameSize / scale;
+        const sourceX = crop.image.naturalWidth / 2 - (frameSize / 2 + crop.offsetX) / scale;
+        const sourceY = crop.image.naturalHeight / 2 - (frameSize / 2 + crop.offsetY) / scale;
+        const canvas = document.createElement('canvas');
+        canvas.width = 900;
+        canvas.height = 900;
+        const context = canvas.getContext('2d');
+        context.drawImage(crop.image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, canvas.width, canvas.height);
+
+        const photoUrl = canvas.toDataURL('image/jpeg', 0.88);
+        document.getElementById('modal-prof-photo').value = photoUrl;
+        this.updateProfessionalPhotoPreview(photoUrl);
+        this.closeProfessionalPhotoEditor();
     },
 
     updateProfessionalPhotoPreview(photoUrl = '') {
         const preview = document.getElementById('modal-prof-photo-preview');
         const clearButton = document.getElementById('modal-prof-photo-clear');
         if (!preview) return;
+
+        const editButton = document.getElementById('modal-prof-photo-edit');
 
         preview.replaceChildren();
         if (photoUrl) {
@@ -2123,6 +2249,7 @@ const admin = {
             image.alt = 'Foto do barbeiro';
             preview.appendChild(image);
             clearButton?.classList.remove('hidden');
+            editButton?.classList.remove('hidden');
             return;
         }
 
@@ -2137,6 +2264,8 @@ const admin = {
         fallback.innerText = initials;
         preview.appendChild(fallback);
         clearButton?.classList.add('hidden');
+        editButton?.classList.add('hidden');
+        this.closeProfessionalPhotoEditor();
     },
 
     async editProfessional(id) {

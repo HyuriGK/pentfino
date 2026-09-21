@@ -666,8 +666,24 @@
                         <p>JPG, PNG ou WEBP · até 5 MB</p>
                         <div class="professional-photo-picker-actions">
                             <label for="modal-prof-photo-file" class="btn btn-ghost">Selecionar foto</label>
+                            <button type="button" id="modal-prof-photo-edit" class="professional-photo-edit hidden">Ajustar enquadramento</button>
                             <button type="button" id="modal-prof-photo-clear" class="professional-photo-clear hidden">Remover</button>
                         </div>
+                    </div>
+                </div>
+                <div id="modal-prof-photo-editor" class="professional-photo-editor hidden">
+                    <div id="modal-prof-photo-crop-frame" class="professional-photo-crop-frame">
+                        <img id="modal-prof-photo-crop-image" alt="Ajuste da foto do barbeiro">
+                        <span class="professional-photo-crop-guide">Arraste para enquadrar</span>
+                    </div>
+                    <div class="professional-photo-zoom-row">
+                        <label for="modal-prof-photo-zoom">Zoom</label>
+                        <input id="modal-prof-photo-zoom" type="range" min="1" max="3" step="0.05" value="1">
+                        <output id="modal-prof-photo-zoom-value" for="modal-prof-photo-zoom">100%</output>
+                    </div>
+                    <div class="professional-photo-editor-actions">
+                        <button type="button" id="modal-prof-photo-cancel" class="btn btn-ghost">Cancelar</button>
+                        <button type="button" id="modal-prof-photo-apply" class="btn btn-primary">Aplicar enquadramento</button>
                     </div>
                 </div>
                 <input type="file" id="modal-prof-photo-file" class="professional-photo-file" accept="image/jpeg,image/png,image/webp">
