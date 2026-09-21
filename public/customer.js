@@ -58,21 +58,36 @@ const app = {
 
     renderTimes() {
         const container = document.getElementById('times-list');
-        container.innerHTML = this.availableTimes.map(t => {
+        const customTimeSelected = this.booking.time && !this.availableTimes.includes(this.booking.time);
+        container.innerHTML = `${this.availableTimes.map(t => {
             const isBooked = this.bookedTimes.includes(t);
+            const isSelected = this.booking.time === t;
             return `
-                <div class="time-card glass ${isBooked ? 'booked' : ''}" 
+                <div class="time-card glass ${isBooked ? 'booked' : ''} ${isSelected ? 'selected' : ''}"
                      ${isBooked ? '' : `onclick="app.selectTime('${t}', this)"`}>
                     ${t}
                 </div>
             `;
-        }).join('');
+        }).join('')}
+            <div class="time-card time-card-other glass ${customTimeSelected ? 'selected' : ''}" onclick="app.selectCustomTime(this)">
+                Outro
+            </div>`;
+
+        const customPicker = document.getElementById('custom-time-picker');
+        const customInput = document.getElementById('custom-time');
+        if (customPicker) customPicker.classList.toggle('hidden', !customTimeSelected);
+        if (customInput && customTimeSelected) customInput.value = this.booking.time;
     },
 
     bindEvents() {
         document.getElementById('btn-next-step').onclick = () => this.showStep('professionals');
         document.getElementById('btn-next-to-details').onclick = () => this.showStep('details');
         document.getElementById('id-confirm-booking-btn').onclick = () => this.confirmBooking();
+
+        const customTimeInput = document.getElementById('custom-time');
+        if (customTimeInput) {
+            customTimeInput.oninput = () => this.setCustomTime(customTimeInput.value);
+        }
 
         const dateInput = document.getElementById('booking-date');
         if (dateInput) {
@@ -120,6 +135,10 @@ const app = {
         // Reset time when professional changes
         this.booking.time = null;
         document.getElementById('summary-time-val').innerText = '--';
+        const customTimeInput = document.getElementById('custom-time');
+        const customTimePicker = document.getElementById('custom-time-picker');
+        if (customTimeInput) customTimeInput.value = '';
+        if (customTimePicker) customTimePicker.classList.add('hidden');
         
         // Load booked times for this new professional
         this.loadBookedTimes();
@@ -143,6 +162,39 @@ const app = {
         el.classList.add('selected');
         this.booking.time = time;
         document.getElementById('summary-time-val').innerText = time;
+        const customTimeInput = document.getElementById('custom-time');
+        const customTimePicker = document.getElementById('custom-time-picker');
+        if (customTimeInput) customTimeInput.value = '';
+        if (customTimePicker) customTimePicker.classList.add('hidden');
+    },
+
+    selectCustomTime(el) {
+        document.querySelectorAll('.time-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        this.booking.time = null;
+        document.getElementById('summary-time-val').innerText = '--';
+
+        const customTimePicker = document.getElementById('custom-time-picker');
+        const customTimeInput = document.getElementById('custom-time');
+        if (customTimePicker) customTimePicker.classList.remove('hidden');
+        if (customTimeInput) {
+            customTimeInput.value = '';
+            customTimeInput.focus();
+        }
+    },
+
+    setCustomTime(time) {
+        const isValidTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+        if (!isValidTime) {
+            this.booking.time = null;
+            document.getElementById('summary-time-val').innerText = '--';
+            return;
+        }
+
+        this.booking.time = time;
+        document.querySelectorAll('.time-card').forEach(c => c.classList.remove('selected'));
+        document.querySelector('.time-card-other')?.classList.add('selected');
+        document.getElementById('summary-time-val').innerText = time;
     },
 
     showStep(stepId) {
@@ -158,7 +210,8 @@ const app = {
         const phone = document.getElementById('client-phone').value;
         const date = document.getElementById('booking-date').value;
 
-        if (!this.booking.time || !name || !phone || !date) {
+        const validTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(this.booking.time || '');
+        if (!validTime || !name || !phone || !date) {
             alert('Por favor, preencha todos os campos e escolha um horário.');
             return;
         }

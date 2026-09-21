@@ -4275,6 +4275,7 @@ aside nav {
     gap: 8px;
     max-width: 420px;
     margin-top: 24px;
+    margin-bottom: 18px;
 }
 
 .booking-sidebar-steps span {
@@ -4298,6 +4299,7 @@ aside nav {
 
 .booking-summary-box #active-booking-summary {
     max-width: 440px;
+    margin-top: 0;
     padding: 18px;
     background: rgba(8, 14, 19, 0.72);
     border: 1px solid #344550;
@@ -4454,6 +4456,49 @@ aside nav {
 .booking-body .time-card.booked {
     color: #66727a;
     background: #0b1218;
+}
+
+.booking-body .time-card-other {
+    color: var(--primary);
+    background: rgba(255, 214, 0, 0.04);
+    border-style: dashed;
+}
+
+.booking-body .time-card-other.selected {
+    color: #111;
+    background: var(--primary);
+    border-style: solid;
+}
+
+.booking-body .custom-time-picker {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: rgba(17, 26, 34, 0.72);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.booking-body .custom-time-picker label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.booking-body .custom-time-picker input {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    color: var(--text-main);
+    background: #0b1218;
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    color-scheme: dark;
+}
+
+.booking-body .custom-time-picker input:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 .booking-body .input-group-modern input,
