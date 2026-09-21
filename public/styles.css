@@ -4517,7 +4517,7 @@ aside nav {
 
 .booking-body .success-icon {
     color: #111;
-    background: var(--primary);
+    background: transparent;
     border-radius: 8px;
 }
 
@@ -4541,7 +4541,7 @@ aside nav {
     border-radius: 20px;
     font-size: 2rem;
     font-weight: 600;
-    box-shadow: 0 14px 34px rgba(255, 214, 0, 0.16);
+    box-shadow: none;
 }
 
 .booking-body .success-logo {
@@ -4552,11 +4552,7 @@ aside nav {
 }
 
 .booking-body .success-icon::after {
-    content: "";
-    position: absolute;
-    inset: 6px;
-    border: 1px solid rgba(17, 17, 17, 0.22);
-    border-radius: 15px;
+    display: none;
 }
 
 .booking-body .success-title {
