@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'BarberPoint_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
+const DEFAULT_MONTHLY_GOAL = 15000;
 const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos'];
 const DEFAULT_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map(key => [key, true]));
 
@@ -83,11 +84,29 @@ const requireAnyPermission = (...permissions) => async (req, res, next) => {
     }
 };
 
+const requireOwnBarber = (req, res, next) => {
+    if (Number(req.user?.id) !== Number(req.params.barberId)) {
+        return res.status(403).json({ success: false, message: 'Acesso restrito à sua barbearia.' });
+    }
+    next();
+};
+
 pool.on('connect', () => {
     console.log('✅ Connected to Neon PostgreSQL');
     // Ensure commission column exists (one-off migration)
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS product_commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
+    pool.query(`
+        CREATE TABLE IF NOT EXISTS monthly_goals (
+            id SERIAL PRIMARY KEY,
+            barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+            goal_year INTEGER NOT NULL,
+            goal_month INTEGER NOT NULL CHECK (goal_month BETWEEN 1 AND 12),
+            amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (barber_id, goal_year, goal_month)
+        )
+    `).catch(e => console.error('Migration error (monthly_goals):', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -521,6 +540,61 @@ app.get('/api/stats/:barberId', authenticateToken, requireAnyPermission('dashboa
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
+    }
+});
+
+app.get('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing'), async (req, res) => {
+    const barberId = Number(req.params.barberId);
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const month = Number(req.query.month) || new Date().getMonth() + 1;
+
+    if (!Number.isInteger(year) || year < 2000 || !Number.isInteger(month) || month < 1 || month > 12) {
+        return res.status(400).json({ success: false, message: 'Per\u00EDodo inv\u00E1lido.' });
+    }
+
+    try {
+        const result = await pool.query(`
+            SELECT goal_year, goal_month, amount
+            FROM monthly_goals
+            WHERE barber_id = $1 AND goal_year = $2 AND goal_month = $3
+        `, [barberId, year, month]);
+        const goal = result.rows[0];
+
+        res.json({
+            year,
+            month,
+            amount: goal ? Number(goal.amount) : DEFAULT_MONTHLY_GOAL,
+            defined: Boolean(goal)
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'N\u00E3o foi poss\u00EDvel carregar a meta mensal.' });
+    }
+});
+
+app.put('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing'), async (req, res) => {
+    const barberId = Number(req.params.barberId);
+    const year = Number(req.body.year) || new Date().getFullYear();
+    const month = Number(req.body.month) || new Date().getMonth() + 1;
+    const amount = Number(String(req.body.amount ?? '').replace(',', '.'));
+
+    if (!Number.isInteger(year) || year < 2000 || !Number.isInteger(month) || month < 1 || month > 12 || !Number.isFinite(amount) || amount <= 0) {
+        return res.status(400).json({ success: false, message: 'Informe um valor de meta v\u00E1lido.' });
+    }
+
+    try {
+        const result = await pool.query(`
+            INSERT INTO monthly_goals (barber_id, goal_year, goal_month, amount)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (barber_id, goal_year, goal_month)
+            DO UPDATE SET amount = EXCLUDED.amount, updated_at = CURRENT_TIMESTAMP
+            RETURNING goal_year, goal_month, amount
+        `, [barberId, year, month, amount]);
+
+        res.json({ success: true, ...result.rows[0], amount: Number(result.rows[0].amount), defined: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'N\u00E3o foi poss\u00EDvel salvar a meta mensal.' });
     }
 });
 

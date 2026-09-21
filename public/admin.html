@@ -247,10 +247,10 @@
                 </div>
 
                 <div class="billing-grid">
-                    <div class="stat-card glass billing-card" style="border-top: 2px solid var(--primary);">
+                    <div id="billing-goal-card" class="stat-card glass billing-card billing-goal-card" role="button" tabindex="0" title="Editar meta mensal" onclick="admin.openMonthlyGoalModal()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); admin.openMonthlyGoalModal(); }" style="border-top: 2px solid var(--primary);">
                         <div class="stat-label">Meta Mensal</div>
                         <div class="stat-value" id="billing-goal" style="font-size: 2.2rem;">R$ 15.000</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">Definido pelo gestor</div>
+                        <div id="billing-goal-caption" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;">Definido pelo gestor</div>
                     </div>
                     <div class="stat-card glass billing-card" style="border-top: 2px solid var(--success);">
                         <div class="stat-label">Faturamento Total (Mês)</div>
@@ -994,6 +994,29 @@
             </div>
 
             <button class="btn btn-primary btn-full" style="margin-top: 12px;" onclick="admin.saveInventory()">Salvar no Estoque</button>
+        </div>
+    </div>
+
+    <!-- MONTHLY GOAL MODAL -->
+    <div id="modal-monthly-goal" class="modal-overlay hidden">
+        <div class="modal-content monthly-goal-modal">
+            <header class="modal-header monthly-goal-modal-header">
+                <div>
+                    <span class="monthly-goal-kicker">Faturamento</span>
+                    <h2 class="modal-title">Definir meta mensal</h2>
+                    <p id="monthly-goal-period" class="monthly-goal-period">Meta de Dezembro 2026</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('monthly-goal')" aria-label="Fechar">&#215;</button>
+            </header>
+            <div class="input-group-new monthly-goal-field">
+                <label for="monthly-goal-amount">Valor da meta (R$)</label>
+                <input autocomplete="off" type="number" id="monthly-goal-amount" min="0.01" step="0.01" placeholder="Ex: 15000">
+                <small>Esta meta vale somente para a barbearia e o m&#234;s selecionado.</small>
+            </div>
+            <div class="monthly-goal-modal-footer">
+                <button class="btn btn-ghost" onclick="admin.closeModal('monthly-goal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="admin.saveMonthlyGoal()">Salvar meta</button>
+            </div>
         </div>
     </div>
 

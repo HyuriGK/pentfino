@@ -14,6 +14,16 @@ CREATE TABLE IF NOT EXISTS barbers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS monthly_goals (
+    id SERIAL PRIMARY KEY,
+    barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+    goal_year INTEGER NOT NULL,
+    goal_month INTEGER NOT NULL CHECK (goal_month BETWEEN 1 AND 12),
+    amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (barber_id, goal_year, goal_month)
+);
+
 CREATE TABLE IF NOT EXISTS services (
     id SERIAL PRIMARY KEY,
     barber_id INTEGER REFERENCES barbers(id),

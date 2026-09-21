@@ -260,7 +260,10 @@ const admin = {
     services: [],
     editingInventoryId: null,
     selectedBillingMonth: new Date().getMonth(),
+    selectedBillingYear: new Date().getFullYear(),
     selectedBillingType: 'all',
+    monthlyGoal: 15000,
+    monthlyGoalDefined: false,
     professionalPhotoCrop: {
         image: null,
         sourceUrl: '',
@@ -1557,6 +1560,80 @@ const admin = {
         return { year: date.getFullYear(), month: date.getMonth(), day: date.getDate() };
     },
 
+    formatMonthlyGoal(amount) {
+        return `R$ ${Number(amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    },
+
+    updateBillingGoalUI() {
+        const goalEl = document.getElementById('billing-goal');
+        if (goalEl) goalEl.innerText = this.formatMonthlyGoal(this.monthlyGoal);
+
+        const caption = document.getElementById('billing-goal-caption');
+        if (caption) caption.innerText = this.monthlyGoalDefined ? 'Definido pelo gestor' : 'Clique para definir a meta';
+    },
+
+    async loadMonthlyGoal(month = this.selectedBillingMonth, year = this.selectedBillingYear) {
+        try {
+            const res = await auth.apiRequest(`/api/monthly-goals/${auth.user.id}?year=${year}&month=${Number(month) + 1}`);
+            if (!res.ok) throw new Error('N\u00E3o foi poss\u00EDvel carregar a meta mensal.');
+            const data = await res.json();
+            this.monthlyGoal = Number(data.amount) || 0;
+            this.monthlyGoalDefined = Boolean(data.defined);
+            this.updateBillingGoalUI();
+        } catch (err) {
+            console.error('Erro ao carregar meta mensal:', err);
+        }
+    },
+
+    openMonthlyGoalModal() {
+        const month = Number.isInteger(this.selectedBillingMonth) ? this.selectedBillingMonth : new Date().getMonth();
+        const year = this.selectedBillingYear || new Date().getFullYear();
+        const monthNames = ['Janeiro', 'Fevereiro', 'Mar\u00E7o', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const period = document.getElementById('monthly-goal-period');
+        const input = document.getElementById('monthly-goal-amount');
+
+        if (period) period.innerText = `Meta de ${monthNames[month]} ${year}`;
+        if (input) {
+            input.value = this.monthlyGoal > 0 ? this.monthlyGoal.toFixed(2) : '';
+            this.openModal('monthly-goal');
+            input.focus();
+            input.select();
+        } else {
+            this.openModal('monthly-goal');
+        }
+    },
+
+    async saveMonthlyGoal() {
+        const input = document.getElementById('monthly-goal-amount');
+        const amount = Number(String(input?.value || '').replace(',', '.'));
+        const month = Number.isInteger(this.selectedBillingMonth) ? this.selectedBillingMonth : new Date().getMonth();
+        const year = this.selectedBillingYear || new Date().getFullYear();
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return auth.notify('Informe um valor de meta maior que zero.', 'error');
+        }
+
+        try {
+            const res = await auth.apiRequest(`/api/monthly-goals/${auth.user.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ year, month: month + 1, amount })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                return auth.notify(data.message || 'N\u00E3o foi poss\u00EDvel salvar a meta mensal.', 'error');
+            }
+
+            this.monthlyGoal = Number(data.amount) || amount;
+            this.monthlyGoalDefined = true;
+            this.updateBillingGoalUI();
+            this.closeModal('monthly-goal');
+            auth.notify('Meta mensal salva com sucesso.', 'success');
+            await this.loadBillingData();
+        } catch (err) {
+            auth.notify('Erro ao salvar a meta mensal.', 'error');
+        }
+    },
+
     async loadBillingData() {
         const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         const month = Number.isInteger(this.selectedBillingMonth) ? this.selectedBillingMonth : new Date().getMonth();
@@ -1572,6 +1649,7 @@ const admin = {
         }
 
         await this.loadSales();
+        await this.loadMonthlyGoal(month, year);
 
         (this.allAppointments || []).forEach(appointment => {
             if (appointment.status !== 'completed') return;
@@ -1593,9 +1671,9 @@ const admin = {
             return serviceValue + salesData[index];
         });
         const totalMonth = dailyData.reduce((total, value) => total + value, 0);
-        const goal = 15000;
+        const goal = Number(this.monthlyGoal) || 0;
         const remaining = Math.max(0, goal - totalMonth);
-        const percent = Math.min(100, (totalMonth / goal) * 100);
+        const percent = goal > 0 ? Math.min(100, (totalMonth / goal) * 100) : 0;
 
         document.getElementById('billing-total-month')?.replaceChildren(`R$ ${totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
         const remainingEl = document.getElementById('billing-remaining');
