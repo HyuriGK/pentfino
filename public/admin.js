@@ -276,9 +276,22 @@ const admin = {
         startOffsetX: 0,
         startOffsetY: 0
     },
+    servicePhotoCrop: {
+        image: null,
+        sourceUrl: '',
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0,
+        dragging: false,
+        startX: 0,
+        startY: 0,
+        startOffsetX: 0,
+        startOffsetY: 0
+    },
 
     async init() {
         this.setupProfessionalPhotoPicker();
+        this.setupServicePhotoPicker();
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         const initialLoads = [];
         if (['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) initialLoads.push(this.loadData());
@@ -2381,6 +2394,206 @@ const admin = {
         this.closeProfessionalPhotoEditor();
     },
 
+    setupServicePhotoPicker() {
+        const fileInput = document.getElementById('modal-svc-photo-file');
+        if (!fileInput || fileInput.dataset.bound === 'true') return;
+
+        fileInput.dataset.bound = 'true';
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                auth.notify('Selecione uma imagem JPG, PNG ou WEBP.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                auth.notify('A imagem precisa ter no maximo 5 MB.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            try {
+                const photoUrl = await this.prepareProfessionalPhoto(file);
+                this.openServicePhotoEditor(photoUrl);
+            } catch (err) {
+                console.error('Erro ao preparar imagem do servico:', err);
+                auth.notify('Nao foi possivel preparar essa imagem.', 'error');
+                fileInput.value = '';
+            }
+        });
+
+        document.getElementById('modal-svc-photo-clear')?.addEventListener('click', () => {
+            fileInput.value = '';
+            document.getElementById('modal-svc-photo').value = '';
+            this.updateServicePhotoPreview('');
+        });
+
+        document.getElementById('modal-svc-photo-edit')?.addEventListener('click', () => {
+            const photoUrl = document.getElementById('modal-svc-photo')?.value;
+            if (photoUrl) this.openServicePhotoEditor(photoUrl);
+        });
+
+        document.getElementById('modal-svc-photo-cancel')?.addEventListener('click', () => {
+            this.closeServicePhotoEditor();
+        });
+
+        document.getElementById('modal-svc-photo-apply')?.addEventListener('click', () => {
+            this.applyServicePhotoCrop();
+        });
+
+        document.getElementById('modal-svc-photo-zoom')?.addEventListener('input', (event) => {
+            this.servicePhotoCrop.zoom = Number(event.target.value) || 1;
+            this.renderServicePhotoCrop();
+        });
+
+        const cropFrame = document.getElementById('modal-svc-photo-crop-frame');
+        cropFrame?.addEventListener('pointerdown', (event) => {
+            const crop = this.servicePhotoCrop;
+            if (!crop.image) return;
+            event.preventDefault();
+            crop.dragging = true;
+            crop.startX = event.clientX;
+            crop.startY = event.clientY;
+            crop.startOffsetX = crop.offsetX;
+            crop.startOffsetY = crop.offsetY;
+            cropFrame.classList.add('is-dragging');
+            cropFrame.setPointerCapture?.(event.pointerId);
+        });
+
+        cropFrame?.addEventListener('pointermove', (event) => {
+            const crop = this.servicePhotoCrop;
+            if (!crop.dragging) return;
+            crop.offsetX = crop.startOffsetX + event.clientX - crop.startX;
+            crop.offsetY = crop.startOffsetY + event.clientY - crop.startY;
+            this.renderServicePhotoCrop();
+        });
+
+        const stopPhotoDrag = () => {
+            this.servicePhotoCrop.dragging = false;
+            cropFrame?.classList.remove('is-dragging');
+        };
+        cropFrame?.addEventListener('pointerup', stopPhotoDrag);
+        cropFrame?.addEventListener('pointercancel', stopPhotoDrag);
+    },
+
+    openServicePhotoEditor(photoUrl) {
+        const editor = document.getElementById('modal-svc-photo-editor');
+        const cropImage = document.getElementById('modal-svc-photo-crop-image');
+        if (!editor || !cropImage || !photoUrl) return;
+
+        const image = new Image();
+        image.onerror = () => auth.notify('Nao foi possivel abrir essa imagem para enquadramento.', 'error');
+        image.onload = () => {
+            this.servicePhotoCrop = {
+                ...this.servicePhotoCrop,
+                image,
+                sourceUrl: photoUrl,
+                zoom: 1,
+                offsetX: 0,
+                offsetY: 0,
+                dragging: false
+            };
+            cropImage.src = photoUrl;
+            editor.classList.remove('hidden');
+            const zoomInput = document.getElementById('modal-svc-photo-zoom');
+            if (zoomInput) zoomInput.value = '1';
+            this.renderServicePhotoCrop();
+        };
+        image.src = photoUrl;
+    },
+
+    closeServicePhotoEditor() {
+        document.getElementById('modal-svc-photo-editor')?.classList.add('hidden');
+        const cropImage = document.getElementById('modal-svc-photo-crop-image');
+        if (cropImage) cropImage.removeAttribute('src');
+        this.servicePhotoCrop.image = null;
+        this.servicePhotoCrop.dragging = false;
+    },
+
+    renderServicePhotoCrop() {
+        const crop = this.servicePhotoCrop;
+        const frame = document.getElementById('modal-svc-photo-crop-frame');
+        const image = document.getElementById('modal-svc-photo-crop-image');
+        if (!crop.image || !frame || !image) return;
+
+        const frameSize = frame.clientWidth || 240;
+        const baseScale = Math.max(frameSize / crop.image.naturalWidth, frameSize / crop.image.naturalHeight);
+        const scale = baseScale * crop.zoom;
+        const displayWidth = crop.image.naturalWidth * scale;
+        const displayHeight = crop.image.naturalHeight * scale;
+        const maxOffsetX = Math.max(0, (displayWidth - frameSize) / 2);
+        const maxOffsetY = Math.max(0, (displayHeight - frameSize) / 2);
+
+        crop.offsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, crop.offsetX));
+        crop.offsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, crop.offsetY));
+
+        image.style.width = `${displayWidth}px`;
+        image.style.height = `${displayHeight}px`;
+        image.style.transform = `translate3d(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px), 0)`;
+
+        const zoomValue = document.getElementById('modal-svc-photo-zoom-value');
+        if (zoomValue) zoomValue.value = `${Math.round(crop.zoom * 100)}%`;
+        if (zoomValue) zoomValue.innerText = `${Math.round(crop.zoom * 100)}%`;
+    },
+
+    applyServicePhotoCrop() {
+        const crop = this.servicePhotoCrop;
+        const frame = document.getElementById('modal-svc-photo-crop-frame');
+        if (!crop.image || !frame) return;
+
+        const frameSize = frame.clientWidth || 240;
+        const baseScale = Math.max(frameSize / crop.image.naturalWidth, frameSize / crop.image.naturalHeight);
+        const scale = baseScale * crop.zoom;
+        const sourceSize = frameSize / scale;
+        const sourceX = crop.image.naturalWidth / 2 - (frameSize / 2 + crop.offsetX) / scale;
+        const sourceY = crop.image.naturalHeight / 2 - (frameSize / 2 + crop.offsetY) / scale;
+        const canvas = document.createElement('canvas');
+        canvas.width = 900;
+        canvas.height = 900;
+        const context = canvas.getContext('2d');
+        context.drawImage(crop.image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, canvas.width, canvas.height);
+
+        const photoUrl = canvas.toDataURL('image/jpeg', 0.88);
+        document.getElementById('modal-svc-photo').value = photoUrl;
+        this.updateServicePhotoPreview(photoUrl);
+        this.closeServicePhotoEditor();
+    },
+
+    updateServicePhotoPreview(photoUrl = '') {
+        const preview = document.getElementById('modal-svc-photo-preview');
+        const clearButton = document.getElementById('modal-svc-photo-clear');
+        if (!preview) return;
+
+        const editButton = document.getElementById('modal-svc-photo-edit');
+        preview.replaceChildren();
+        if (photoUrl) {
+            const image = document.createElement('img');
+            image.src = photoUrl;
+            image.alt = 'Imagem do servico';
+            preview.appendChild(image);
+            clearButton?.classList.remove('hidden');
+            editButton?.classList.remove('hidden');
+            return;
+        }
+
+        const initials = document.getElementById('modal-svc-name')?.value
+            ?.split(' ')
+            .filter(Boolean)
+            .map(part => part[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase() || 'SV';
+        const fallback = document.createElement('span');
+        fallback.innerText = initials;
+        preview.appendChild(fallback);
+        clearButton?.classList.add('hidden');
+        editButton?.classList.add('hidden');
+        this.closeServicePhotoEditor();
+    },
+
     async editProfessional(id) {
         const prof = this.professionals.find(p => p.id === id);
         if (!prof) return;
@@ -2511,13 +2724,20 @@ const admin = {
             `;
             return;
         }
-        container.innerHTML = this.services.map(s => `
+        container.innerHTML = this.services.map(s => {
+            const photoUrl = s.photo_url ? this.escapeHtml(s.photo_url) : '';
+            const photoAlt = this.escapeHtml(`Imagem de ${s.name}`);
+            const serviceName = this.escapeHtml(s.name);
+
+            return `
             <tr class="service-row">
                 <td>
                     <div class="service-name-cell">
-                        <span class="service-initial">${s.name.charAt(0).toUpperCase()}</span>
+                        <span class="service-initial${photoUrl ? ' has-photo' : ''}">
+                            ${photoUrl ? `<img src="${photoUrl}" alt="${photoAlt}">` : this.escapeHtml(s.name.charAt(0).toUpperCase())}
+                        </span>
                         <div>
-                            <strong>${s.name}</strong>
+                            <strong>${serviceName}</strong>
                             <small>Servi&ccedil;o ativo</small>
                         </div>
                     </div>
@@ -2531,7 +2751,8 @@ const admin = {
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
     },
 
     async editService(id) {
@@ -2540,12 +2761,15 @@ const admin = {
 
         this.editingServiceId = id;
         document.getElementById('modal-svc-name').value = svc.name;
+        document.getElementById('modal-svc-photo').value = svc.photo_url || '';
+        document.getElementById('modal-svc-photo-file').value = '';
+        this.updateServicePhotoPreview(svc.photo_url || '');
         document.getElementById('modal-svc-price').value = svc.price;
         const durationMatch = String(svc.duration || '').match(/(\d+(?:[.,]\d+)?)\s*(hora|horas|h|minuto|minutos|min|m)?/i);
         document.getElementById('modal-svc-duration-value').value = durationMatch ? durationMatch[1].replace(',', '.') : '';
         document.getElementById('modal-svc-duration-unit').value = durationMatch?.[2]?.toLowerCase().startsWith('h') ? 'horas' : 'minutos';
 
-        const saveBtn = document.querySelector('#modal-service .btn-primary');
+        const saveBtn = document.querySelector('#modal-service > .btn-full');
         saveBtn.innerText = 'Salvar Alterações';
         this.openModal('service');
     },
@@ -2573,6 +2797,7 @@ const admin = {
 
     async saveService() {
         const name = document.getElementById('modal-svc-name').value;
+        const photoUrl = document.getElementById('modal-svc-photo').value;
         const price = document.getElementById('modal-svc-price').value;
         const durationValue = document.getElementById('modal-svc-duration-value').value;
         const durationUnit = document.getElementById('modal-svc-duration-unit').value;
@@ -2582,17 +2807,26 @@ const admin = {
         const duration = `${durationNumber} ${durationUnit}`;
 
         try {
-            const method = this.editingServiceId ? 'PATCH' : 'POST';
+            const isEditing = Boolean(this.editingServiceId);
+            const method = isEditing ? 'PATCH' : 'POST';
             const url = this.editingServiceId ? `/api/services/${this.editingServiceId}` : '/api/services';
             
-            await auth.apiRequest(url, {
+            const response = await auth.apiRequest(url, {
                 method,
-                body: JSON.stringify({ barberId: auth.user.id, name, price, duration })
+                body: JSON.stringify({ barberId: auth.user.id, name, price, duration, photoUrl })
             });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false) {
+                throw new Error(result.message || 'Nao foi possivel salvar o servico.');
+            }
 
             this.closeModal('service');
-            this.loadServices();
-        } catch (err) { alert('Erro ao salvar serviço'); }
+            await this.loadServices();
+            auth.notify(`Serviço ${isEditing ? 'atualizado' : 'cadastrado'} com sucesso.`, 'success');
+        } catch (err) {
+            console.error('Erro ao salvar serviço:', err);
+            auth.notify(err.message || 'Não foi possível salvar o serviço.', 'error');
+        }
     },
 
 
@@ -2650,12 +2884,15 @@ const admin = {
         }
         if (type === 'service') {
             this.editingServiceId = null;
-            const saveBtn = document.querySelector('#modal-service .btn-primary');
+            const saveBtn = document.querySelector('#modal-service > .btn-full');
             if (saveBtn) saveBtn.innerText = 'Adicionar Serviço';
             
             const sName = document.getElementById('modal-svc-name');
             if (sName) {
                 sName.value = '';
+                document.getElementById('modal-svc-photo').value = '';
+                document.getElementById('modal-svc-photo-file').value = '';
+                this.updateServicePhotoPreview('');
                 document.getElementById('modal-svc-price').value = '';
                 document.getElementById('modal-svc-duration-value').value = '';
                 document.getElementById('modal-svc-duration-unit').value = 'minutos';

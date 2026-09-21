@@ -96,6 +96,7 @@ pool.on('connect', () => {
     // Ensure commission column exists (one-off migration)
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS product_commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
+    pool.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS photo_url TEXT').catch(e => console.error('Migration error:', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS monthly_goals (
             id SERIAL PRIMARY KEY,
@@ -705,11 +706,11 @@ app.get('/api/services/:barberId', async (req, res) => {
 });
 
 app.post('/api/services', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
-    const { barberId, name, price, duration } = req.body;
+    const { barberId, name, price, duration, photoUrl } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO services (barber_id, name, price, duration) VALUES ($1, $2, $3, $4) RETURNING *',
-            [barberId, name, price, duration]
+            'INSERT INTO services (barber_id, name, price, duration, photo_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [barberId, name, price, duration, photoUrl]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -720,11 +721,11 @@ app.post('/api/services', authenticateToken, requireAnyPermission('servicos'), a
 
 app.patch('/api/services/:id', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
     const { id } = req.params;
-    const { name, price, duration } = req.body;
+    const { name, price, duration, photoUrl } = req.body;
     try {
         await pool.query(
-            'UPDATE services SET name = $1, price = $2, duration = $3 WHERE id = $4',
-            [name, price, duration, id]
+            'UPDATE services SET name = $1, price = $2, duration = $3, photo_url = $4 WHERE id = $5',
+            [name, price, duration, photoUrl, id]
         );
         res.json({ success: true });
     } catch (err) {

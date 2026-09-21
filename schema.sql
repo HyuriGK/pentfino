@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS services (
     barber_id INTEGER REFERENCES barbers(id),
     name VARCHAR(100) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
-    duration VARCHAR(50) NOT NULL
+    duration VARCHAR(50) NOT NULL,
+    photo_url TEXT
 );
 
 CREATE TABLE IF NOT EXISTS appointments (

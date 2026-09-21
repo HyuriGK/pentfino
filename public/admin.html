@@ -718,6 +718,40 @@
                 <label>Nome do Serviço</label>
                 <input autocomplete="off" type="text" id="modal-svc-name" placeholder="Ex: Consultoria Premium">
             </div>
+            <div class="input-group-new service-photo-group">
+                <label>Imagem do servi&ccedil;o</label>
+                <div class="professional-photo-picker service-photo-picker">
+                    <div id="modal-svc-photo-preview" class="professional-photo-preview service-photo-preview" aria-hidden="true">
+                        <span>SV</span>
+                    </div>
+                    <div class="professional-photo-picker-copy">
+                        <strong>Mostre o resultado do seu servi&ccedil;o</strong>
+                        <p>JPG, PNG ou WEBP &middot; at&eacute; 5 MB</p>
+                        <div class="professional-photo-picker-actions">
+                            <label for="modal-svc-photo-file" class="btn btn-ghost">Selecionar imagem</label>
+                            <button type="button" id="modal-svc-photo-edit" class="professional-photo-edit hidden">Ajustar enquadramento</button>
+                            <button type="button" id="modal-svc-photo-clear" class="professional-photo-clear hidden">Remover</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="modal-svc-photo-editor" class="professional-photo-editor hidden">
+                    <div id="modal-svc-photo-crop-frame" class="professional-photo-crop-frame">
+                        <img id="modal-svc-photo-crop-image" alt="Ajuste da imagem do servi&ccedil;o">
+                        <span class="professional-photo-crop-guide">Arraste para enquadrar</span>
+                    </div>
+                    <div class="professional-photo-zoom-row">
+                        <label for="modal-svc-photo-zoom">Zoom</label>
+                        <input id="modal-svc-photo-zoom" type="range" min="1" max="3" step="0.05" value="1">
+                        <output id="modal-svc-photo-zoom-value" for="modal-svc-photo-zoom">100%</output>
+                    </div>
+                    <div class="professional-photo-editor-actions">
+                        <button type="button" id="modal-svc-photo-cancel" class="btn btn-ghost">Cancelar</button>
+                        <button type="button" id="modal-svc-photo-apply" class="btn btn-primary">Aplicar enquadramento</button>
+                    </div>
+                </div>
+                <input type="file" id="modal-svc-photo-file" class="professional-photo-file" accept="image/jpeg,image/png,image/webp">
+                <input type="hidden" id="modal-svc-photo">
+            </div>
             <div class="input-group-new">
                 <label>Preço (R$)</label>
                 <input autocomplete="off" type="number" id="modal-svc-price" placeholder="R$ 0,00">

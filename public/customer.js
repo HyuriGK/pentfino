@@ -45,15 +45,21 @@ const app = {
 
     renderServices() {
         const container = document.getElementById('services-list');
-        container.innerHTML = this.services.map(s => `
-            <div class="service-card glass" onclick="app.selectService(${s.id}, this)">
-                <div>
-                    <strong>${s.name}</strong>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">${s.duration}</p>
+        container.innerHTML = this.services.map(s => {
+            const photoUrl = s.photo_url || '';
+            return `
+                <div class="service-card glass" onclick="app.selectService(${s.id}, this)">
+                    <div class="service-card-content">
+                        ${photoUrl ? `<img class="service-card-image" src="${photoUrl}" alt="Imagem de ${s.name}">` : ''}
+                        <div>
+                            <strong>${s.name}</strong>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">${s.duration}</p>
+                        </div>
+                    </div>
+                    <div class="price">R$ ${s.price}</div>
                 </div>
-                <div class="price">R$ ${s.price}</div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     },
 
     renderTimes() {
