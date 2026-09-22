@@ -940,6 +940,18 @@ html.session-restore-pending #auth-view {
     white-space: nowrap;
 }
 
+.action-btns .btn-confirm-appointment {
+    background: #16a34a;
+    color: #fff;
+    border-color: #16a34a;
+}
+
+.action-btns .btn-confirm-appointment:hover {
+    background: #15803d;
+    border-color: #15803d;
+    box-shadow: 0 5px 15px rgba(22, 163, 74, 0.22);
+}
+
 .btn-queue-cancel {
     width: 48px;
     height: 48px;

@@ -898,11 +898,46 @@ const admin = {
                     </div>
                 </div>
                 <div class="action-btns">
+                    <button class="btn btn-confirm-appointment" onclick="admin.confirmAppointmentWhatsApp(${a.id})">Confirmar</button>
                     <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
                     <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
                 </div>
             </div>
         `).join('');
+    },
+
+    confirmAppointmentWhatsApp(appointmentId) {
+        const appointment = (this.allAppointments || []).find(item => String(item.id) === String(appointmentId))
+            || (this.pending || []).find(item => String(item.id) === String(appointmentId));
+        if (!appointment) return auth.notify('Agendamento não encontrado.', 'error');
+
+        const phone = String(appointment.client_phone || '').replace(/\D/g, '');
+        if (!phone) return auth.notify('Este cliente não possui WhatsApp cadastrado.', 'error');
+
+        const phoneWithCountryCode = phone.startsWith('55') ? phone : `55${phone}`;
+        const dateParts = String(appointment.appointment_date || '').slice(0, 10).split('-');
+        const appointmentDate = dateParts.length === 3
+            ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`
+            : 'data a confirmar';
+        const appointmentTime = String(appointment.appointment_time || '').slice(0, 5) || 'horário a confirmar';
+        const professional = appointment.professional_name || 'nossa equipe';
+        const message = [
+            `Olá, ${appointment.client_name}! 👋`,
+            '',
+            'Aqui é da BarberPoint. Passando para confirmar o seu agendamento:',
+            '',
+            `📅 Data: ${appointmentDate}`,
+            `⏰ Horário: ${appointmentTime}`,
+            `✂️ Serviço: ${appointment.service_name || 'atendimento'}`,
+            `💈 Profissional: ${professional}`,
+            '',
+            'Seu horário está reservado especialmente para você. Se precisar remarcar ou tiver algum imprevisto, avise por aqui com antecedência, combinado?',
+            '',
+            'Será um prazer te atender! Até lá 😊'
+        ].join('\n');
+
+        const newWindow = window.open(`https://wa.me/${phoneWithCountryCode}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+        if (newWindow) newWindow.opener = null;
     },
 
     confirmCompleteService(id, clientName) {
