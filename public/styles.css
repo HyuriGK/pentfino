@@ -8986,6 +8986,73 @@ textarea:focus-visible,
 .admin-light #modal-prof-comm-details .professional-history-table th:nth-child(6),
 .admin-light #modal-prof-comm-details .professional-history-table td:nth-child(6) { width: 14%; }
 
+/* Product selection: show a real thumbnail or a clear no-photo placeholder. */
+.admin-light #modal-select-item .select-item-table {
+    table-layout: fixed;
+}
+
+.admin-light #modal-select-item .select-item-table th,
+.admin-light #modal-select-item .select-item-table td {
+    text-align: center !important;
+    vertical-align: middle;
+    border-right: 1px solid rgba(59, 74, 85, 0.72);
+}
+
+.admin-light #modal-select-item .select-item-table th:last-child,
+.admin-light #modal-select-item .select-item-table td:last-child {
+    border-right: 0;
+}
+
+.admin-light #modal-select-item .select-item-table th:nth-child(1),
+.admin-light #modal-select-item .select-item-table td:nth-child(1) { width: 13%; }
+
+.admin-light #modal-select-item .select-item-table th:nth-child(2),
+.admin-light #modal-select-item .select-item-table td:nth-child(2) { width: 27%; }
+
+.admin-light #modal-select-item .select-item-table th:nth-child(3),
+.admin-light #modal-select-item .select-item-table td:nth-child(3) { width: 17%; }
+
+.admin-light #modal-select-item .select-item-table th:nth-child(4),
+.admin-light #modal-select-item .select-item-table td:nth-child(4) { width: 16%; }
+
+.admin-light #modal-select-item .select-item-table th:nth-child(5),
+.admin-light #modal-select-item .select-item-table td:nth-child(5) { width: 12%; }
+
+.admin-light #modal-select-item .select-item-table th:nth-child(6),
+.admin-light #modal-select-item .select-item-table td:nth-child(6) { width: 15%; }
+
+.admin-light #modal-select-item .product-select-photo {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    margin-inline: auto;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(255, 214, 0, 0.38);
+    border-radius: 10px;
+    background: #0b141b;
+}
+
+.admin-light #modal-select-item .product-select-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-light #modal-select-item .product-select-photo.no-photo {
+    background: linear-gradient(145deg, rgba(255, 214, 0, 0.14), rgba(255, 214, 0, 0.03));
+}
+
+.admin-light #modal-select-item .product-select-photo.no-photo span {
+    color: var(--text-muted);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
 /* Sidebar active state: use the gold tone from the BarberPoint logo. */
 .admin-light .nav-item.active {
     color: #111a22;

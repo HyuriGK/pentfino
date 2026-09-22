@@ -1945,20 +1945,35 @@ const admin = {
     renderSelectItemTable(items) {
         const body = document.getElementById('select-item-table-body');
         if (items.length === 0) {
-            body.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum produto encontrado.</td></tr>';
+            body.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum produto encontrado.</td></tr>';
             return;
         }
-        body.innerHTML = items.map(i => `
-            <tr>
-                <td><strong>${i.item_name}</strong></td>
-                <td><span class="category-badge">${i.category || 'Geral'}</span></td>
-                <td style="color: var(--primary);">R$ ${parseFloat(i.unit_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td><span class="qty-badge">${i.quantity}</span></td>
-                <td style="text-align: right;">
-                    <button class="btn btn-primary btn-sm" onclick="admin.selectItem(${i.id}, '${i.item_name.replace(/'/g, "\\'")}', ${i.unit_price})">Selecionar</button>
-                </td>
-            </tr>
-        `).join('');
+        body.innerHTML = items.map(i => {
+            const photoUrl = i.photo_url ? this.escapeHtml(i.photo_url) : '';
+            const photoAlt = this.escapeHtml(`Imagem de ${i.item_name}`);
+            const itemName = this.escapeHtml(i.item_name);
+            const category = this.escapeHtml(i.category || 'Geral');
+            const itemNameForAction = i.item_name.replace(/'/g, "\\'");
+
+            return `
+                <tr>
+                    <td>
+                        <div class="product-select-photo${photoUrl ? ' has-photo' : ' no-photo'}">
+                            ${photoUrl
+                                ? `<img src="${photoUrl}" alt="${photoAlt}">`
+                                : '<span>Sem foto</span>'}
+                        </div>
+                    </td>
+                    <td><strong>${itemName}</strong></td>
+                    <td><span class="category-badge">${category}</span></td>
+                    <td style="color: var(--primary);">R$ ${parseFloat(i.unit_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td><span class="qty-badge">${i.quantity}</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-primary btn-sm" onclick="admin.selectItem(${i.id}, '${itemNameForAction}', ${i.unit_price})">Selecionar</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     },
 
     filterSelectItem(term) {
