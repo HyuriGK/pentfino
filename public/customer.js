@@ -58,10 +58,17 @@ const app = {
     },
 
     applyBookingTheme() {
-        const style = ['classic', 'gold', 'minimal'].includes(this.bookingSettings?.bookingStyle)
+        const style = ['classic', 'gold', 'minimal', 'red', 'graphite', 'ocean'].includes(this.bookingSettings?.bookingStyle)
             ? this.bookingSettings.bookingStyle
             : 'classic';
-        document.body.classList.remove('booking-theme-classic', 'booking-theme-gold', 'booking-theme-minimal');
+        document.body.classList.remove(
+            'booking-theme-classic',
+            'booking-theme-gold',
+            'booking-theme-minimal',
+            'booking-theme-red',
+            'booking-theme-graphite',
+            'booking-theme-ocean'
+        );
         document.body.classList.add(`booking-theme-${style}`);
     },
 

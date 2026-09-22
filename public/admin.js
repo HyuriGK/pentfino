@@ -3197,8 +3197,8 @@ const admin = {
             if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível salvar as configurações.');
             this.bookingSettings = data.settings || settings;
             if (feedback) {
-                feedback.className = 'settings-feedback is-success';
-                feedback.innerText = 'Configurações salvas. O link público já está atualizado.';
+                feedback.className = 'settings-feedback';
+                feedback.innerText = '';
             }
             auth.notify('Configurações da reserva atualizadas.', 'success');
         } catch (err) {

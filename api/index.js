@@ -33,7 +33,7 @@ const normalizeBookingSettings = (source = {}) => {
     const rawSchedule = source.weeklySchedule && typeof source.weeklySchedule === 'object'
         ? source.weeklySchedule
         : {};
-    const validStyles = ['classic', 'gold', 'minimal'];
+    const validStyles = ['classic', 'gold', 'minimal', 'red', 'graphite', 'ocean'];
     const interval = Number(source.intervalMinutes);
     const breakStart = BOOKING_TIME_PATTERN.test(String(source.breakStart || ''))
         ? String(source.breakStart)
