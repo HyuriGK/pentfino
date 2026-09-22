@@ -70,6 +70,30 @@ const timeToMinutes = value => {
     return (hours * 60) + minutes;
 };
 
+const getCurrentBookingClock = () => {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23'
+    }).formatToParts(new Date()).map(part => [part.type, part.value]));
+
+    return {
+        date: `${parts.year}-${parts.month}-${parts.day}`,
+        minutes: (Number(parts.hour) * 60) + Number(parts.minute)
+    };
+};
+
+const isBookingTimeInPast = (dateValue, timeValue) => {
+    const current = getCurrentBookingClock();
+    const date = String(dateValue || '').slice(0, 10);
+    const time = timeToMinutes(timeValue);
+    return date < current.date || (date === current.date && time <= current.minutes);
+};
+
 const getAvailableBookingTimes = (settings, dateValue) => {
     const normalized = normalizeBookingSettings(settings);
     const parts = String(dateValue || '').slice(0, 10).split('-').map(Number);
@@ -647,10 +671,13 @@ app.post('/api/appointments', async (req, res) => {
     try {
         await ensureAppointmentPaymentSchema();
         // Use provided date or today if not provided
-        const apptDate = date || new Date().toISOString().split('T')[0];
+        const apptDate = date || getCurrentBookingClock().date;
         const normalizedTime = String(time || '').slice(0, 5);
         if (!BOOKING_TIME_PATTERN.test(normalizedTime)) {
             return res.status(400).json({ success: false, message: 'Informe um horário válido.' });
+        }
+        if (isBookingTimeInPast(apptDate, normalizedTime)) {
+            return res.status(400).json({ success: false, message: 'Este horário já passou. Escolha outro horário.' });
         }
 
         const bookingSettings = await fetchBookingSettings(barberId);

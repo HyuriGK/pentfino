@@ -78,6 +78,15 @@ const app = {
         return (hours * 60) + minutes;
     },
 
+    isTimeInPast(dateValue, timeValue) {
+        const selectedDate = String(dateValue || '').slice(0, 10);
+        const now = new Date();
+        const today = this.dateToValue(now);
+        if (selectedDate < today) return true;
+        if (selectedDate !== today) return false;
+        return this.timeToMinutes(timeValue) <= (now.getHours() * 60) + now.getMinutes();
+    },
+
     getAvailableTimesForDate(dateValue) {
         const dateParts = String(dateValue || '').slice(0, 10).split('-').map(Number);
         if (dateParts.length !== 3 || dateParts.some(Number.isNaN)) return [];
@@ -230,16 +239,24 @@ const app = {
     renderTimes() {
         const container = document.getElementById('times-list');
         const date = document.getElementById('booking-date')?.value;
-        this.availableTimes = this.getAvailableTimesForDate(date);
+        const scheduledTimes = this.getAvailableTimesForDate(date);
+        this.availableTimes = scheduledTimes.filter(time => !this.isTimeInPast(date, time));
+        if (this.booking.time && this.isTimeInPast(date, this.booking.time)) {
+            this.booking.time = null;
+            document.getElementById('summary-time-val').innerText = '--';
+        }
         const customTimeAllowed = this.bookingSettings?.allowCustomTime !== false;
         const customTimeSelected = customTimeAllowed && this.booking.time && !this.availableTimes.includes(this.booking.time);
-        const dayIsOpen = this.availableTimes.length > 0;
-        const timesMarkup = this.availableTimes.map(t => {
+        const dayIsOpen = scheduledTimes.length > 0;
+        const timesMarkup = scheduledTimes.map(t => {
             const isBooked = this.bookedTimes.includes(t);
-            const isSelected = this.booking.time === t;
+            const isPast = this.isTimeInPast(date, t);
+            const isUnavailable = isBooked || isPast;
+            const isSelected = this.booking.time === t && !isPast;
+            const unavailableLabel = isPast ? 'Horário já passado' : 'Horário indisponível';
             return `
-                <div class="time-card glass ${isBooked ? 'booked' : ''} ${isSelected ? 'selected' : ''}"
-                     ${isBooked ? '' : `onclick="app.selectTime('${t}', this)"`}>
+                <div class="time-card glass ${isUnavailable ? 'booked' : ''} ${isSelected ? 'selected' : ''}"
+                     ${isUnavailable ? `aria-disabled="true" title="${unavailableLabel}"` : `onclick="app.selectTime('${t}', this)"`}>
                     ${t}
                 </div>
             `;
@@ -362,6 +379,11 @@ const app = {
     },
 
     selectTime(time, el) {
+        const date = document.getElementById('booking-date')?.value;
+        if (this.isTimeInPast(date, time)) {
+            this.renderTimes();
+            return;
+        }
         document.querySelectorAll('.time-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
         this.booking.time = time;
@@ -373,7 +395,8 @@ const app = {
     },
 
     selectCustomTime(el) {
-        if (this.bookingSettings?.allowCustomTime === false || !this.availableTimes.length) return;
+        const date = document.getElementById('booking-date')?.value;
+        if (this.bookingSettings?.allowCustomTime === false || !this.getAvailableTimesForDate(date).length) return;
         document.querySelectorAll('.time-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
         this.booking.time = null;
@@ -483,9 +506,10 @@ const app = {
     },
 
     setCustomTime(time) {
-        if (this.bookingSettings?.allowCustomTime === false || !this.availableTimes.length) return;
+        const date = document.getElementById('booking-date')?.value;
+        if (this.bookingSettings?.allowCustomTime === false || !this.getAvailableTimesForDate(date).length) return;
         const isValidTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-        if (!isValidTime) {
+        if (!isValidTime || this.isTimeInPast(date, time)) {
             this.booking.time = null;
             document.getElementById('summary-time-val').innerText = '--';
             return;
@@ -514,7 +538,12 @@ const app = {
         const date = document.getElementById('booking-date').value;
 
         const validTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(this.booking.time || '');
-        if (!validTime || !name || !phone || !date) {
+        if (!validTime || this.isTimeInPast(date, this.booking.time)) {
+            alert('Este horário já passou. Escolha outro horário.');
+            this.renderTimes();
+            return;
+        }
+        if (!name || !phone || !date) {
             alert('Por favor, preencha todos os campos e escolha um horário.');
             return;
         }
