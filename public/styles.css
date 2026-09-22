@@ -8395,3 +8395,58 @@ textarea:focus-visible,
     }
 }
 
+/* Photo picker layout: keep the copy above one aligned action row. */
+.admin-light .professional-photo-picker {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 10px;
+}
+
+.admin-light .professional-photo-picker .professional-photo-preview {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+}
+
+.admin-light .professional-photo-picker .professional-photo-picker-copy {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+}
+
+.admin-light .professional-photo-picker .professional-photo-picker-copy p {
+    margin-bottom: 0;
+}
+
+.admin-light .professional-photo-picker .professional-photo-picker-actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+
+@media (max-width: 760px) {
+    .admin-light .professional-photo-picker {
+        grid-template-columns: 64px minmax(0, 1fr);
+        column-gap: 12px;
+    }
+
+    .admin-light .professional-photo-picker .professional-photo-picker-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        flex-wrap: initial;
+    }
+
+    .admin-light .professional-photo-picker .professional-photo-picker-actions > .btn {
+        grid-column: 1 / -1;
+    }
+
+    .admin-light .professional-photo-picker .professional-photo-picker-actions > .professional-photo-edit,
+    .admin-light .professional-photo-picker .professional-photo-picker-actions > .professional-photo-clear {
+        width: 100%;
+    }
+}
+
