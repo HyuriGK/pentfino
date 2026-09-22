@@ -10215,16 +10215,16 @@ textarea:focus-visible,
 .admin-light #tab-vendas .data-table th:nth-child(7),
 .admin-light #tab-vendas .data-table td:nth-child(7) { width: 8%; }
 
-/* Sidebar active state: use the gold tone from the BarberPoint logo. */
+/* Sidebar active state: keep the selection quiet and easy to scan. */
 .admin-light .nav-item.active {
-    color: #111a22;
-    background: var(--primary);
-    border-color: var(--primary);
-    box-shadow: 0 8px 20px rgba(255, 214, 0, 0.2);
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.065);
+    border-color: transparent;
+    box-shadow: inset 2px 0 0 rgba(255, 214, 0, 0.72);
 }
 
 .admin-light .nav-item.active svg {
-    color: #111a22;
+    color: rgba(255, 214, 0, 0.82);
 }
 
 @media (min-width: 1025px) {
