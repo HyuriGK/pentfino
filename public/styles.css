@@ -7936,6 +7936,8 @@ textarea:focus-visible,
 }
 
 .admin-light #modal-client-details .client-details-content {
+    display: flex;
+    flex-direction: column;
     width: min(100%, 1380px) !important;
     max-width: 1380px !important;
     height: calc(100vh - 48px) !important;
@@ -8018,11 +8020,13 @@ textarea:focus-visible,
     flex-direction: column;
     gap: 0;
     overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
     padding: 28px 36px 36px;
 }
 
 .admin-light #modal-client-details .client-detail-stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 16px;
     margin: 0 0 34px;
 }
