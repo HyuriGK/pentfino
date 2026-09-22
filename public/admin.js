@@ -1239,7 +1239,7 @@ const admin = {
                 this.loadData();
                 this.closeModal('delete-confirm');
             } catch (err) { alert('Erro ao excluir atendimento'); }
-        });
+        }, { requiresTyping: true });
     },
 
     openDeleteConfirm(text, onConfirm, { requiresTyping = false } = {}) {
