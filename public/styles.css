@@ -8836,24 +8836,65 @@ textarea:focus-visible,
 .admin-light #tab-servicos .data-table th:nth-child(4),
 .admin-light #tab-servicos .data-table td:nth-child(4) { width: 21%; }
 
-.admin-light #tab-comissoes .commission-professional-cell,
-.admin-light #tab-servicos .service-name-cell,
+.admin-light #tab-comissoes .commission-photo-cell,
+.admin-light #tab-servicos .service-photo-cell,
+.admin-light #tab-servicos .service-name-text,
 .admin-light #tab-servicos .service-actions {
     justify-content: center;
     margin-inline: auto;
 }
 
-.admin-light #tab-servicos .service-name-cell {
+.admin-light #tab-comissoes .commission-photo-cell,
+.admin-light #tab-servicos .service-photo-cell {
+    display: grid;
+    place-items: center;
+}
+
+.admin-light #tab-comissoes .data-table th:nth-child(1),
+.admin-light #tab-comissoes .data-table td:nth-child(1) { width: 12%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(2),
+.admin-light #tab-comissoes .data-table td:nth-child(2) { width: 20%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(3),
+.admin-light #tab-comissoes .data-table td:nth-child(3) { width: 15%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(4),
+.admin-light #tab-comissoes .data-table td:nth-child(4) { width: 18%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(5),
+.admin-light #tab-comissoes .data-table td:nth-child(5) { width: 17%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(6),
+.admin-light #tab-comissoes .data-table td:nth-child(6) { width: 18%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(1),
+.admin-light #tab-servicos .data-table td:nth-child(1) { width: 12%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(2),
+.admin-light #tab-servicos .data-table td:nth-child(2) { width: 30%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(3),
+.admin-light #tab-servicos .data-table td:nth-child(3) { width: 18%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(4),
+.admin-light #tab-servicos .data-table td:nth-child(4) { width: 18%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(5),
+.admin-light #tab-servicos .data-table td:nth-child(5) { width: 22%; }
+
+.admin-light #tab-servicos .service-name-text {
     min-width: 0;
 }
 
-.admin-light #tab-servicos .service-name-cell > div {
+.admin-light #tab-servicos .service-name-text {
     min-width: 0;
     text-align: center;
 }
 
-.admin-light #tab-servicos .service-name-cell strong,
-.admin-light #tab-servicos .service-name-cell small {
+.admin-light #tab-servicos .service-name-text strong,
+.admin-light #tab-servicos .service-name-text small {
+    display: block;
     overflow-wrap: anywhere;
 }
 

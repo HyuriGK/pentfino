@@ -734,22 +734,22 @@ const admin = {
 
         // Render Table
         if (commData.length === 0) {
-            container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum barbeiro cadastrado para calcular comissões.</td></tr>';
+            container.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum barbeiro cadastrado para calcular comissões.</td></tr>';
             return;
         }
 
         container.innerHTML = commData.map(c => `
             <tr onclick="admin.showProfCommDetails(${c.id})" style="cursor: pointer;">
                 <td>
-                    <div class="commission-professional-cell">
+                    <div class="commission-photo-cell">
                         <span class="commission-professional-avatar${c.photoUrl ? ' has-photo' : ''}">
                             ${c.photoUrl
                                 ? `<img src="${c.photoUrl}" alt="${c.photoAlt}">`
                                 : this.escapeHtml(c.initials)}
                         </span>
-                        <strong style="color:var(--primary); text-decoration: underline;">${this.escapeHtml(c.name)}</strong>
                     </div>
                 </td>
+                <td><strong style="color:var(--primary); text-decoration: underline;">${this.escapeHtml(c.name)}</strong></td>
                 <td><span class="svc-tag" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">${c.rate}%</span></td>
                 <td style="font-weight: 600;">R$ ${c.generated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--danger); font-weight: 600;">R$ ${c.shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -3006,7 +3006,7 @@ const admin = {
         if (this.services.length === 0) {
             container.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="4">
+                    <td colspan="5">
                         <div class="empty-state empty-state-services">
                             <div class="empty-state-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -3033,14 +3033,16 @@ const admin = {
             return `
             <tr class="service-row">
                 <td>
-                    <div class="service-name-cell">
+                    <div class="service-photo-cell">
                         <span class="service-initial${photoUrl ? ' has-photo' : ''}">
                             ${photoUrl ? `<img src="${photoUrl}" alt="${photoAlt}">` : this.escapeHtml(s.name.charAt(0).toUpperCase())}
                         </span>
-                        <div>
-                            <strong>${serviceName}</strong>
-                            <small>Servi&ccedil;o ativo</small>
-                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="service-name-text">
+                        <strong>${serviceName}</strong>
+                        <small>Servi&ccedil;o ativo</small>
                     </div>
                 </td>
                 <td><span class="service-chip">${s.duration || '-'}</span></td>
