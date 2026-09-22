@@ -8240,3 +8240,75 @@ textarea:focus-visible,
     }
 }
 
+/* Professional modal: use the two-column space without leaving empty tracks. */
+.admin-light #modal-professional .professional-modal-content {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    padding: 24px 32px 18px;
+}
+
+.admin-light #modal-professional .professional-modal-content > .input-group-new:nth-of-type(1) {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.admin-light #modal-professional .professional-modal-content > .input-group-new:nth-of-type(2) {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.admin-light #modal-professional .professional-modal-content > .input-group-new:nth-of-type(3) {
+    grid-column: 1;
+    grid-row: 3 / span 2;
+}
+
+.admin-light #modal-professional .professional-modal-content > .input-group-new:nth-of-type(4) {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.admin-light #modal-professional .professional-modal-content > .input-group-new:nth-of-type(5) {
+    grid-column: 2;
+    grid-row: 4;
+}
+
+.admin-light #modal-professional .professional-modal-content > .input-group-new:nth-of-type(6) {
+    grid-column: 1 / -1;
+    grid-row: 5;
+}
+
+.admin-light #modal-professional #modal-prof-services-list.checkbox-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: 150px !important;
+    padding: 9px !important;
+    gap: 8px;
+}
+
+.admin-light #modal-professional #modal-prof-services-list .checkbox-item {
+    min-height: 40px;
+    padding: 8px 10px;
+}
+
+.admin-light #modal-professional .professional-modal-content > .btn-full {
+    grid-row: 6;
+    min-height: 46px;
+    margin-top: 0;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-professional .professional-modal-content {
+        display: block;
+        padding: 22px 18px 18px;
+    }
+
+    .admin-light #modal-professional .professional-modal-content > .input-group-new,
+    .admin-light #modal-professional .professional-modal-content > .btn-full {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .admin-light #modal-professional #modal-prof-services-list.checkbox-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-height: 150px !important;
+    }
+}
+
