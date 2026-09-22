@@ -1294,7 +1294,7 @@
             <div class="cancel-confirm-field">
                 <label for="cancel-service-confirmation">Digite <strong>CONFIRMAR</strong> para continuar</label>
                 <input autocomplete="off" type="text" id="cancel-service-confirmation" placeholder="CONFIRMAR"
-                    oninput="admin.validateCancellationConfirmation(this.value)">
+                    oninput="this.value = this.value.toUpperCase(); admin.validateCancellationConfirmation(this.value)">
             </div>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-ghost btn-full" onclick="admin.closeModal('cancel-service')">Voltar</button>
@@ -1322,7 +1322,7 @@
             <div id="delete-confirmation-field" class="cancel-confirm-field hidden" style="text-align: left; margin-bottom: 24px;">
                 <label for="delete-confirmation">Digite <strong>CONFIRMAR</strong> para continuar</label>
                 <input autocomplete="off" type="text" id="delete-confirmation" placeholder="CONFIRMAR"
-                    oninput="admin.validateDeleteConfirmation(this.value)">
+                    oninput="this.value = this.value.toUpperCase(); admin.validateDeleteConfirmation(this.value)">
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <button class="btn btn-ghost" onclick="admin.closeModal('delete-confirm')">Cancelar</button>
@@ -1341,7 +1341,7 @@
             <div class="payment-confirm-field">
                 <label for="payment-confirmation">Digite <strong>CONFIRMAR</strong> para continuar</label>
                 <input autocomplete="off" type="text" id="payment-confirmation" placeholder="CONFIRMAR"
-                    oninput="admin.validatePaymentConfirmation(this.value)">
+                    oninput="this.value = this.value.toUpperCase(); admin.validatePaymentConfirmation(this.value)">
             </div>
             <div class="payment-confirm-actions">
                 <button class="btn btn-ghost" onclick="admin.closeModal('payment-confirm')">Cancelar</button>

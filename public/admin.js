@@ -1240,7 +1240,7 @@ const admin = {
 
     validateCancellationConfirmation(value) {
         const button = document.getElementById('btn-do-cancel-service');
-        if (button) button.disabled = value !== 'CONFIRMAR';
+        if (button) button.disabled = String(value || '').trim().toUpperCase() !== 'CONFIRMAR';
     },
 
     async executeCancellation(id) {
@@ -1436,7 +1436,10 @@ const admin = {
         if (confirmationText) confirmationText.innerText = 'Confirme o recebimento deste atendimento para remover a pendência.';
         if (confirmationInput) {
             confirmationInput.value = '';
-            confirmationInput.oninput = () => this.validatePaymentConfirmation(confirmationInput.value);
+            confirmationInput.oninput = () => {
+                confirmationInput.value = confirmationInput.value.toUpperCase();
+                this.validatePaymentConfirmation(confirmationInput.value);
+            };
         }
         if (confirmButton) {
             confirmButton.disabled = true;
@@ -1449,7 +1452,7 @@ const admin = {
 
     validatePaymentConfirmation(value) {
         const button = document.getElementById('btn-do-payment-confirm');
-        if (button) button.disabled = String(value || '').trim() !== 'CONFIRMAR';
+        if (button) button.disabled = String(value || '').trim().toUpperCase() !== 'CONFIRMAR';
     },
 
     async executePaymentConfirmation(appointmentId, clientId) {
@@ -1490,7 +1493,7 @@ const admin = {
                 console.error('Erro ao excluir cliente:', err);
                 auth.notify(err.message || 'Erro ao excluir cliente.', 'error');
             }
-        });
+        }, { requiresTyping: true });
     },
 
     async deleteAppointment(id, clientId) {
@@ -1513,12 +1516,15 @@ const admin = {
         confirmationField?.classList.toggle('hidden', !requiresTyping);
         if (confirmationInput) {
             confirmationInput.value = '';
-            confirmationInput.oninput = () => this.validateDeleteConfirmation(confirmationInput.value);
+            confirmationInput.oninput = () => {
+                confirmationInput.value = confirmationInput.value.toUpperCase();
+                this.validateDeleteConfirmation(confirmationInput.value);
+            };
         }
 
         btn.disabled = requiresTyping;
         btn.onclick = async () => {
-            if (requiresTyping && confirmationInput?.value.trim() !== 'CONFIRMAR') return;
+            if (requiresTyping && confirmationInput?.value.trim().toUpperCase() !== 'CONFIRMAR') return;
             await onConfirm();
         };
         this.openModal('delete-confirm');
@@ -1530,7 +1536,7 @@ const admin = {
 
     validateDeleteConfirmation(value) {
         const button = document.getElementById('btn-do-delete');
-        if (button) button.disabled = String(value || '').trim() !== 'CONFIRMAR';
+        if (button) button.disabled = String(value || '').trim().toUpperCase() !== 'CONFIRMAR';
     },
 
     openWhatsAppConfirm(clientId) {
