@@ -8998,3 +8998,25 @@ textarea:focus-visible,
     color: #111a22;
 }
 
+@media (min-width: 1025px) {
+    /* Collapsed sidebar: keep the brand mark centered in the header area. */
+    .admin-light .sidebar.collapsed .sidebar-header {
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        padding-inline: 0 !important;
+    }
+
+    .admin-light .sidebar.collapsed .logo {
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        gap: 0;
+    }
+
+    .admin-light .sidebar.collapsed .logo-img {
+        display: block;
+        margin-inline: auto;
+    }
+}
+
