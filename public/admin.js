@@ -539,7 +539,7 @@ const admin = {
 
         const labels = {
             dashboard: 'Dashboard', agenda: 'Agenda', billing: 'Faturamento', clientes: 'Clientes',
-            vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços', configuracoes: 'Configurações'
+            vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços', configuracoes: 'Ajustes'
         };
         const enabled = Object.keys(labels).filter(key => user.permissions?.[key] !== false);
         if (!enabled.length) return '<span class="permission-chip muted">Sem acesso</span>';
@@ -3200,7 +3200,7 @@ const admin = {
                 feedback.className = 'settings-feedback';
                 feedback.innerText = '';
             }
-            auth.notify('Configurações da reserva atualizadas.', 'success');
+            auth.notify('Ajustes da reserva atualizados.', 'success');
         } catch (err) {
             console.error('Erro ao salvar configurações de agendamento:', err);
             if (feedback) {
@@ -3211,7 +3211,7 @@ const admin = {
         } finally {
             if (button) {
                 button.disabled = false;
-                button.innerText = 'Salvar configurações';
+                button.innerText = 'Salvar ajustes';
             }
         }
     },
