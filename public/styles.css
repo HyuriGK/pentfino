@@ -8576,6 +8576,24 @@ textarea:focus-visible,
     line-height: 1;
 }
 
+@media (min-width: 761px) {
+    .admin-light .professional-photo-picker .professional-photo-picker-actions {
+        display: flex !important;
+        align-items: stretch !important;
+        height: 42px;
+        min-height: 42px;
+    }
+
+    .admin-light .professional-photo-picker .professional-photo-picker-actions > .btn,
+    .admin-light .professional-photo-picker .professional-photo-picker-actions > .professional-photo-edit,
+    .admin-light .professional-photo-picker .professional-photo-picker-actions > .professional-photo-clear {
+        align-self: stretch !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+    }
+}
+
 /* Service form: keep the photo picker and fields visible without a modal scrollbar. */
 .admin-light #modal-service {
     align-items: center;
