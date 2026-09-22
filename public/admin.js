@@ -419,6 +419,11 @@ const admin = {
 
                 this.allAppointments = allApts;
                 this.pending = nextPending;
+                this.confirmedAppointmentIds = new Set(
+                    nextPending
+                        .filter(appointment => appointment.confirmation_sent_at)
+                        .map(appointment => String(appointment.id))
+                );
                 this.knownPendingAppointmentIds = new Set(nextPending.map(a => String(a.id)));
                 this.appointmentsInitialized = true;
                 if (auth.can('dashboard')) this.renderAppointments();
@@ -989,7 +994,7 @@ const admin = {
         `).join('');
     },
 
-    confirmAppointmentWhatsApp(appointmentId) {
+    async confirmAppointmentWhatsApp(appointmentId) {
         const appointment = (this.allAppointments || []).find(item => String(item.id) === String(appointmentId))
             || (this.pending || []).find(item => String(item.id) === String(appointmentId));
         if (!appointment) return auth.notify('Agendamento não encontrado.', 'error');
@@ -1022,8 +1027,19 @@ const admin = {
         const newWindow = window.open(`https://wa.me/${phoneWithCountryCode}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
         if (newWindow) newWindow.opener = null;
 
-        this.confirmedAppointmentIds.add(String(appointmentId));
-        this.renderAppointments();
+        try {
+            const response = await auth.apiRequest(`/api/appointments/${appointmentId}/confirmation`, { method: 'PATCH' });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.success === false) {
+                throw new Error(data.message || 'Não foi possível salvar a confirmação.');
+            }
+
+            this.confirmedAppointmentIds.add(String(appointmentId));
+            this.renderAppointments();
+        } catch (err) {
+            console.error('Erro ao salvar confirmação do agendamento:', err);
+            auth.notify(err.message || 'A mensagem foi aberta, mas a confirmação não foi salva.', 'error');
+        }
     },
 
     confirmCompleteService(id, clientName) {

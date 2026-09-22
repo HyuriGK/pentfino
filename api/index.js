@@ -189,6 +189,7 @@ const ensureAppointmentPaymentSchema = () => {
     if (!appointmentPaymentSchemaPromise) {
         appointmentPaymentSchemaPromise = pool.query("ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) NOT NULL DEFAULT 'paid'")
             .then(() => pool.query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_paid_at TIMESTAMP'))
+            .then(() => pool.query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS confirmation_sent_at TIMESTAMP'))
             .catch(error => {
             appointmentPaymentSchemaPromise = null;
             throw error;
@@ -814,6 +815,28 @@ app.patch('/api/appointments/:id/payment', authenticateToken, requireAnyPermissi
     } catch (err) {
         console.error('Erro ao confirmar pagamento do atendimento:', err);
         res.status(500).json({ success: false, message: 'Não foi possível confirmar o pagamento.' });
+    }
+});
+
+app.patch('/api/appointments/:id/confirmation', authenticateToken, requireAnyPermission('dashboard', 'agenda'), async (req, res) => {
+    const { id } = req.params;
+    try {
+        await ensureAppointmentPaymentSchema();
+        const result = await pool.query(`
+            UPDATE appointments
+            SET confirmation_sent_at = CURRENT_TIMESTAMP
+            WHERE id = $1 AND barber_id = $2
+            RETURNING id, confirmation_sent_at
+        `, [id, req.user.id]);
+
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Agendamento não encontrado.' });
+        }
+
+        res.json({ success: true, appointment: result.rows[0] });
+    } catch (err) {
+        console.error('Erro ao registrar confirmação do agendamento:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível salvar a confirmação.' });
     }
 });
 
