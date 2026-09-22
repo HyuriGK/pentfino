@@ -2869,12 +2869,27 @@ const admin = {
     },
 
     async deleteProfessional(id, name) {
-        if (confirm(`Deseja remover ${name} da equipe? Esta ação não pode ser desfeita.`)) {
-            try {
-                await auth.apiRequest(`/api/professionals/${id}`, { method: 'DELETE' });
-                await this.loadProfessionals();
-            } catch (err) { alert('Erro ao remover barbeiro'); }
-        }
+        const safeName = this.escapeHtml(name);
+        this.openDeleteConfirm(
+            `Deseja remover o barbeiro <strong>${safeName}</strong> da equipe? Esta ação não pode ser desfeita.`,
+            async () => {
+                try {
+                    const response = await auth.apiRequest(`/api/professionals/${id}`, { method: 'DELETE' });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || data.success === false) {
+                        throw new Error(data.message || 'Não foi possível remover o barbeiro.');
+                    }
+
+                    await this.loadProfessionals();
+                    this.closeModal('delete-confirm');
+                    auth.notify(`Barbeiro "${safeName}" removido com sucesso.`, 'success');
+                } catch (err) {
+                    console.error('Erro ao remover barbeiro:', err);
+                    auth.notify(err.message || 'Erro ao remover barbeiro.', 'error');
+                }
+            },
+            { requiresTyping: true }
+        );
     },
 
     async saveProfessional() {
