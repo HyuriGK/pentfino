@@ -1528,9 +1528,8 @@ const admin = {
 
         container.innerHTML = this.sales.map(s => `
             <tr>
-                <td style="color: var(--text-muted); font-size: 0.8rem;">
-                    ${new Date(s.sale_date || s.created_at).toLocaleDateString('pt-BR')}<br>
-                    <small>${new Date(s.sale_date || s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                <td class="sales-date-cell" style="color: var(--text-muted); font-size: 0.8rem;">
+                    ${new Date(s.sale_date || s.created_at).toLocaleDateString('pt-BR')} ${new Date(s.sale_date || s.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </td>
                 <td style="font-weight: 500;">${s.client_name || '<span style="color: var(--text-muted); font-style: italic;">Consumidor</span>'}</td>
                 <td><strong style="color: var(--text-main);">${s.item_name}</strong></td>

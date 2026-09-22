@@ -9795,6 +9795,11 @@ textarea:focus-visible,
 /* Sales history: separate each field and center the row content. */
 .admin-light #tab-vendas .data-table {
     table-layout: fixed;
+    min-width: 900px;
+}
+
+.admin-light #tab-vendas .sales-date-cell {
+    white-space: nowrap;
 }
 
 .admin-light #tab-vendas .data-table th,
@@ -9810,13 +9815,13 @@ textarea:focus-visible,
 }
 
 .admin-light #tab-vendas .data-table th:nth-child(1),
-.admin-light #tab-vendas .data-table td:nth-child(1) { width: 14%; }
+.admin-light #tab-vendas .data-table td:nth-child(1) { width: 17%; }
 
 .admin-light #tab-vendas .data-table th:nth-child(2),
 .admin-light #tab-vendas .data-table td:nth-child(2) { width: 14%; }
 
 .admin-light #tab-vendas .data-table th:nth-child(3),
-.admin-light #tab-vendas .data-table td:nth-child(3) { width: 25%; }
+.admin-light #tab-vendas .data-table td:nth-child(3) { width: 22%; }
 
 .admin-light #tab-vendas .data-table th:nth-child(4),
 .admin-light #tab-vendas .data-table td:nth-child(4) { width: 10%; }
