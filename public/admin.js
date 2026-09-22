@@ -981,7 +981,7 @@ const admin = {
                     </div>
                 </div>
                 <div class="action-btns">
-                    <button type="button" class="btn btn-confirm-appointment${this.confirmedAppointmentIds.has(String(a.id)) ? ' is-confirmed' : ''}" onclick="admin.confirmAppointmentWhatsApp(${a.id})">Confirmar</button>
+                    <button type="button" class="btn btn-confirm-appointment${this.confirmedAppointmentIds.has(String(a.id)) ? ' is-confirmed' : ''}"${this.confirmedAppointmentIds.has(String(a.id)) ? ' disabled aria-disabled="true"' : ` onclick="admin.confirmAppointmentWhatsApp(${a.id})"`}>${this.confirmedAppointmentIds.has(String(a.id)) ? 'Confirmado' : 'Confirmar'}</button>
                     <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
                     <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
                 </div>
