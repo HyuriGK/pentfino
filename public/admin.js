@@ -2227,9 +2227,7 @@ const admin = {
         });
 
         document.getElementById('modal-prof-photo-clear')?.addEventListener('click', () => {
-            fileInput.value = '';
-            document.getElementById('modal-prof-photo').value = '';
-            this.updateProfessionalPhotoPreview('');
+            this.requestPhotoRemoval('professional');
         });
 
         document.getElementById('modal-prof-photo-edit')?.addEventListener('click', () => {
@@ -2291,6 +2289,43 @@ const admin = {
             reader.onload = () => resolve(reader.result);
             reader.readAsDataURL(file);
         });
+    },
+
+    requestPhotoRemoval(type) {
+        const photoConfig = {
+            professional: {
+                label: 'a foto do perfil do barbeiro',
+                fileId: 'modal-prof-photo-file',
+                valueId: 'modal-prof-photo',
+                clearPreview: () => this.updateProfessionalPhotoPreview('')
+            },
+            service: {
+                label: 'a imagem do servi\u00E7o',
+                fileId: 'modal-svc-photo-file',
+                valueId: 'modal-svc-photo',
+                clearPreview: () => this.updateServicePhotoPreview('')
+            },
+            inventory: {
+                label: 'a imagem do produto',
+                fileId: 'modal-inv-photo-file',
+                valueId: 'modal-inv-photo',
+                clearPreview: () => this.updateInventoryPhotoPreview('')
+            }
+        }[type];
+
+        if (!photoConfig) return;
+
+        this.openDeleteConfirm(
+            `Deseja remover ${photoConfig.label}? A altera\u00E7\u00E3o ser\u00E1 aplicada ao salvar.`,
+            () => {
+                document.getElementById(photoConfig.fileId).value = '';
+                document.getElementById(photoConfig.valueId).value = '';
+                photoConfig.clearPreview();
+                this.closeModal('delete-confirm');
+                auth.notify('Imagem removida do formul\u00E1rio.', 'success');
+            },
+            { requiresTyping: true }
+        );
     },
 
     openProfessionalPhotoEditor(photoUrl) {
@@ -2441,9 +2476,7 @@ const admin = {
         });
 
         document.getElementById('modal-svc-photo-clear')?.addEventListener('click', () => {
-            fileInput.value = '';
-            document.getElementById('modal-svc-photo').value = '';
-            this.updateServicePhotoPreview('');
+            this.requestPhotoRemoval('service');
         });
 
         document.getElementById('modal-svc-photo-edit')?.addEventListener('click', () => {
@@ -2641,9 +2674,7 @@ const admin = {
         });
 
         document.getElementById('modal-inv-photo-clear')?.addEventListener('click', () => {
-            fileInput.value = '';
-            document.getElementById('modal-inv-photo').value = '';
-            this.updateInventoryPhotoPreview('');
+            this.requestPhotoRemoval('inventory');
         });
 
         document.getElementById('modal-inv-photo-edit')?.addEventListener('click', () => {

@@ -8312,3 +8312,86 @@ textarea:focus-visible,
     }
 }
 
+/* Keep profile-photo actions compact, consistent, and safe to click. */
+.admin-light .professional-photo-picker-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-light .professional-photo-picker-actions > .btn,
+.admin-light .professional-photo-picker-actions > .professional-photo-edit,
+.admin-light .professional-photo-picker-actions > .professional-photo-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.admin-light .professional-photo-picker-actions > .btn {
+    color: var(--text-main);
+    background: rgba(8, 15, 20, 0.58);
+}
+
+.admin-light .professional-photo-picker-actions > .btn:hover {
+    color: #111;
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.admin-light .professional-photo-picker-actions > .professional-photo-edit {
+    color: var(--primary);
+    background: rgba(255, 214, 0, 0.07);
+    border-color: rgba(255, 214, 0, 0.36);
+}
+
+.admin-light .professional-photo-picker-actions > .professional-photo-edit:hover {
+    color: #111;
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.admin-light .professional-photo-picker-actions > .professional-photo-clear {
+    color: #ff8589;
+    background: rgba(239, 68, 68, 0.07);
+    border-color: rgba(239, 68, 68, 0.32);
+}
+
+.admin-light .professional-photo-picker-actions > .professional-photo-clear:hover {
+    color: #fff;
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.admin-light #modal-professional .professional-photo-group {
+    align-self: stretch;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-light #modal-professional .professional-photo-group > .professional-photo-picker {
+    flex: 1 1 auto;
+    min-height: 104px;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-professional .professional-photo-group {
+        display: block;
+    }
+
+    .admin-light #modal-professional .professional-photo-group > .professional-photo-picker {
+        min-height: 104px;
+    }
+}
+
