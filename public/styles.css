@@ -8561,3 +8561,18 @@ textarea:focus-visible,
     }
 }
 
+/* Keep every photo action on the same horizontal baseline. */
+.admin-light .professional-photo-picker .professional-photo-picker-actions {
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.admin-light .professional-photo-picker .professional-photo-picker-actions > .btn,
+.admin-light .professional-photo-picker .professional-photo-picker-actions > .professional-photo-edit,
+.admin-light .professional-photo-picker .professional-photo-picker-actions > .professional-photo-clear {
+    height: 42px;
+    min-height: 42px !important;
+    padding: 0 12px !important;
+    line-height: 1;
+}
+
