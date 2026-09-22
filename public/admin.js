@@ -1004,18 +1004,18 @@ const admin = {
         const appointmentTime = String(appointment.appointment_time || '').slice(0, 5) || 'horário a confirmar';
         const professional = appointment.professional_name || 'nossa equipe';
         const message = [
-            `Olá, ${appointment.client_name}! \u{1F44B}`,
+            `Olá, ${appointment.client_name}!`,
             '',
             'Aqui é da BarberPoint. Passando para confirmar o seu agendamento:',
             '',
-            `\u{1F4C5} Data: ${appointmentDate}`,
-            `\u{23F0} Horário: ${appointmentTime}`,
-            `\u{2702}\u{FE0F} Serviço: ${appointment.service_name || 'atendimento'}`,
-            `\u{1F4C8} Profissional: ${professional}`,
+            `Data: ${appointmentDate}`,
+            `Horário: ${appointmentTime}`,
+            `Serviço: ${appointment.service_name || 'atendimento'}`,
+            `Profissional: ${professional}`,
             '',
             'Seu horário está reservado especialmente para você. Se precisar remarcar ou tiver algum imprevisto, avise por aqui com antecedência, combinado?',
             '',
-            'Será um prazer te atender! Até lá \u{1F60A}'
+            'Será um prazer te atender! Até lá!'
         ].join('\n');
 
         const newWindow = window.open(`https://wa.me/${phoneWithCountryCode}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
