@@ -265,6 +265,10 @@ const admin = {
     monthlyGoal: 0,
     monthlyGoalDefined: false,
     bookingSettings: null,
+    appointmentPollingTimer: null,
+    appointmentsInitialized: false,
+    knownPendingAppointmentIds: new Set(),
+    appointmentAlertAudioContext: null,
     professionalPhotoCrop: {
         image: null,
         sourceUrl: '',
@@ -325,6 +329,75 @@ const admin = {
             if (firstAvailable) this.showTab(firstAvailable[1]);
         }
 
+        this.setupAppointmentAlertSound();
+        this.startAppointmentPolling();
+
+    },
+
+    setupAppointmentAlertSound() {
+        if (this.appointmentAlertUnlockHandler) return;
+
+        const unlock = () => {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            if (!this.appointmentAlertAudioContext) {
+                this.appointmentAlertAudioContext = new AudioContext();
+            }
+            if (this.appointmentAlertAudioContext.state === 'suspended') {
+                this.appointmentAlertAudioContext.resume().catch(() => {});
+            }
+
+            document.removeEventListener('pointerdown', unlock);
+            document.removeEventListener('keydown', unlock);
+            document.removeEventListener('touchstart', unlock);
+            this.appointmentAlertUnlockHandler = null;
+        };
+
+        this.appointmentAlertUnlockHandler = unlock;
+        document.addEventListener('pointerdown', unlock, { passive: true });
+        document.addEventListener('keydown', unlock, { passive: true });
+        document.addEventListener('touchstart', unlock, { passive: true });
+    },
+
+    startAppointmentPolling() {
+        if (this.appointmentPollingTimer) return;
+        if (!['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) return;
+
+        this.appointmentPollingTimer = setInterval(() => {
+            if (!auth.user || document.visibilityState === 'hidden') return;
+            this.loadData();
+        }, 15000);
+    },
+
+    playAppointmentAlertSound() {
+        const context = this.appointmentAlertAudioContext;
+        if (!context || context.state !== 'running') return;
+
+        const now = context.currentTime;
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, now);
+        oscillator.frequency.setValueAtTime(660, now + 0.16);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.45);
+    },
+
+    announceNewAppointments(appointments) {
+        const count = appointments.length;
+        if (!count) return;
+
+        this.playAppointmentAlertSound();
+        auth.notify(
+            count === 1 ? 'Um novo agendamento entrou na fila.' : `${count} novos agendamentos entraram na fila.`,
+            'info'
+        );
     },
 
     async loadData() {
@@ -338,9 +411,18 @@ const admin = {
 
             if (aptRes) {
                 const allApts = await aptRes.json();
+                const nextPending = allApts.filter(a => a.status === 'pending');
+                const newPending = this.appointmentsInitialized
+                    ? nextPending.filter(a => !this.knownPendingAppointmentIds.has(String(a.id)))
+                    : [];
+
                 this.allAppointments = allApts;
-                this.pending = allApts.filter(a => a.status === 'pending');
+                this.pending = nextPending;
+                this.knownPendingAppointmentIds = new Set(nextPending.map(a => String(a.id)));
+                this.appointmentsInitialized = true;
                 if (auth.can('dashboard')) this.renderAppointments();
+
+                if (newPending.length) this.announceNewAppointments(newPending);
 
                 if (agenda.calendar) {
                     agenda.allAppointments = allApts;
