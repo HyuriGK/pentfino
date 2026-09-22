@@ -5953,6 +5953,13 @@ button.btn > svg {
     margin-top: auto !important;
 }
 
+/* Administration is restricted to the administrator and sits directly below the share link. */
+.admin-light .sidebar nav .nav-item.admin-only {
+    order: 3;
+    margin-top: 0 !important;
+    margin-bottom: 0;
+}
+
 .admin-light .sidebar .sidebar-header {
     order: 0;
     width: 100%;
