@@ -713,8 +713,8 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
                 await pool.query(`
                     UPDATE appointments
                     SET status = $1,
-                        payment_status = $2,
-                        payment_paid_at = CASE WHEN $2 = 'paid' THEN CURRENT_TIMESTAMP ELSE NULL END
+                        payment_status = $2::varchar,
+                        payment_paid_at = CASE WHEN $2::varchar = 'paid' THEN CURRENT_TIMESTAMP ELSE NULL END
                     WHERE id = $3
                 `, [status, normalizedPaymentStatus || 'paid', id]);
             } else {
