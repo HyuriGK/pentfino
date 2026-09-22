@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS inventory (
     quantity INTEGER DEFAULT 0,
     unit VARCHAR(20) DEFAULT 'un',
     min_quantity INTEGER DEFAULT 5,
+    generate_commission BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

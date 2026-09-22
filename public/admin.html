@@ -1111,16 +1111,20 @@
     </div>
 
     <!-- MODAL NEW INVENTORY ITEM (REVOLUTIONARY) -->
-    <div id="modal-inventory" class="modal-overlay hidden">
-        <div class="modal-content inventory-modal-content" style="max-width: 500px;">
-            <header class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="modal-title">Novo Produto</h2>
+    <div id="modal-inventory" class="modal-overlay hidden modal-side-panel">
+        <div class="modal-content inventory-modal-content">
+            <header class="modal-header inventory-modal-header professional-modal-header">
+                <div>
+                    <span class="professional-modal-kicker">Estoque</span>
+                    <h2 class="modal-title">Novo Produto</h2>
+                    <p class="professional-modal-subtitle">Cadastre o produto e defina como ele participa das vendas e comiss&otilde;es.</p>
+                </div>
                 <button class="btn-icon-close" onclick="admin.closeModal('inventory')">×</button>
             </header>
             
             <input type="hidden" id="modal-inv-edit-id">
             
-            <div class="input-group-new">
+            <div class="input-group-new inventory-field-name">
                 <label>Nome do Produto</label>
                 <input autocomplete="off" type="text" id="modal-inv-name" placeholder="Ex: Pomada Efeito Matte">
             </div>
@@ -1130,7 +1134,7 @@
                 <textarea autocomplete="off" id="modal-inv-desc" placeholder="Descreva as qualidades do produto..." style="width: 100%; height: 80px; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright); outline: none; resize: none;"></textarea>
             </div>
 
-            <div class="input-group-new inventory-photo-group">
+            <div class="input-group-new inventory-photo-group inventory-field-photo">
                 <label>Imagem do produto</label>
                 <div class="professional-photo-picker inventory-photo-picker">
                     <div id="modal-inv-photo-preview" class="professional-photo-preview inventory-photo-preview" aria-hidden="true">
@@ -1165,7 +1169,7 @@
                 <input type="hidden" id="modal-inv-photo">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="inventory-form-row">
                 <div class="input-group-new">
                     <label>Quantidade</label>
                     <input autocomplete="off" type="number" id="modal-inv-qty" placeholder="0">
@@ -1176,7 +1180,7 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="inventory-form-row">
                 <div class="input-group-new">
                     <label>Preço de Venda (R$)</label>
                     <input autocomplete="off" type="number" id="modal-inv-price" placeholder="R$ 0,00" step="0.01">
@@ -1187,7 +1191,15 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary btn-full" style="margin-top: 12px;" onclick="admin.saveInventory()">Salvar no Estoque</button>
+            <label class="inventory-commission-toggle">
+                <input type="checkbox" id="modal-inv-generate-commission" checked>
+                <span>
+                    <strong>Gerar comiss&atilde;o para este produto?</strong>
+                    <small>Marcado = sim; desmarcado = n&atilde;o. As vendas entram ou n&atilde;o no repasse do barbeiro.</small>
+                </span>
+            </label>
+
+            <button class="btn btn-primary btn-full" onclick="admin.saveInventory()">Salvar no Estoque</button>
         </div>
     </div>
 

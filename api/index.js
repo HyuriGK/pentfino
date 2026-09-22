@@ -244,6 +244,7 @@ pool.on('connect', () => {
             unit VARCHAR(50) DEFAULT 'un',
             min_quantity INTEGER DEFAULT 5,
             unit_price DECIMAL(10,2) DEFAULT 0,
+            generate_commission BOOLEAN NOT NULL DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (inventory):', e));
@@ -251,6 +252,7 @@ pool.on('connect', () => {
     pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS description TEXT').catch(() => {});
     pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS photo_url TEXT').catch(() => {});
     pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS unit_price DECIMAL(10,2) DEFAULT 0').catch(() => {});
+    pool.query('ALTER TABLE inventory ADD COLUMN IF NOT EXISTS generate_commission BOOLEAN NOT NULL DEFAULT TRUE').catch(() => {});
 
     // Sales table migration
     pool.query(`
@@ -1179,11 +1181,11 @@ app.get('/api/inventory/:barberId', authenticateToken, requireAnyPermission('est
 });
 
 app.post('/api/inventory', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
-    const { barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice } = req.body;
+    const { barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, generateCommission } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO inventory (barber_id, item_name, description, photo_url, quantity, unit, min_quantity, unit_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-            [barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice || 0]
+            'INSERT INTO inventory (barber_id, item_name, description, photo_url, quantity, unit, min_quantity, unit_price, generate_commission) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+            [barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice || 0, generateCommission !== false]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -1194,7 +1196,7 @@ app.post('/api/inventory', authenticateToken, requireAnyPermission('estoque'), a
 
 app.patch('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     const { id } = req.params;
-    const { itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice } = req.body;
+    const { itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, generateCommission } = req.body;
     try {
         const result = await pool.query(
             `UPDATE inventory SET 
@@ -1204,9 +1206,10 @@ app.patch('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque
                 quantity = COALESCE($4, quantity), 
                 unit = COALESCE($5, unit), 
                 min_quantity = COALESCE($6, min_quantity), 
-                unit_price = COALESCE($7, unit_price) 
-            WHERE id = $8 RETURNING *`,
-            [itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, id]
+                unit_price = COALESCE($7, unit_price),
+                generate_commission = COALESCE($8, generate_commission)
+            WHERE id = $9 RETURNING *`,
+            [itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, generateCommission, id]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -1256,11 +1259,22 @@ app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
+
+        const inventoryResult = await client.query(
+            'SELECT generate_commission FROM inventory WHERE id = $1 AND barber_id = $2 AND quantity >= $3 FOR UPDATE',
+            [inventoryId, barberId, parseInt(quantity)]
+        );
+
+        if (inventoryResult.rowCount === 0) {
+            throw new Error('Produto nÃ£o encontrado ou estoque insuficiente');
+        }
+
+        const generatesCommission = inventoryResult.rows[0].generate_commission !== false;
         
-        let commissionRate = reqCommRate !== undefined ? parseFloat(reqCommRate) : 0;
+        let commissionRate = generatesCommission && reqCommRate !== undefined ? parseFloat(reqCommRate) : 0;
         let commissionValue = 0;
 
-        if (professionalId) {
+        if (generatesCommission && professionalId) {
             // If commissionRate wasn't provided in body, fetch from professional
             if (reqCommRate === undefined) {
                 const profRes = await client.query('SELECT product_commission FROM professionals WHERE id = $1', [professionalId]);

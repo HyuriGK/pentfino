@@ -1544,6 +1544,8 @@ const admin = {
         document.getElementById('modal-inv-unit').value = item.unit || 'un';
         document.getElementById('modal-inv-min').value = item.min_quantity;
         document.getElementById('modal-inv-price').value = item.unit_price;
+        const commissionCheckbox = document.getElementById('modal-inv-generate-commission');
+        if (commissionCheckbox) commissionCheckbox.checked = item.generate_commission !== false;
 
         const modal = document.getElementById('modal-inventory');
         modal.querySelector('.modal-title').innerText = 'Editar Produto';
@@ -1587,6 +1589,7 @@ const admin = {
         const unit = document.getElementById('modal-inv-unit').value || 'un';
         const minQuantity = parseInt(document.getElementById('modal-inv-min').value);
         const unitPrice = parseFloat(document.getElementById('modal-inv-price').value);
+        const generateCommission = document.getElementById('modal-inv-generate-commission')?.checked !== false;
 
         if(!itemName || isNaN(quantity)) return alert('Nome e Quantidade são obrigatórios');
 
@@ -1604,7 +1607,8 @@ const admin = {
                     quantity, 
                     unit, 
                     minQuantity: minQuantity || 0,
-                    unitPrice: unitPrice || 0
+                    unitPrice: unitPrice || 0,
+                    generateCommission
                 })
             });
 
@@ -3584,6 +3588,8 @@ const admin = {
             document.getElementById('modal-inv-unit').value = '';
             document.getElementById('modal-inv-price').value = '';
             document.getElementById('modal-inv-min').value = '';
+            const commissionCheckbox = document.getElementById('modal-inv-generate-commission');
+            if (commissionCheckbox) commissionCheckbox.checked = true;
         }
 
         this.modalStack = this.modalStack.filter(id => id !== modalId);
