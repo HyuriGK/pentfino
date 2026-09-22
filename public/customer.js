@@ -13,6 +13,7 @@ const app = {
         client: { name: '', phone: '' }
     },
     bookedTimes: [],
+    myAppointments: [],
 
     async init() {
         await this.loadInitialData();
@@ -89,6 +90,18 @@ const app = {
         document.getElementById('btn-next-step').onclick = () => this.showStep('professionals');
         document.getElementById('btn-next-to-details').onclick = () => this.showStep('details');
         document.getElementById('id-confirm-booking-btn').onclick = () => this.confirmBooking();
+
+        document.getElementById('btn-start-booking').onclick = () => this.startBooking();
+        document.getElementById('btn-open-my-appointments').onclick = () => this.openMyAppointments();
+        document.getElementById('btn-back-to-entry-from-lookup').onclick = () => this.showEntryOptions();
+
+        const myAppointmentsForm = document.getElementById('my-appointments-form');
+        if (myAppointmentsForm) {
+            myAppointmentsForm.onsubmit = (event) => {
+                event.preventDefault();
+                this.lookupMyAppointments();
+            };
+        }
 
         const customTimeInput = document.getElementById('custom-time');
         if (customTimeInput) {
@@ -194,6 +207,100 @@ const app = {
         }
     },
 
+    startBooking() {
+        document.getElementById('booking-entry')?.classList.add('hidden');
+        document.getElementById('my-appointments-panel')?.classList.add('hidden');
+        document.getElementById('booking-flow')?.classList.remove('hidden');
+        this.showStep('services');
+    },
+
+    openMyAppointments() {
+        document.getElementById('booking-entry')?.classList.add('hidden');
+        document.getElementById('booking-flow')?.classList.add('hidden');
+        document.getElementById('my-appointments-panel')?.classList.remove('hidden');
+        document.getElementById('my-appointments-feedback').innerText = '';
+        document.getElementById('my-appointments-results').innerHTML = '';
+        document.getElementById('my-appointments-phone')?.focus();
+    },
+
+    showEntryOptions() {
+        document.getElementById('booking-entry')?.classList.remove('hidden');
+        document.getElementById('my-appointments-panel')?.classList.add('hidden');
+        document.getElementById('booking-flow')?.classList.add('hidden');
+    },
+
+    async lookupMyAppointments() {
+        const input = document.getElementById('my-appointments-phone');
+        const feedback = document.getElementById('my-appointments-feedback');
+        const results = document.getElementById('my-appointments-results');
+        const button = document.getElementById('btn-search-my-appointments');
+        const phone = String(input?.value || '').replace(/\D/g, '');
+
+        if (phone.length < 8 || phone.length > 15) {
+            feedback.className = 'my-appointments-feedback is-error';
+            feedback.innerText = 'Informe um WhatsApp vÃ¡lido para consultar.';
+            results.innerHTML = '';
+            return;
+        }
+
+        button.disabled = true;
+        feedback.className = 'my-appointments-feedback is-loading';
+        feedback.innerText = 'Consultando seus agendamentos...';
+        results.innerHTML = '';
+
+        try {
+            const params = new URLSearchParams({ barberId: this.barberId, phone });
+            const response = await fetch(`/api/public/appointments?${params.toString()}`);
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.message || 'NÃ£o foi possÃ­vel consultar os agendamentos.');
+            }
+
+            this.myAppointments = Array.isArray(data.appointments) ? data.appointments : [];
+            this.renderMyAppointments();
+            feedback.className = 'my-appointments-feedback';
+            feedback.innerText = this.myAppointments.length
+                ? 'Agendamentos finalizados encontrados.'
+                : 'Nenhum agendamento finalizado encontrado para este WhatsApp.';
+        } catch (error) {
+            feedback.className = 'my-appointments-feedback is-error';
+            feedback.innerText = error.message || 'NÃ£o foi possÃ­vel consultar os agendamentos.';
+        } finally {
+            button.disabled = false;
+        }
+    },
+
+    renderMyAppointments() {
+        const results = document.getElementById('my-appointments-results');
+        if (!results) return;
+
+        results.innerHTML = this.myAppointments.map(appointment => `
+            <article class="my-appointment-card">
+                <div class="my-appointment-card-top">
+                    <span class="my-appointment-status">Finalizado</span>
+                    <strong>${this.escapeHtml(appointment.appointment_date_display)} &agrave;s ${this.escapeHtml(appointment.appointment_time_display)}</strong>
+                </div>
+                <div class="my-appointment-card-details">
+                    <div>
+                        <span>Servi&ccedil;o</span>
+                        <strong>${this.escapeHtml(appointment.service_name)}</strong>
+                    </div>
+                    <div>
+                        <span>Barbeiro</span>
+                        <strong>${this.escapeHtml(appointment.professional_name || 'Equipe')}</strong>
+                    </div>
+                </div>
+            </article>
+        `).join('');
+    },
+
+    escapeHtml(value) {
+        const element = document.createElement('span');
+        element.textContent = value == null ? '' : String(value);
+        return element.innerHTML;
+    },
+
     setCustomTime(time) {
         const isValidTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
         if (!isValidTime) {
@@ -209,6 +316,9 @@ const app = {
     },
 
     showStep(stepId) {
+        document.getElementById('booking-entry')?.classList.add('hidden');
+        document.getElementById('my-appointments-panel')?.classList.add('hidden');
+        document.getElementById('booking-flow')?.classList.remove('hidden');
         ['services', 'professionals', 'details', 'success'].forEach(s => {
             const el = document.getElementById(`step-${s}`);
             if (el) el.classList.add('hidden');

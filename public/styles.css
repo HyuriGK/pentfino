@@ -159,6 +159,217 @@ html.session-restore-pending #auth-view {
     visibility: hidden;
 }
 
+/* Public reservation entry and completed appointment lookup. */
+.booking-flow {
+    width: 100%;
+}
+
+.booking-entry {
+    width: 100%;
+    max-width: 680px;
+}
+
+.booking-entry .step-header {
+    margin-bottom: 24px;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.booking-entry-description {
+    max-width: 520px;
+    margin-top: 12px;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.booking-entry-actions {
+    display: grid;
+    gap: 12px;
+}
+
+.booking-entry-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 20px 22px;
+    color: var(--text-main);
+    text-align: left;
+    background: rgba(16, 25, 32, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.booking-entry-card:hover,
+.booking-entry-card:focus-visible {
+    background: #151f27;
+    border-color: var(--primary);
+    outline: none;
+    transform: translateX(4px);
+}
+
+.booking-entry-card-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    color: #111;
+    background: var(--primary);
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.booking-entry-card span:nth-child(2) {
+    display: grid;
+    gap: 5px;
+}
+
+.booking-entry-card strong {
+    font-size: 1rem;
+}
+
+.booking-entry-card small {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.booking-entry-card-arrow {
+    color: var(--primary);
+    font-size: 1.35rem;
+}
+
+.booking-inline-back {
+    display: inline-flex;
+    margin-bottom: 20px;
+    padding: 0;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-size: 0.82rem;
+}
+
+.booking-inline-back:hover {
+    color: var(--primary);
+}
+
+.my-appointments-form {
+    max-width: 560px;
+}
+
+.my-appointments-form .btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.my-appointments-feedback {
+    min-height: 24px;
+    margin-top: 18px;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+}
+
+.my-appointments-feedback.is-error {
+    color: #ff7a7f;
+}
+
+.my-appointments-feedback.is-loading {
+    color: var(--primary);
+}
+
+.my-appointments-results {
+    display: grid;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.my-appointment-card {
+    padding: 18px 20px;
+    background: rgba(16, 25, 32, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.my-appointment-card-top,
+.my-appointment-card-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.my-appointment-card-top {
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.my-appointment-card-top strong {
+    font-size: 0.9rem;
+}
+
+.my-appointment-status {
+    padding: 5px 8px;
+    color: var(--primary);
+    background: rgba(255, 214, 0, 0.09);
+    border: 1px solid rgba(255, 214, 0, 0.25);
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.my-appointment-card-details {
+    align-items: flex-start;
+    padding-top: 14px;
+}
+
+.my-appointment-card-details > div {
+    display: grid;
+    gap: 5px;
+}
+
+.my-appointment-card-details > div:last-child {
+    text-align: right;
+}
+
+.my-appointment-card-details span {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.my-appointment-card-details strong {
+    font-size: 0.88rem;
+}
+
+@media (max-width: 680px) {
+    .booking-entry-card {
+        grid-template-columns: auto 1fr;
+        padding: 17px;
+    }
+
+    .booking-entry-card-arrow {
+        display: none;
+    }
+
+    .my-appointment-card-top,
+    .my-appointment-card-details {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .my-appointment-card-details > div:last-child {
+        text-align: left;
+    }
+}
+
 /* Dashboard Components */
 .sidebar {
     width: 240px;

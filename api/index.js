@@ -405,6 +405,43 @@ app.get('/api/appointments/booked/list', async (req, res) => {
     }
 });
 
+// Public lookup for clients: only completed appointments from the barber shop
+// in the reservation link are returned, using a normalized WhatsApp number.
+app.get('/api/public/appointments', async (req, res) => {
+    const barberId = Number.parseInt(req.query.barberId, 10);
+    const phone = String(req.query.phone || '').replace(/\D/g, '');
+
+    if (!Number.isInteger(barberId) || barberId <= 0) {
+        return res.status(400).json({ success: false, message: 'Barbearia invÃ¡lida.' });
+    }
+
+    if (!/^\d{8,15}$/.test(phone)) {
+        return res.status(400).json({ success: false, message: 'Informe um WhatsApp vÃ¡lido.' });
+    }
+
+    try {
+        const result = await pool.query(`
+            SELECT a.id,
+                   TO_CHAR(a.appointment_date, 'DD/MM/YYYY') AS appointment_date_display,
+                   SUBSTRING(a.appointment_time::text, 1, 5) AS appointment_time_display,
+                   COALESCE(s.name, 'ServiÃ§o removido') AS service_name,
+                   COALESCE(p.name, 'Equipe') AS professional_name
+            FROM appointments a
+            LEFT JOIN services s ON a.service_id = s.id
+            LEFT JOIN professionals p ON a.professional_id = p.id
+            WHERE a.barber_id = $1
+              AND regexp_replace(COALESCE(a.client_phone, ''), '[^0-9]', '', 'g') = $2
+              AND a.status = 'completed'
+            ORDER BY a.appointment_date DESC, a.appointment_time DESC
+        `, [barberId, phone]);
+
+        res.json({ success: true, appointments: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel consultar os agendamentos.' });
+    }
+});
+
 app.post('/api/appointments', async (req, res) => {
     const { barberId, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {

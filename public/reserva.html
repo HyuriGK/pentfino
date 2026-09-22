@@ -52,6 +52,51 @@
                 <img src="image.png" alt="" class="logo-img">
                 <span>BarberPoint</span>
             </a>
+            <section id="booking-entry" class="booking-entry step-container">
+                <div class="step-header">
+                    <span class="step-count">BarberPoint</span>
+                    <h1 class="step-title">Como deseja continuar?</h1>
+                    <p class="booking-entry-description">Escolha uma op&ccedil;&atilde;o para continuar.</p>
+                </div>
+                <div class="booking-entry-actions">
+                    <button class="booking-entry-card" id="btn-start-booking" type="button">
+                        <span class="booking-entry-card-icon">01</span>
+                        <span>
+                            <strong>Agendar hor&aacute;rio</strong>
+                            <small>Escolha o servi&ccedil;o e reserve seu atendimento.</small>
+                        </span>
+                        <span class="booking-entry-card-arrow" aria-hidden="true">&rarr;</span>
+                    </button>
+                    <button class="booking-entry-card" id="btn-open-my-appointments" type="button">
+                        <span class="booking-entry-card-icon">02</span>
+                        <span>
+                            <strong>Meus Agendamentos</strong>
+                            <small>Consulte os atendimentos finalizados pelo WhatsApp.</small>
+                        </span>
+                        <span class="booking-entry-card-arrow" aria-hidden="true">&rarr;</span>
+                    </button>
+                </div>
+            </section>
+
+            <section id="my-appointments-panel" class="booking-entry step-container hidden" aria-labelledby="my-appointments-title">
+                <div class="step-header">
+                    <button class="booking-inline-back" id="btn-back-to-entry-from-lookup" type="button">&larr; Voltar</button>
+                    <span class="step-count">Consulta privada</span>
+                    <h1 id="my-appointments-title" class="step-title">Meus Agendamentos</h1>
+                    <p class="booking-entry-description">Informe o WhatsApp usado na reserva para ver seus atendimentos finalizados.</p>
+                </div>
+                <form id="my-appointments-form" class="my-appointments-form">
+                    <label class="input-label-mini" for="my-appointments-phone">Seu WhatsApp</label>
+                    <div class="input-group-modern">
+                        <input autocomplete="off" type="tel" id="my-appointments-phone" inputmode="tel" placeholder="(11) 99999-9999" required>
+                    </div>
+                    <button class="btn btn-primary btn-large" id="btn-search-my-appointments" type="submit">Consultar agendamentos</button>
+                </form>
+                <div id="my-appointments-feedback" class="my-appointments-feedback" aria-live="polite"></div>
+                <div id="my-appointments-results" class="my-appointments-results"></div>
+            </section>
+
+            <div id="booking-flow" class="booking-flow hidden">
             <div id="step-services" class="step-container">
                 <div class="step-header">
                     <span class="step-count">Passo 01/03</span>
@@ -133,6 +178,7 @@
                     <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 2rem;">Novo Agendamento</button>
                 </div>
             </section>
+            </div>
         </main>
     </div>
 
