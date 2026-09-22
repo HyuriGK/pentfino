@@ -48,16 +48,21 @@ const app = {
         const container = document.getElementById('services-list');
         container.innerHTML = this.services.map(s => {
             const photoUrl = s.photo_url || '';
+            const serviceName = this.escapeHtml(s.name);
+            const safePhotoUrl = this.escapeHtml(photoUrl);
+            const serviceInitial = this.escapeHtml(String(s.name || 'S').charAt(0).toUpperCase());
             return `
                 <div class="service-card glass" onclick="app.selectService(${s.id}, this)">
                     <div class="service-card-content">
-                        ${photoUrl ? `<img class="service-card-image" src="${photoUrl}" alt="Imagem de ${s.name}">` : ''}
+                        <span class="service-card-media${photoUrl ? ' has-photo' : ''}">
+                            ${photoUrl ? `<img class="service-card-image" src="${safePhotoUrl}" alt="Imagem de ${serviceName}">` : serviceInitial}
+                        </span>
                         <div>
-                            <strong>${s.name}</strong>
-                            <p style="font-size: 0.75rem; color: var(--text-muted);">${s.duration}</p>
+                            <strong>${serviceName}</strong>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">${this.escapeHtml(s.duration)}</p>
                         </div>
                     </div>
-                    <div class="price">R$ ${s.price}</div>
+                    <div class="price">R$ ${this.escapeHtml(s.price)}</div>
                 </div>
             `;
         }).join('');

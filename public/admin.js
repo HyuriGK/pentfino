@@ -2999,8 +2999,8 @@ const admin = {
         document.getElementById('modal-svc-duration-value').value = durationMatch ? durationMatch[1].replace(',', '.') : '';
         document.getElementById('modal-svc-duration-unit').value = durationMatch?.[2]?.toLowerCase().startsWith('h') ? 'horas' : 'minutos';
 
-        const saveBtn = document.querySelector('#modal-service > .btn-full');
-        saveBtn.innerText = 'Salvar Alterações';
+        const saveBtn = document.querySelector('#modal-service .btn-full');
+        if (saveBtn) saveBtn.innerText = 'Salvar Alterações';
         this.openModal('service');
     },
 
@@ -3114,7 +3114,7 @@ const admin = {
         }
         if (type === 'service') {
             this.editingServiceId = null;
-            const saveBtn = document.querySelector('#modal-service > .btn-full');
+            const saveBtn = document.querySelector('#modal-service .btn-full');
             if (saveBtn) saveBtn.innerText = 'Adicionar Serviço';
             
             const sName = document.getElementById('modal-svc-name');
