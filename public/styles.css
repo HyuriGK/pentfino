@@ -944,6 +944,17 @@ html.session-restore-pending #auth-view {
     background: #16a34a;
     color: #fff;
     border-color: #16a34a;
+    font-style: normal;
+    text-decoration: none !important;
+}
+
+.action-btns .btn-confirm-appointment:hover,
+.action-btns .btn-confirm-appointment:active,
+.action-btns .btn-confirm-appointment:focus,
+.action-btns .btn-confirm-appointment:visited {
+    color: #fff;
+    font-style: normal;
+    text-decoration: none !important;
 }
 
 .action-btns .btn-confirm-appointment:hover {

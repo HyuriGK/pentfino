@@ -980,7 +980,7 @@ const admin = {
                     </div>
                 </div>
                 <div class="action-btns">
-                    <button class="btn btn-confirm-appointment" onclick="admin.confirmAppointmentWhatsApp(${a.id})">Confirmar</button>
+                    <button type="button" class="btn btn-confirm-appointment" onclick="admin.confirmAppointmentWhatsApp(${a.id})">Confirmar</button>
                     <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
                     <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
                 </div>
