@@ -81,8 +81,11 @@ const app = {
                 </div>
             `;
         }).join('')}
-            <div class="time-card time-card-other glass ${customTimeSelected ? 'selected' : ''}" onclick="app.selectCustomTime(this)">
-                Outro
+            <div class="time-card time-card-other glass ${customTimeSelected ? 'selected' : ''}" onclick="app.selectCustomTime(this)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); app.selectCustomTime(this); }" role="button" tabindex="0" aria-label="Escolher outro hor&aacute;rio">
+                <span>
+                    <strong>Outro hor&aacute;rio</strong>
+                    <small>Definir manualmente</small>
+                </span>
             </div>`;
 
         const customPicker = document.getElementById('custom-time-picker');
