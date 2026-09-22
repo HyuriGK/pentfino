@@ -1910,16 +1910,24 @@ const admin = {
     },
 
     async deleteSale(id, itemName) {
-        this.openDeleteConfirm(`Deseja excluir o registro da venda de <strong>${itemName}</strong>? O estoque será restaurado automaticamente.`, async () => {
+        const safeItemName = this.escapeHtml(itemName);
+        this.openDeleteConfirm(`Deseja excluir o registro da venda de <strong>${safeItemName}</strong>? O estoque será restaurado automaticamente.`, async () => {
             try {
-                await auth.apiRequest(`/api/sales/${id}`, { method: 'DELETE' });
+                const response = await auth.apiRequest(`/api/sales/${id}`, { method: 'DELETE' });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || result.success === false) {
+                    throw new Error(result.message || 'Não foi possível excluir a venda.');
+                }
                 await this.loadSales();
                 await this.loadInventory();
                 await this.loadData();
                 this.closeModal('delete-confirm');
                 auth.notify('Venda excluída e estoque restaurado.', 'success');
-            } catch (err) { alert('Erro ao excluir venda'); }
-        });
+            } catch (err) {
+                console.error('Erro ao excluir venda:', err);
+                auth.notify(err.message || 'Erro ao excluir venda.', 'error');
+            }
+        }, { requiresTyping: true });
     },
 
     async openSaleModal() {
