@@ -135,8 +135,14 @@
                 <div class="details-layout">
                     <div class="time-selection">
                         <label class="input-label-mini">Escolha o Dia</label>
-                        <div class="input-group-modern" style="margin-bottom: 2rem;">
-                            <input autocomplete="off" type="date" id="booking-date" style="background: transparent; border: none; border-bottom: 1px solid var(--border); color: #fff; width: 100%; padding: 10px 0;">
+                        <div class="booking-date-picker" aria-label="Selecionar dia do agendamento">
+                            <div class="booking-date-picker-header">
+                                <button type="button" class="booking-date-nav" id="booking-date-prev" aria-label="Semana anterior">&#8249;</button>
+                                <strong id="booking-date-month">Setembro 2026</strong>
+                                <button type="button" class="booking-date-nav" id="booking-date-next" aria-label="Pr&oacute;xima semana">&#8250;</button>
+                            </div>
+                            <div class="booking-date-options" id="booking-date-options" role="listbox" aria-label="Dias dispon&iacute;veis"></div>
+                            <input autocomplete="off" type="hidden" id="booking-date">
                         </div>
 
                         <label class="input-label-mini">Horários Disponíveis</label>

@@ -15,6 +15,7 @@ const app = {
     },
     bookedTimes: [],
     myAppointments: [],
+    dateStripStart: null,
 
     async init() {
         await this.loadInitialData();
@@ -101,12 +102,104 @@ const app = {
         return times;
     },
 
+    dateToValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
+
+    parseDateValue(value) {
+        const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return null;
+        const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        return Number.isNaN(date.getTime()) ? null : date;
+    },
+
+    addCalendarDays(date, amount) {
+        const next = new Date(date);
+        next.setDate(next.getDate() + amount);
+        return next;
+    },
+
+    getWeekStart(date) {
+        const day = date.getDay();
+        return this.addCalendarDays(date, day === 0 ? -6 : 1 - day);
+    },
+
+    renderDatePicker() {
+        const dateInput = document.getElementById('booking-date');
+        const options = document.getElementById('booking-date-options');
+        const monthLabel = document.getElementById('booking-date-month');
+        const previousButton = document.getElementById('booking-date-prev');
+        if (!dateInput || !options || !monthLabel) return;
+
+        const selectedDate = this.parseDateValue(dateInput.value) || new Date();
+        const minimumDate = this.parseDateValue(dateInput.min) || new Date();
+        const minimumWeek = this.getWeekStart(minimumDate);
+        const startDate = this.parseDateValue(this.dateStripStart) || this.getWeekStart(selectedDate);
+        const safeStartDate = startDate < minimumWeek ? minimumWeek : startDate;
+        this.dateStripStart = this.dateToValue(safeStartDate);
+
+        const monthText = new Intl.DateTimeFormat('pt-BR', {
+            month: 'long',
+            year: 'numeric'
+        }).format(selectedDate);
+        monthLabel.textContent = monthText.charAt(0).toUpperCase() + monthText.slice(1);
+
+        if (previousButton) previousButton.disabled = safeStartDate <= minimumWeek;
+
+        const weekdays = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+        options.innerHTML = Array.from({ length: 7 }, (_, index) => {
+            const date = this.addCalendarDays(safeStartDate, index);
+            const value = this.dateToValue(date);
+            const isPast = date < minimumDate;
+            const isSelected = value === dateInput.value;
+            const isToday = value === this.dateToValue(minimumDate);
+            return `
+                <button type="button" class="booking-date-option${isSelected ? ' selected' : ''}${isToday ? ' today' : ''}" data-date="${value}" role="option" aria-selected="${isSelected}"${isPast ? ' disabled' : ''}>
+                    <span class="booking-date-weekday">${weekdays[date.getDay()]}</span>
+                    <strong>${date.getDate()}</strong>
+                </button>
+            `;
+        }).join('');
+    },
+
+    selectBookingDate(dateValue, keepStrip = true) {
+        const dateInput = document.getElementById('booking-date');
+        if (!dateInput || !this.parseDateValue(dateValue)) return;
+        dateInput.value = dateValue;
+        if (!keepStrip) this.dateStripStart = this.dateToValue(this.getWeekStart(this.parseDateValue(dateValue)));
+        this.booking.time = null;
+        document.getElementById('summary-time-val').innerText = '--';
+        this.renderDatePicker();
+        if (this.booking.professional) {
+            this.loadBookedTimes();
+        } else {
+            this.renderTimes();
+        }
+    },
+
+    moveDateStrip(direction) {
+        const dateInput = document.getElementById('booking-date');
+        const currentStart = this.parseDateValue(this.dateStripStart)
+            || this.getWeekStart(this.parseDateValue(dateInput?.value) || new Date());
+        const minimumDate = this.parseDateValue(dateInput?.min) || new Date();
+        const minimumWeek = this.getWeekStart(minimumDate);
+        let nextStart = this.addCalendarDays(currentStart, direction * 7);
+        if (nextStart < minimumWeek) nextStart = minimumWeek;
+        this.dateStripStart = this.dateToValue(nextStart);
+        this.selectBookingDate(this.dateToValue(nextStart));
+    },
+
     setDefaultDate() {
         const dateInput = document.getElementById('booking-date');
         if (dateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.value = today;
-            dateInput.min = today;
+            const today = new Date();
+            dateInput.value = this.dateToValue(today);
+            dateInput.min = this.dateToValue(today);
+            this.dateStripStart = this.dateToValue(this.getWeekStart(today));
+            this.renderDatePicker();
         }
     },
 
@@ -193,15 +286,16 @@ const app = {
         const dateInput = document.getElementById('booking-date');
         if (dateInput) {
             dateInput.onchange = () => {
-                this.booking.time = null;
-                document.getElementById('summary-time-val').innerText = '--';
-                if (this.booking.professional) {
-                    this.loadBookedTimes();
-                } else {
-                    this.renderTimes();
-                }
+                this.selectBookingDate(dateInput.value, false);
             };
         }
+
+        document.getElementById('booking-date-prev')?.addEventListener('click', () => this.moveDateStrip(-1));
+        document.getElementById('booking-date-next')?.addEventListener('click', () => this.moveDateStrip(1));
+        document.getElementById('booking-date-options')?.addEventListener('click', (event) => {
+            const option = event.target.closest('[data-date]');
+            if (option && !option.disabled) this.selectBookingDate(option.dataset.date);
+        });
     },
 
     selectService(id, el) {

@@ -6354,6 +6354,153 @@ button.btn > svg {
     }
 }
 
+/* Public booking date strip. */
+.booking-body .booking-date-picker {
+    width: 100%;
+    margin-bottom: 2rem;
+    padding: 18px 0 20px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.booking-body .booking-date-picker-header {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.booking-body .booking-date-picker-header strong {
+    color: var(--text-main);
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.booking-body .booking-date-nav {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 160ms ease, background 160ms ease;
+}
+
+.booking-body .booking-date-nav:hover:not(:disabled),
+.booking-body .booking-date-nav:focus-visible:not(:disabled) {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.06);
+    outline: none;
+}
+
+.booking-body .booking-date-nav:disabled {
+    color: #4b5861;
+    cursor: not-allowed;
+}
+
+.booking-body .booking-date-options {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.booking-body .booking-date-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 72px;
+    padding: 10px 6px;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: color 160ms ease, background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.booking-body .booking-date-option:hover:not(:disabled),
+.booking-body .booking-date-option:focus-visible:not(:disabled) {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--border-bright);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.booking-body .booking-date-option .booking-date-weekday {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.booking-body .booking-date-option strong {
+    color: inherit;
+    font-size: 1.28rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.booking-body .booking-date-option.selected {
+    color: #111a22;
+    background: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+}
+
+.booking-body .booking-date-option.selected strong {
+    color: inherit;
+}
+
+.booking-body .booking-date-option.today:not(.selected) {
+    border-color: var(--primary);
+}
+
+.booking-body .booking-date-option:disabled {
+    color: #4b5861;
+    background: rgba(255, 255, 255, 0.02);
+    cursor: not-allowed;
+    opacity: 0.62;
+}
+
+@media (max-width: 560px) {
+    .booking-body .booking-date-picker {
+        padding: 14px 0 16px;
+    }
+
+    .booking-body .booking-date-picker-header {
+        margin-bottom: 14px;
+    }
+
+    .booking-body .booking-date-options {
+        gap: 5px;
+    }
+
+    .booking-body .booking-date-option {
+        min-height: 66px;
+        padding: 8px 2px;
+    }
+
+    .booking-body .booking-date-option .booking-date-weekday {
+        font-size: 0.58rem;
+    }
+
+    .booking-body .booking-date-option strong {
+        font-size: 1.05rem;
+    }
+}
+
 /* Booking settings */
 .settings-page-header {
     display: flex;
