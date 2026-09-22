@@ -907,14 +907,16 @@ const admin = {
 
     confirmCompleteService(id, clientName) {
         document.getElementById('confirm-service-text').innerText = `Confirmar conclusão do serviço para ${clientName}?`;
+        this.resetCompletionPaymentChoice();
         const confirmBtn = document.getElementById('btn-do-complete-service');
-        confirmBtn.onclick = () => this.completeService(id);
+        confirmBtn.onclick = () => this.executeCompletion(id);
         this.openModal('confirm-service');
     },
 
     async completeService(id, clientName = null) {
         if (clientName) {
             document.getElementById('confirm-service-text').innerHTML = `Confirmar conclusão do serviço para <strong>${clientName}</strong>?`;
+            this.resetCompletionPaymentChoice();
             document.getElementById('btn-do-complete-service').onclick = () => this.executeCompletion(id);
             this.openModal('confirm-service');
             return;
@@ -926,17 +928,32 @@ const admin = {
         }
     },
 
+    resetCompletionPaymentChoice() {
+        const paidOption = document.querySelector('input[name="completion-payment"][value="paid"]');
+        if (paidOption) paidOption.checked = true;
+    },
+
     async executeCompletion(id) {
+        const paymentStatus = document.querySelector('input[name="completion-payment"]:checked')?.value || 'paid';
         try {
             const res = await auth.apiRequest(`/api/appointments/${id}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ status: 'completed' })
+                body: JSON.stringify({ status: 'completed', paymentStatus })
             });
             if (res.ok) {
                 this.closeModal('confirm-service');
                 this.loadData();
+                auth.notify(paymentStatus === 'pending'
+                    ? 'Atendimento finalizado. Pendência registrada no cadastro do cliente.'
+                    : 'Atendimento finalizado como pago.', 'success');
+            } else {
+                const data = await res.json().catch(() => ({}));
+                auth.notify(data.message || 'Não foi possível finalizar o atendimento.', 'error');
             }
-        } catch (err) { alert('Erro ao finalizar serviço'); }
+        } catch (err) {
+            console.error('Erro ao finalizar serviço:', err);
+            auth.notify(err.message || 'Erro ao finalizar serviço.', 'error');
+        }
     },
 
     async cancelService(id, clientName = null) {
@@ -1005,7 +1022,7 @@ const admin = {
         if (!hasClients) {
             container.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="5">
+                    <td colspan="6">
                         <div class="empty-state entity-empty-state">
                             <div>
                                 <strong>Nenhum cliente cadastrado</strong>
@@ -1044,7 +1061,7 @@ const admin = {
         };
 
         if (sorted.length === 0) {
-            container.innerHTML = '<tr><td colspan="5" class="table-empty-result">Nenhum cliente encontrado para esta busca.</td></tr>';
+            container.innerHTML = '<tr><td colspan="6" class="table-empty-result">Nenhum cliente encontrado para esta busca.</td></tr>';
             return;
         }
 
@@ -1054,6 +1071,11 @@ const admin = {
                 <td>${c.phone}</td>
                 <td><span style="color:var(--primary)">${formatDate(c.last_service_date, c.scheduled_time)}</span></td>
                 <td style="text-align:center">${c.total_appointments || 0}</td>
+                <td style="text-align:center">
+                    ${Number(c.pending_payment_count || 0) > 0
+                        ? `<span class="client-pending-badge">R$ ${parseFloat(c.pending_payment_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`
+                        : '<span class="client-paid-badge">Em dia</span>'}
+                </td>
                 <td>
                     <div style="display: flex; gap: 8px; justify-content: center;">
                         <button class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.7rem;" onclick="admin.openWhatsAppConfirm(${c.id})">WhatsApp ↗</button>
@@ -1086,10 +1108,12 @@ const admin = {
             const totalSpent = parseFloat(stats.total_spent || 0);
             const visitCount = parseInt(stats.service_count || 0);
             const avgTicket = visitCount > 0 ? totalSpent / visitCount : 0;
+            const pendingTotal = parseFloat(stats.pending_payment_total || 0);
             
             document.getElementById('detail-total-spent').innerText = `R$ ${totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             document.getElementById('detail-visit-count').innerText = visitCount;
             document.getElementById('detail-avg-ticket').innerText = `R$ ${avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('detail-pending-total').innerText = `R$ ${pendingTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             
             // Calculate Average Interval
             const completedVisits = history
@@ -1117,6 +1141,7 @@ const admin = {
                 canceled: 'Cancelado',
                 pending: 'Pendente'
             };
+            const paymentLabels = { paid: 'Pago', pending: 'Não pago' };
             historyContainer.innerHTML = history.length > 0 ? history.map(h => `
                 <tr style="background: rgba(255,255,255,0.02)">
                     <td style="padding: 15px;">${new Date(h.created_at).toLocaleDateString('pt-BR')} ${h.appointment_time}</td>
@@ -1124,16 +1149,35 @@ const admin = {
                     <td style="padding: 15px; color: var(--primary); font-weight: 600;">${h.professional_name || 'Geral'}</td>
                     <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${statusLabels[h.status] || h.status}</span></td>
+                    <td style="padding: 15px;"><span class="status-badge ${h.payment_status === 'pending' ? 'status-danger' : 'status-ok'}">${paymentLabels[h.payment_status] || 'Pago'}</span></td>
                     <td style="padding: 15px; text-align: center;">
+                        ${h.payment_status === 'pending' ? `<button class="btn btn-ghost btn-sm pending-payment-action" onclick="admin.markAppointmentPaid(${h.id}, ${clientId})">Marcar pago</button>` : ''}
                         <button class="btn-queue-cancel" aria-label="Excluir atendimento" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
                     </td>
                 </tr>
-            `).join('') : '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
+            `).join('') : '<tr><td colspan="7" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
             
             this.openModal('client-details');
         } catch (err) {
             console.error('Erro ao buscar detalhes do cliente', err);
             alert('Erro ao carregar histórico do cliente');
+        }
+    },
+
+    async markAppointmentPaid(appointmentId, clientId) {
+        try {
+            const response = await auth.apiRequest(`/api/appointments/${appointmentId}/payment`, { method: 'PATCH' });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.success === false) {
+                throw new Error(data.message || 'Não foi possível confirmar o pagamento.');
+            }
+
+            await this.loadClients();
+            await this.showClientDetails(clientId);
+            auth.notify('Pagamento confirmado e pendência removida.', 'success');
+        } catch (err) {
+            console.error('Erro ao confirmar pagamento:', err);
+            auth.notify(err.message || 'Não foi possível confirmar o pagamento.', 'error');
         }
     },
 

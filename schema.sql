@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS appointments (
     appointment_time TEXT NOT NULL,
     appointment_date DATE DEFAULT CURRENT_DATE,
     status VARCHAR(20) DEFAULT 'pending',
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'paid',
+    payment_paid_at TIMESTAMP,
     professional_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

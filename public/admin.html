@@ -346,6 +346,7 @@
                                 <th>WhatsApp</th>
                                 <th>Último Atendimento</th>
                                 <th>Total atendimentos</th>
+                                <th>Pend&ecirc;ncias</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -1211,6 +1212,17 @@
             <h2 class="modal-title" style="margin-bottom: 8px;">Finalizar Atendimento</h2>
             <p style="color: var(--text-muted); margin-bottom: 32px;" id="confirm-service-text">Confirmar conclusão do
                 serviço?</p>
+            <div class="completion-payment-choice">
+                <span class="completion-payment-label">Situa&ccedil;&atilde;o do pagamento</span>
+                <label class="completion-payment-option">
+                    <input type="radio" name="completion-payment" value="paid" checked>
+                    <span><strong>Pago</strong><small>O servi&ccedil;o foi recebido.</small></span>
+                </label>
+                <label class="completion-payment-option completion-payment-option-pending">
+                    <input type="radio" name="completion-payment" value="pending">
+                    <span><strong>N&atilde;o pagou</strong><small>Gerar pend&ecirc;ncia no cadastro.</small></span>
+                </label>
+            </div>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-ghost btn-full" onclick="admin.closeModal('confirm-service')">Cancelar</button>
                 <button class="btn btn-primary btn-full" id="btn-do-complete-service">Confirmar</button>
@@ -1415,6 +1427,10 @@
                         <label class="input-label-mini">Intervalo Médio</label>
                         <h3 id="detail-avg-interval">--</h3>
                     </div>
+                    <div class="stat-card glass client-detail-stat client-detail-pending-stat">
+                        <label class="input-label-mini">Pend&ecirc;ncias</label>
+                        <h3 id="detail-pending-total">R$ 0,00</h3>
+                    </div>
                 </div>
 
                 <div class="client-history-heading">
@@ -1433,6 +1449,7 @@
                                 <th>Barbeiro</th>
                                 <th>Valor</th>
                                 <th>Status</th>
+                                <th>Pagamento</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>

@@ -220,6 +220,8 @@ pool.on('connect', () => {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (barber_settings):', e));
+    pool.query("ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) NOT NULL DEFAULT 'paid'").catch(e => console.error('Migration error (appointment payment_status):', e));
+    pool.query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_paid_at TIMESTAMP').catch(e => console.error('Migration error (appointment payment_paid_at):', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -686,13 +688,24 @@ app.post('/api/appointments', async (req, res) => {
 
 app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
     const { id } = req.params;
-    const { status, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
+    const { status, paymentStatus, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
         const hasAppointmentChanges = [serviceId, professionalId, clientName, clientPhone, time, date]
             .some(value => value !== undefined);
+        const normalizedPaymentStatus = paymentStatus === 'pending' ? 'pending' : (paymentStatus === 'paid' ? 'paid' : null);
 
         if (!hasAppointmentChanges) {
-            await pool.query('UPDATE appointments SET status = $1 WHERE id = $2', [status, id]);
+            if (status === 'completed') {
+                await pool.query(`
+                    UPDATE appointments
+                    SET status = $1,
+                        payment_status = $2,
+                        payment_paid_at = CASE WHEN $2 = 'paid' THEN CURRENT_TIMESTAMP ELSE NULL END
+                    WHERE id = $3
+                `, [status, normalizedPaymentStatus || 'paid', id]);
+            } else {
+                await pool.query('UPDATE appointments SET status = $1 WHERE id = $2', [status, id]);
+            }
             return res.json({ success: true });
         }
 
@@ -736,6 +749,27 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
+    }
+});
+
+app.patch('/api/appointments/:id/payment', authenticateToken, requireAnyPermission('agenda', 'clientes'), async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+            UPDATE appointments
+            SET payment_status = 'paid', payment_paid_at = CURRENT_TIMESTAMP
+            WHERE id = $1 AND status = 'completed'
+            RETURNING id, payment_status, payment_paid_at
+        `, [id]);
+
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Atendimento pendente não encontrado.' });
+        }
+
+        res.json({ success: true, appointment: result.rows[0] });
+    } catch (err) {
+        console.error('Erro ao confirmar pagamento do atendimento:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível confirmar o pagamento.' });
     }
 });
 
@@ -849,9 +883,12 @@ app.get('/api/clients/:barberId', authenticateToken, requireAnyPermission('clien
                     FROM appointments a2 
                     WHERE a2.client_name = c.name AND a2.client_phone = c.phone 
                     ORDER BY a2.appointment_date DESC, a2.appointment_time DESC LIMIT 1) as scheduled_time,
-                   COUNT(a.id) as total_appointments
+                   COUNT(a.id) as total_appointments,
+                   COUNT(a.id) FILTER (WHERE a.status = 'completed' AND a.payment_status = 'pending') as pending_payment_count,
+                   COALESCE(SUM(CASE WHEN a.status = 'completed' AND a.payment_status = 'pending' THEN COALESCE(s.price, 0) ELSE 0 END), 0) as pending_payment_total
             FROM clients c
             LEFT JOIN appointments a ON c.name = a.client_name AND c.phone = a.client_phone
+            LEFT JOIN services s ON a.service_id = s.id
             WHERE c.barber_id = $1
             GROUP BY c.id
             ORDER BY last_service_date DESC, c.name ASC
@@ -882,7 +919,10 @@ app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('cli
         `, [client.name, client.phone]);
 
         const statsResult = await pool.query(`
-            SELECT COALESCE(SUM(COALESCE(s.price, 0)), 0) as total_spent, COUNT(a.id) as service_count
+            SELECT COALESCE(SUM(COALESCE(s.price, 0)), 0) as total_spent,
+                   COUNT(a.id) as service_count,
+                   COUNT(a.id) FILTER (WHERE a.status = 'completed' AND a.payment_status = 'pending') as pending_payment_count,
+                   COALESCE(SUM(CASE WHEN a.status = 'completed' AND a.payment_status = 'pending' THEN COALESCE(s.price, 0) ELSE 0 END), 0) as pending_payment_total
             FROM appointments a
             LEFT JOIN services s ON a.service_id = s.id
             WHERE a.client_name = $1 AND a.client_phone = $2 AND a.status = 'completed'

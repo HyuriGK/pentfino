@@ -6574,6 +6574,141 @@ button.btn > svg {
     box-shadow: 0 0 0 2px rgba(104, 131, 154, 0.35);
 }
 
+/* Payment status when completing an appointment. */
+.completion-payment-choice {
+    display: grid;
+    gap: 8px;
+    margin: -8px 0 24px;
+    text-align: left;
+}
+
+.completion-payment-label {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.completion-payment-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.completion-payment-option:has(input:checked) {
+    border-color: var(--success);
+    background: rgba(33, 199, 120, 0.08);
+}
+
+.completion-payment-option-pending:has(input:checked) {
+    border-color: var(--danger);
+    background: rgba(237, 58, 64, 0.08);
+}
+
+.completion-payment-option input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--success);
+}
+
+.completion-payment-option-pending input {
+    accent-color: var(--danger);
+}
+
+.completion-payment-option span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.completion-payment-option strong {
+    color: var(--text-main);
+    font-size: 0.8rem;
+}
+
+.completion-payment-option small {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.client-pending-badge,
+.client-paid-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.client-pending-badge {
+    color: var(--danger);
+    background: rgba(237, 58, 64, 0.1);
+}
+
+.client-paid-badge {
+    color: var(--success);
+    background: rgba(33, 199, 120, 0.1);
+}
+
+.client-detail-pending-stat h3 {
+    color: var(--danger) !important;
+}
+
+.pending-payment-action {
+    display: inline-flex;
+    margin-right: 6px;
+    padding: 7px 10px;
+    color: var(--primary);
+    font-size: 0.68rem;
+}
+
+@media (min-width: 901px) {
+    .admin-light #modal-client-details .client-detail-stats {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* Keep the new payment column aligned with the client table layout. */
+.admin-light #clients-table-shell .data-table th:nth-child(1),
+.admin-light #clients-table-shell .data-table td:nth-child(1) { width: 17%; }
+.admin-light #clients-table-shell .data-table th:nth-child(2),
+.admin-light #clients-table-shell .data-table td:nth-child(2) { width: 16%; }
+.admin-light #clients-table-shell .data-table th:nth-child(3),
+.admin-light #clients-table-shell .data-table td:nth-child(3) { width: 21%; }
+.admin-light #clients-table-shell .data-table th:nth-child(4),
+.admin-light #clients-table-shell .data-table td:nth-child(4) { width: 14%; }
+.admin-light #clients-table-shell .data-table th:nth-child(5),
+.admin-light #clients-table-shell .data-table td:nth-child(5) { width: 14%; }
+.admin-light #clients-table-shell .data-table th:nth-child(6),
+.admin-light #clients-table-shell .data-table td:nth-child(6) { width: 18%; }
+
+.admin-light #modal-client-details .client-history-table {
+    min-width: 980px;
+}
+
+.admin-light #modal-client-details .client-history-table th:nth-child(1),
+.admin-light #modal-client-details .client-history-table td:nth-child(1) { width: 15%; }
+.admin-light #modal-client-details .client-history-table th:nth-child(2),
+.admin-light #modal-client-details .client-history-table td:nth-child(2) { width: 18%; }
+.admin-light #modal-client-details .client-history-table th:nth-child(3),
+.admin-light #modal-client-details .client-history-table td:nth-child(3) { width: 15%; }
+.admin-light #modal-client-details .client-history-table th:nth-child(4),
+.admin-light #modal-client-details .client-history-table td:nth-child(4) { width: 12%; }
+.admin-light #modal-client-details .client-history-table th:nth-child(5),
+.admin-light #modal-client-details .client-history-table td:nth-child(5) { width: 12%; }
+.admin-light #modal-client-details .client-history-table th:nth-child(6),
+.admin-light #modal-client-details .client-history-table td:nth-child(6) { width: 12%; }
+.admin-light #modal-client-details .client-history-table th:nth-child(7),
+.admin-light #modal-client-details .client-history-table td:nth-child(7) { width: 16%; }
+
 @media (max-width: 900px) {
     .admin-light .dashboard-header {
         align-items: flex-start;
