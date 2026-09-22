@@ -160,6 +160,19 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
+let appointmentPaymentSchemaPromise;
+const ensureAppointmentPaymentSchema = () => {
+    if (!appointmentPaymentSchemaPromise) {
+        appointmentPaymentSchemaPromise = pool.query("ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) NOT NULL DEFAULT 'paid'")
+            .then(() => pool.query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_paid_at TIMESTAMP'))
+            .catch(error => {
+            appointmentPaymentSchemaPromise = null;
+            throw error;
+            });
+    }
+    return appointmentPaymentSchemaPromise;
+};
+
 const requireAnyPermission = (...permissions) => async (req, res, next) => {
     if (req.user?.role === 'administrador' && req.user?.email === ADMIN_EMAIL) return next();
 
@@ -220,8 +233,6 @@ pool.on('connect', () => {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (barber_settings):', e));
-    pool.query("ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) NOT NULL DEFAULT 'paid'").catch(e => console.error('Migration error (appointment payment_status):', e));
-    pool.query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_paid_at TIMESTAMP').catch(e => console.error('Migration error (appointment payment_paid_at):', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -557,6 +568,7 @@ app.get('/api/public/settings/:barberId', async (req, res) => {
 
 app.get('/api/appointments/:barberId', authenticateToken, requireAnyPermission('dashboard', 'agenda', 'billing', 'comissoes'), async (req, res) => {
     try {
+        await ensureAppointmentPaymentSchema();
         const { barberId } = req.params;
         // Fetch all appointments for the calendar (pending, completed, canceled)
         const result = await pool.query(`
@@ -631,6 +643,7 @@ app.get('/api/public/appointments', async (req, res) => {
 app.post('/api/appointments', async (req, res) => {
     const { barberId, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
+        await ensureAppointmentPaymentSchema();
         // Use provided date or today if not provided
         const apptDate = date || new Date().toISOString().split('T')[0];
         const normalizedTime = String(time || '').slice(0, 5);
@@ -690,6 +703,7 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
     const { id } = req.params;
     const { status, paymentStatus, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
+        await ensureAppointmentPaymentSchema();
         const hasAppointmentChanges = [serviceId, professionalId, clientName, clientPhone, time, date]
             .some(value => value !== undefined);
         const normalizedPaymentStatus = paymentStatus === 'pending' ? 'pending' : (paymentStatus === 'paid' ? 'paid' : null);
@@ -755,6 +769,7 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
 app.patch('/api/appointments/:id/payment', authenticateToken, requireAnyPermission('agenda', 'clientes'), async (req, res) => {
     const { id } = req.params;
     try {
+        await ensureAppointmentPaymentSchema();
         const result = await pool.query(`
             UPDATE appointments
             SET payment_status = 'paid', payment_paid_at = CURRENT_TIMESTAMP
@@ -875,6 +890,7 @@ app.put('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, req
 // Clients API - Fixed last_service_date to use appointment_date for business logic
 app.get('/api/clients/:barberId', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
     try {
+        await ensureAppointmentPaymentSchema();
         const { barberId } = req.params;
         const result = await pool.query(`
             SELECT c.*, 
@@ -902,6 +918,7 @@ app.get('/api/clients/:barberId', authenticateToken, requireAnyPermission('clien
 
 app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
     try {
+        await ensureAppointmentPaymentSchema();
         const { id } = req.params;
         const clientResult = await pool.query('SELECT * FROM clients WHERE id = $1', [id]);
         const client = clientResult.rows[0];
