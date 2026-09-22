@@ -6020,6 +6020,8 @@ button.btn > svg {
 .admin-light .sidebar .logo-text {
     font-size: 1.3rem;
     line-height: 1.15;
+    transform: scaleY(1.08);
+    transform-origin: left center;
 }
 
 .admin-light .sidebar nav .nav-item[onclick*="confirmLogout"] {
