@@ -8576,3 +8576,108 @@ textarea:focus-visible,
     line-height: 1;
 }
 
+/* Service form: keep the photo picker and fields visible without a modal scrollbar. */
+.admin-light #modal-service {
+    align-items: center;
+    overflow: hidden;
+    padding: 12px !important;
+}
+
+.admin-light #modal-service > .modal-content {
+    width: min(100%, 660px) !important;
+    max-width: 660px !important;
+    max-height: none !important;
+    min-width: 0;
+    overflow: visible !important;
+    padding: 22px 28px 18px !important;
+    box-sizing: border-box;
+}
+
+.admin-light #modal-service > .modal-content .modal-header {
+    margin-bottom: 14px !important;
+}
+
+.admin-light #modal-service > .modal-content .modal-title {
+    font-size: 1.7rem;
+}
+
+.admin-light #modal-service > .modal-content > .input-group-new {
+    min-width: 0;
+    margin-bottom: 10px !important;
+}
+
+.admin-light #modal-service > .modal-content .input-group-new label {
+    margin-bottom: 5px;
+}
+
+.admin-light #modal-service > .modal-content .input-group-new input,
+.admin-light #modal-service > .modal-content .input-group-new select {
+    min-height: 48px;
+    height: 48px;
+    padding: 9px 12px;
+}
+
+.admin-light #modal-service .service-photo-picker {
+    min-height: 0;
+    padding: 8px;
+    column-gap: 12px;
+    row-gap: 7px;
+}
+
+.admin-light #modal-service .service-photo-preview {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+}
+
+.admin-light #modal-service .professional-photo-picker-copy strong {
+    font-size: 0.8rem;
+}
+
+.admin-light #modal-service .professional-photo-picker-copy p {
+    margin-top: 3px;
+    font-size: 0.68rem;
+}
+
+.admin-light #modal-service .service-duration-fields {
+    min-width: 0;
+    gap: 10px;
+}
+
+.admin-light #modal-service .service-duration-fields > * {
+    min-width: 0;
+}
+
+.admin-light #modal-service > .modal-content > .btn-full {
+    min-height: 46px;
+    margin-top: 2px !important;
+    padding: 10px 14px;
+}
+
+/* The product image card does not need to occupy the whole form width. */
+.admin-light #modal-inventory .inventory-photo-picker {
+    width: min(100%, 680px);
+    max-width: 680px;
+    margin-right: auto;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-service {
+        padding: 10px !important;
+    }
+
+    .admin-light #modal-service > .modal-content {
+        padding: 18px 16px 16px !important;
+    }
+
+    .admin-light #modal-service .service-duration-fields {
+        grid-template-columns: 1fr !important;
+        gap: 0;
+    }
+
+    .admin-light #modal-inventory .inventory-photo-picker {
+        width: 100%;
+        max-width: none;
+    }
+}
+
