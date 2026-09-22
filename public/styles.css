@@ -6202,6 +6202,8 @@ button.btn > svg {
     max-height: min(92vh, 760px) !important;
     min-width: 0;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
+    align-content: start;
     box-sizing: border-box;
     padding: 30px 34px 26px !important;
     border: 1px solid rgba(132, 157, 171, 0.35);
@@ -6269,6 +6271,7 @@ button.btn > svg {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
+    margin-bottom: 18px;
     min-width: 0;
 }
 
@@ -6311,7 +6314,7 @@ button.btn > svg {
     align-items: center;
     gap: 12px;
     min-height: 64px;
-    margin: 0 0 8px;
+    margin: 0 0 18px;
     padding: 14px 16px;
     box-sizing: border-box;
     border: 1px solid #2c3d48;
@@ -6365,7 +6368,8 @@ button.btn > svg {
 
     .admin-light #modal-inventory .inventory-form-row {
         grid-template-columns: 1fr;
-        gap: 0;
+        row-gap: 16px;
+        margin-bottom: 16px;
     }
 }
 
@@ -10246,6 +10250,8 @@ textarea:focus-visible,
     max-height: min(92vh, 760px) !important;
     min-width: 0;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
+    align-content: start;
     box-sizing: border-box;
     padding: 30px 34px 26px !important;
     border: 1px solid rgba(132, 157, 171, 0.35);
@@ -10313,6 +10319,7 @@ textarea:focus-visible,
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
+    margin-bottom: 18px;
     min-width: 0;
 }
 
@@ -10351,7 +10358,7 @@ textarea:focus-visible,
     align-items: center;
     gap: 12px;
     min-height: 64px;
-    margin: 0 0 8px;
+    margin: 0 0 18px;
     padding: 14px 16px;
     box-sizing: border-box;
     border: 1px solid #2c3d48;
@@ -10405,7 +10412,8 @@ textarea:focus-visible,
 
     .admin-light #modal-inventory .inventory-form-row {
         grid-template-columns: 1fr;
-        gap: 0;
+        row-gap: 16px;
+        margin-bottom: 16px;
     }
 }
 

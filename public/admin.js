@@ -3529,6 +3529,11 @@ const admin = {
         const modalElement = document.getElementById(modalId);
         modalElement.style.zIndex = String(2000 + (this.modalStack.length - 1) * 20);
         modalElement.classList.remove('hidden');
+        const modalContent = modalElement.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.scrollTop = 0;
+            modalContent.scrollLeft = 0;
+        }
         document.body.classList.add('modal-open');
     },
 
