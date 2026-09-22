@@ -10349,6 +10349,97 @@ textarea:focus-visible,
     to { transform: translateX(0); }
 }
 
+/* Queue search and contact details. */
+.queue-header {
+    gap: 24px;
+}
+
+.queue-title-group {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.queue-title-rule {
+    width: 40px;
+    height: 1px;
+    background: var(--border-bright);
+}
+
+.queue-search {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: min(100%, 300px);
+    min-height: 42px;
+    padding: 0 13px;
+    color: var(--text-muted);
+    background: rgba(16, 25, 32, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.queue-search:focus-within {
+    border-color: var(--border-bright);
+    background: #141f28;
+}
+
+.queue-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    color: var(--text-main);
+    background: transparent;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    font-size: 0.76rem;
+}
+
+.queue-search input::placeholder {
+    color: #75818a;
+}
+
+.queue-search input::-webkit-search-cancel-button {
+    filter: grayscale(1) brightness(1.6);
+}
+
+.appointment-contact {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 8px !important;
+    color: #b7c0c5 !important;
+    font-size: 0.78rem !important;
+}
+
+.appointment-contact svg {
+    flex: 0 0 auto;
+    color: #8f9aa2;
+}
+
+.queue-empty-search {
+    padding: 2rem;
+    color: var(--text-muted);
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+    .queue-header {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .queue-search {
+        width: 100%;
+    }
+}
+
 @media (min-width: 1025px) {
     /* Collapsed sidebar: keep the brand mark centered in the header area. */
     .admin-light .sidebar.collapsed .sidebar-header {

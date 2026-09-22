@@ -267,6 +267,7 @@ const admin = {
     currentTab: 'home',
     navigationTimer: null,
     navigationRequestId: 0,
+    queueSearchTerm: '',
     bookingSettings: null,
     appointmentPollingTimer: null,
     appointmentsInitialized: false,
@@ -1047,11 +1048,49 @@ const admin = {
         return year && month && day ? `${day}/${month}/${year}` : '--/--/----';
     },
 
+    normalizeQueueSearch(value) {
+        return String(value || '')
+            .toLocaleLowerCase('pt-BR')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, '');
+    },
+
+    setQueueSearch(value) {
+        this.queueSearchTerm = String(value || '');
+        this.renderAppointments();
+    },
+
+    formatWhatsApp(phoneValue) {
+        const digits = String(phoneValue || '').replace(/\D/g, '');
+        if (!digits) return 'WhatsApp não informado';
+
+        const local = digits.startsWith('55') && (digits.length === 12 || digits.length === 13)
+            ? digits.slice(2)
+            : digits;
+        if (local.length === 11) return `+55 (${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
+        if (local.length === 10) return `+55 (${local.slice(0, 2)}) ${local.slice(2, 6)}-${local.slice(6)}`;
+        return `+${digits}`;
+    },
+
     renderAppointments() {
         const container = document.getElementById('appointments-list');
-        const queue = this.sortAppointmentsDesc(this.pending || []);
-        if (queue.length === 0) {
+        const allPending = this.sortAppointmentsDesc(this.pending || []);
+        const searchTerm = this.normalizeQueueSearch(this.queueSearchTerm);
+        const phoneSearchTerm = searchTerm.replace(/\D/g, '');
+        const queue = allPending.filter(appointment => {
+            if (!searchTerm) return true;
+            const clientName = this.normalizeQueueSearch(appointment.client_name);
+            const phone = String(appointment.client_phone || '').replace(/\D/g, '');
+            return clientName.includes(searchTerm) || (phoneSearchTerm && phone.includes(phoneSearchTerm));
+        });
+
+        if (allPending.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding: 2rem; color: var(--text-muted);">Tudo pronto! Fila vazia.</div>';
+            return;
+        }
+        if (queue.length === 0) {
+            container.innerHTML = '<div class="queue-empty-search">Nenhum atendimento encontrado para essa busca.</div>';
             return;
         }
 
@@ -1060,6 +1099,12 @@ const admin = {
                 <div class="client-info">
                     <h4>${a.client_name}</h4>
                     <p>${a.service_name} • ${this.formatAppointmentDate(a.appointment_date)} • ${String(a.appointment_time || '').slice(0, 5)}</p>
+                    <p class="appointment-contact">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                        <span>${this.formatWhatsApp(a.client_phone)}</span>
+                    </p>
                     <div class="professional-badge" style="margin-top: 8px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         ${a.professional_name || 'Geral'}
