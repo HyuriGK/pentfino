@@ -2833,7 +2833,8 @@ const admin = {
         });
 
         // Update save button to handle update
-        const saveBtn = document.querySelector('#modal-professional .btn-primary');
+        const saveBtn = document.getElementById('btn-save-professional');
+        if (!saveBtn) return;
         const originalText = saveBtn.innerText;
         saveBtn.innerText = 'Salvar Alterações';
         saveBtn.onclick = async () => {
@@ -2853,19 +2854,30 @@ const admin = {
         if(!name) return alert('Nome é obrigatório');
 
         try {
-            await auth.apiRequest(`/api/professionals/${id}`, {
+            const response = await auth.apiRequest(`/api/professionals/${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ name, phone, photoUrl, commission: commission || 0, productCommission: productCommission || 0 })
             });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false) {
+                throw new Error(result.message || 'N\u00E3o foi poss\u00EDvel atualizar o barbeiro.');
+            }
             
-            await auth.apiRequest('/api/professional-services', {
+            const servicesResponse = await auth.apiRequest('/api/professional-services', {
                 method: 'POST',
                 body: JSON.stringify({ profId: id, serviceIds: selectedServices })
             });
+            if (!servicesResponse.ok) {
+                throw new Error('N\u00E3o foi poss\u00EDvel atualizar os servi\u00E7os do barbeiro.');
+            }
 
             this.closeModal('professional');
             await this.loadProfessionals();
-        } catch (err) { alert('Erro ao atualizar barbeiro'); }
+            auth.notify('Barbeiro atualizado com sucesso!', 'success');
+        } catch (err) {
+            console.error('Erro ao atualizar barbeiro:', err);
+            auth.notify(err.message || 'Erro ao atualizar barbeiro.', 'error');
+        }
     },
 
     async deleteProfessional(id, name) {
@@ -3086,7 +3098,7 @@ const admin = {
     closeModal(type) {
         const modalId = `modal-${type}`;
         if (type === 'professional') {
-            const saveBtn = document.querySelector('#modal-professional .btn-primary');
+            const saveBtn = document.getElementById('btn-save-professional');
             if (saveBtn) {
                 saveBtn.innerText = 'Cadastrar Barbeiro';
                 saveBtn.onclick = () => this.saveProfessional();
