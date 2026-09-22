@@ -521,7 +521,7 @@ const admin = {
                 } finally {
                     this.hideNavigationLoader();
                 }
-            }, 2000);
+            }, 1500);
             return;
         }
 
