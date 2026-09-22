@@ -1151,8 +1151,10 @@ const admin = {
                     <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${statusLabels[h.status] || h.status}</span></td>
                     <td style="padding: 15px;"><span class="status-badge ${h.payment_status === 'pending' ? 'status-danger' : 'status-ok'}">${paymentLabels[h.payment_status] || 'Pago'}</span></td>
                     <td style="padding: 15px; text-align: center;">
-                        ${h.payment_status === 'pending' ? `<button class="btn btn-ghost btn-sm pending-payment-action" onclick="admin.markAppointmentPaid(${h.id}, ${clientId})">Marcar pago</button>` : ''}
-                        <button class="btn-queue-cancel" aria-label="Excluir atendimento" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
+                        <div class="client-history-actions">
+                            ${h.payment_status === 'pending' ? `<button class="btn btn-ghost btn-sm pending-payment-action" onclick="admin.markAppointmentPaid(${h.id}, ${clientId})">PAGO</button>` : ''}
+                            <button class="btn-queue-cancel" aria-label="Excluir atendimento" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
+                        </div>
                     </td>
                 </tr>
             `).join('') : '<tr><td colspan="7" style="text-align:center; padding: 30px; color: var(--text-muted);">Nenhum atendimento realizado ainda.</td></tr>';
@@ -1164,7 +1166,31 @@ const admin = {
         }
     },
 
-    async markAppointmentPaid(appointmentId, clientId) {
+    markAppointmentPaid(appointmentId, clientId) {
+        const confirmationInput = document.getElementById('payment-confirmation');
+        const confirmButton = document.getElementById('btn-do-payment-confirm');
+        const confirmationText = document.getElementById('payment-confirm-text');
+
+        if (confirmationText) confirmationText.innerText = 'Confirme o recebimento deste atendimento para remover a pendência.';
+        if (confirmationInput) {
+            confirmationInput.value = '';
+            confirmationInput.oninput = () => this.validatePaymentConfirmation(confirmationInput.value);
+        }
+        if (confirmButton) {
+            confirmButton.disabled = true;
+            confirmButton.onclick = () => this.executePaymentConfirmation(appointmentId, clientId);
+        }
+
+        this.openModal('payment-confirm');
+        setTimeout(() => confirmationInput?.focus(), 0);
+    },
+
+    validatePaymentConfirmation(value) {
+        const button = document.getElementById('btn-do-payment-confirm');
+        if (button) button.disabled = String(value || '').trim() !== 'CONFIRMAR';
+    },
+
+    async executePaymentConfirmation(appointmentId, clientId) {
         try {
             const response = await auth.apiRequest(`/api/appointments/${appointmentId}/payment`, { method: 'PATCH' });
             const data = await response.json().catch(() => ({}));
@@ -1172,6 +1198,7 @@ const admin = {
                 throw new Error(data.message || 'Não foi possível confirmar o pagamento.');
             }
 
+            this.closeModal('payment-confirm');
             await this.loadClients();
             await this.showClientDetails(clientId);
             auth.notify('Pagamento confirmado e pendência removida.', 'success');

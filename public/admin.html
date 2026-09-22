@@ -1300,6 +1300,24 @@
         </div>
     </div>
 
+    <!-- CUSTOM PAYMENT CONFIRMATION MODAL -->
+    <div id="modal-payment-confirm" class="modal-overlay hidden">
+        <div class="modal-content payment-confirm-content" style="text-align: center; max-width: 400px;">
+            <div class="payment-confirm-icon" aria-hidden="true">✓</div>
+            <h2 class="modal-title" style="margin-bottom: 12px;">Confirmar pagamento</h2>
+            <p style="color: var(--text-muted); margin-bottom: 18px;" id="payment-confirm-text">Confirme o recebimento deste atendimento.</p>
+            <div class="payment-confirm-field">
+                <label for="payment-confirmation">Digite <strong>CONFIRMAR</strong> para continuar</label>
+                <input autocomplete="off" type="text" id="payment-confirmation" placeholder="CONFIRMAR"
+                    oninput="admin.validatePaymentConfirmation(this.value)">
+            </div>
+            <div class="payment-confirm-actions">
+                <button class="btn btn-ghost" onclick="admin.closeModal('payment-confirm')">Cancelar</button>
+                <button class="btn btn-primary" id="btn-do-payment-confirm" disabled>Confirmar pagamento</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CUSTOM WHATSAPP CONFIRMATION MODAL -->
     <div id="modal-whatsapp-confirm" class="modal-overlay hidden">
         <div class="modal-content whatsapp-confirm-content" style="text-align: center; max-width: 400px;">

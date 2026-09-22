@@ -6762,10 +6762,88 @@ button.btn > svg {
 
 .pending-payment-action {
     display: inline-flex;
-    margin-right: 6px;
+    margin: 0;
     padding: 7px 10px;
     color: var(--primary);
     font-size: 0.68rem;
+}
+
+.client-history-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.client-history-actions .btn-queue-cancel {
+    flex: 0 0 48px;
+}
+
+.admin-light #modal-payment-confirm .modal-content {
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
+}
+
+.admin-light .payment-confirm-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    border: 1px solid rgba(33, 199, 120, 0.45);
+    border-radius: 50%;
+    color: #08120d;
+    background: var(--success);
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.admin-light .payment-confirm-field {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.admin-light .payment-confirm-field label {
+    color: var(--text-muted);
+    font-size: 0.84rem;
+}
+
+.admin-light .payment-confirm-field strong {
+    color: var(--text-main);
+    letter-spacing: 0.04em;
+}
+
+.admin-light .payment-confirm-field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    text-transform: uppercase;
+}
+
+.admin-light .payment-confirm-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.admin-light .payment-confirm-actions .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.admin-light #btn-do-payment-confirm:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 @media (min-width: 901px) {
