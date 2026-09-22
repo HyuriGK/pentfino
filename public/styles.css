@@ -8767,3 +8767,93 @@ textarea:focus-visible,
     text-align: center;
 }
 
+/* Admin tables: make each column explicit and keep all cell content centered. */
+.admin-light #clients-table-shell .data-table,
+.admin-light #tab-comissoes .data-table,
+.admin-light #tab-servicos .data-table {
+    table-layout: fixed;
+}
+
+.admin-light #clients-table-shell .data-table th,
+.admin-light #clients-table-shell .data-table td,
+.admin-light #tab-comissoes .data-table th,
+.admin-light #tab-comissoes .data-table td,
+.admin-light #tab-servicos .data-table th,
+.admin-light #tab-servicos .data-table td {
+    text-align: center;
+    vertical-align: middle;
+    border-right: 1px solid rgba(59, 74, 85, 0.72);
+}
+
+.admin-light #clients-table-shell .data-table th:last-child,
+.admin-light #clients-table-shell .data-table td:last-child,
+.admin-light #tab-comissoes .data-table th:last-child,
+.admin-light #tab-comissoes .data-table td:last-child,
+.admin-light #tab-servicos .data-table th:last-child,
+.admin-light #tab-servicos .data-table td:last-child {
+    border-right: 0;
+}
+
+.admin-light #clients-table-shell .data-table th:nth-child(1),
+.admin-light #clients-table-shell .data-table td:nth-child(1) { width: 20%; }
+
+.admin-light #clients-table-shell .data-table th:nth-child(2),
+.admin-light #clients-table-shell .data-table td:nth-child(2) { width: 18%; }
+
+.admin-light #clients-table-shell .data-table th:nth-child(3),
+.admin-light #clients-table-shell .data-table td:nth-child(3) { width: 25%; }
+
+.admin-light #clients-table-shell .data-table th:nth-child(4),
+.admin-light #clients-table-shell .data-table td:nth-child(4) { width: 16%; }
+
+.admin-light #clients-table-shell .data-table th:nth-child(5),
+.admin-light #clients-table-shell .data-table td:nth-child(5) { width: 21%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(1),
+.admin-light #tab-comissoes .data-table td:nth-child(1) { width: 21%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(2),
+.admin-light #tab-comissoes .data-table td:nth-child(2) { width: 17%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(3),
+.admin-light #tab-comissoes .data-table td:nth-child(3) { width: 18%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(4),
+.admin-light #tab-comissoes .data-table td:nth-child(4) { width: 17%; }
+
+.admin-light #tab-comissoes .data-table th:nth-child(5),
+.admin-light #tab-comissoes .data-table td:nth-child(5) { width: 27%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(1),
+.admin-light #tab-servicos .data-table td:nth-child(1) { width: 42%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(2),
+.admin-light #tab-servicos .data-table td:nth-child(2) { width: 19%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(3),
+.admin-light #tab-servicos .data-table td:nth-child(3) { width: 18%; }
+
+.admin-light #tab-servicos .data-table th:nth-child(4),
+.admin-light #tab-servicos .data-table td:nth-child(4) { width: 21%; }
+
+.admin-light #tab-comissoes .commission-professional-cell,
+.admin-light #tab-servicos .service-name-cell,
+.admin-light #tab-servicos .service-actions {
+    justify-content: center;
+    margin-inline: auto;
+}
+
+.admin-light #tab-servicos .service-name-cell {
+    min-width: 0;
+}
+
+.admin-light #tab-servicos .service-name-cell > div {
+    min-width: 0;
+    text-align: center;
+}
+
+.admin-light #tab-servicos .service-name-cell strong,
+.admin-light #tab-servicos .service-name-cell small {
+    overflow-wrap: anywhere;
+}
+
