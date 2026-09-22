@@ -264,6 +264,9 @@ const admin = {
     selectedBillingType: 'all',
     monthlyGoal: 0,
     monthlyGoalDefined: false,
+    currentTab: 'home',
+    navigationTimer: null,
+    navigationRequestId: 0,
     bookingSettings: null,
     appointmentPollingTimer: null,
     appointmentsInitialized: false,
@@ -327,7 +330,7 @@ const admin = {
                 ['vendas', 'vendas'], ['estoque', 'estoque'], ['barbeiros', 'barbeiros'],
                 ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['configuracoes', 'configuracoes']
             ].find(([permission]) => auth.can(permission));
-            if (firstAvailable) this.showTab(firstAvailable[1]);
+            if (firstAvailable) this.showTab(firstAvailable[1], { skipLoading: true });
         }
 
         this.setupAppointmentAlertSound();
@@ -487,7 +490,7 @@ const admin = {
         }, 30000);
     },
 
-    showTab(tab) {
+    showTab(tab, { skipLoading = false } = {}) {
         const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', clientes: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
         if (tab === 'administracao' && auth.user?.role !== 'administrador') {
             auth.notify('Acesso exclusivo do administrador.', 'error');
@@ -498,10 +501,67 @@ const admin = {
             return;
         }
 
+        if (!skipLoading && this.currentTab === tab && !this.navigationTimer) return;
+
+        this.currentTab = tab;
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         const target = [...document.querySelectorAll('.nav-item')].find(el => el.getAttribute('onclick')?.includes(`showTab('${tab}')`));
         if(target) target.classList.add('active');
-        
+
+        const requestId = ++this.navigationRequestId;
+        clearTimeout(this.navigationTimer);
+
+        if (!skipLoading) {
+            this.showNavigationLoader(tab);
+            this.navigationTimer = setTimeout(() => {
+                if (requestId !== this.navigationRequestId) return;
+                this.navigationTimer = null;
+                try {
+                    this.activateTab(tab);
+                } finally {
+                    this.hideNavigationLoader();
+                }
+            }, 2000);
+            return;
+        }
+
+        this.navigationTimer = null;
+        this.activateTab(tab);
+    },
+
+    showNavigationLoader(tab) {
+        const loader = document.getElementById('navigation-loader');
+        if (!loader) return;
+
+        const labels = {
+            home: 'Dashboard',
+            agenda: 'Agenda',
+            billing: 'Faturamento',
+            clientes: 'Clientes',
+            vendas: 'Vendas',
+            estoque: 'Estoque',
+            barbeiros: 'Barbeiros',
+            comissoes: 'Comissões',
+            servicos: 'Serviços',
+            configuracoes: 'Ajustes',
+            administracao: 'Administração'
+        };
+        const label = loader.querySelector('[data-navigation-label]');
+        if (label) label.textContent = labels[tab] || 'sua área';
+        loader.classList.remove('is-visible');
+        void loader.offsetWidth;
+        loader.classList.add('is-visible');
+        loader.setAttribute('aria-hidden', 'false');
+    },
+
+    hideNavigationLoader() {
+        const loader = document.getElementById('navigation-loader');
+        if (!loader) return;
+        loader.classList.remove('is-visible');
+        loader.setAttribute('aria-hidden', 'true');
+    },
+
+    activateTab(tab) {
         // Tab display logic
         const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'administracao'];
         tabs.forEach(t => {

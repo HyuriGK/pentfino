@@ -10227,6 +10227,128 @@ textarea:focus-visible,
     color: rgba(255, 214, 0, 0.82);
 }
 
+/* Category transition: a calm, branded loading state for dashboard navigation. */
+.navigation-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 1800;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(5, 11, 15, 0.78);
+    backdrop-filter: blur(12px) saturate(0.9);
+    -webkit-backdrop-filter: blur(12px) saturate(0.9);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.navigation-loader.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.navigation-loader-card {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: min(100%, 310px);
+    padding: 30px 28px 26px;
+    border: 1px solid rgba(148, 163, 174, 0.2);
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(19, 30, 38, 0.96), rgba(11, 19, 25, 0.96));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    text-align: center;
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.navigation-loader.is-visible .navigation-loader-card {
+    transform: translateY(0) scale(1);
+}
+
+.navigation-loader-mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 62px;
+    height: 62px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 214, 0, 0.22);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.navigation-loader-mark::before {
+    position: absolute;
+    inset: -5px;
+    border: 2px solid transparent;
+    border-top-color: rgba(255, 214, 0, 0.9);
+    border-right-color: rgba(255, 214, 0, 0.25);
+    border-radius: 50%;
+    animation: navigationLoaderSpin 1.05s linear infinite;
+    content: "";
+}
+
+.navigation-loader-mark img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.navigation-loader-eyebrow {
+    margin-bottom: 7px;
+    color: rgba(255, 214, 0, 0.74);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+}
+
+.navigation-loader-title {
+    color: #f7f2e8;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.navigation-loader-progress {
+    width: 100%;
+    height: 3px;
+    margin: 22px 0 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.navigation-loader-progress span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(255, 214, 0, 0.25), #ffd600, rgba(255, 214, 0, 0.3));
+    transform: translateX(-100%);
+}
+
+.navigation-loader.is-visible .navigation-loader-progress span {
+    animation: navigationLoaderProgress 2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.navigation-loader-caption {
+    color: #8f9aa2;
+    font-size: 0.72rem;
+}
+
+@keyframes navigationLoaderSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes navigationLoaderProgress {
+    to { transform: translateX(0); }
+}
+
 @media (min-width: 1025px) {
     /* Collapsed sidebar: keep the brand mark centered in the header area. */
     .admin-light .sidebar.collapsed .sidebar-header {
