@@ -606,7 +606,7 @@ app.get('/api/appointments/:barberId', authenticateToken, requireAnyPermission('
             LEFT JOIN services s ON a.service_id = s.id
             LEFT JOIN professionals p ON a.professional_id = p.id
             WHERE a.barber_id = $1
-            ORDER BY a.appointment_date ASC, a.appointment_time ASC
+            ORDER BY a.appointment_date DESC, a.appointment_time DESC, a.id DESC
         `, [barberId]);
         res.json(result.rows);
     } catch (err) {

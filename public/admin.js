@@ -415,7 +415,7 @@ const admin = {
 
             if (aptRes) {
                 const allApts = await aptRes.json();
-                const nextPending = allApts.filter(a => a.status === 'pending');
+                const nextPending = this.sortAppointmentsDesc(allApts.filter(a => a.status === 'pending'));
                 const newPending = this.appointmentsInitialized
                     ? nextPending.filter(a => !this.knownPendingAppointmentIds.has(String(a.id)))
                     : [];
@@ -1028,18 +1028,38 @@ const admin = {
         this.openModal('prof-comm-details');
     },
 
+    getAppointmentDateTimeKey(appointment) {
+        const date = String(appointment?.appointment_date || '').slice(0, 10);
+        const time = String(appointment?.appointment_time || '').slice(0, 8).padEnd(8, '0');
+        return `${date}T${time}`;
+    },
+
+    sortAppointmentsDesc(appointments = []) {
+        return [...appointments].sort((a, b) => {
+            const dateTimeComparison = this.getAppointmentDateTimeKey(b).localeCompare(this.getAppointmentDateTimeKey(a));
+            if (dateTimeComparison !== 0) return dateTimeComparison;
+            return (Number(b.id) || 0) - (Number(a.id) || 0);
+        });
+    },
+
+    formatAppointmentDate(dateValue) {
+        const [year, month, day] = String(dateValue || '').slice(0, 10).split('-');
+        return year && month && day ? `${day}/${month}/${year}` : '--/--/----';
+    },
+
     renderAppointments() {
         const container = document.getElementById('appointments-list');
-        if (this.pending.length === 0) {
+        const queue = this.sortAppointmentsDesc(this.pending || []);
+        if (queue.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding: 2rem; color: var(--text-muted);">Tudo pronto! Fila vazia.</div>';
             return;
         }
 
-        container.innerHTML = this.pending.map(a => `
+        container.innerHTML = queue.map(a => `
             <div class="appointment-item">
                 <div class="client-info">
                     <h4>${a.client_name}</h4>
-                    <p>${a.service_name} • ${a.appointment_time}</p>
+                    <p>${a.service_name} • ${this.formatAppointmentDate(a.appointment_date)} • ${String(a.appointment_time || '').slice(0, 5)}</p>
                     <div class="professional-badge" style="margin-top: 8px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         ${a.professional_name || 'Geral'}
