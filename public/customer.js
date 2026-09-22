@@ -1,7 +1,8 @@
 const app = {
     services: [],
     professionals: [],
-    availableTimes: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
+    availableTimes: [],
+    bookingSettings: null,
     
     // Dynamic business ID from URL. barberId is kept in API payloads for backend compatibility.
     barberId: parseInt(new URLSearchParams(window.location.search).get('businessId') || new URLSearchParams(window.location.search).get('barberId')) || 1,
@@ -17,22 +18,80 @@ const app = {
 
     async init() {
         await this.loadInitialData();
+        this.applyBookingTheme();
+        this.setDefaultDate();
         this.renderServices();
         this.renderTimes();
         this.bindEvents();
-        this.setDefaultDate();
         this.simulateRetentionInsight();
     },
 
     async loadInitialData() {
         try {
-            const [svcRes, profRes] = await Promise.all([
+            const [svcRes, profRes, settingsRes] = await Promise.all([
                 fetch(`/api/services/${this.barberId}`),
-                fetch(`/api/professionals/${this.barberId}`)
+                fetch(`/api/professionals/${this.barberId}`),
+                fetch(`/api/public/settings/${this.barberId}`)
             ]);
             this.services = await svcRes.json();
             this.professionals = await profRes.json();
+            const settingsData = settingsRes.ok ? await settingsRes.json() : {};
+            this.bookingSettings = settingsData.settings || this.getDefaultBookingSettings();
         } catch (err) { console.error('Erro ao carregar dados iniciais'); }
+        if (!this.bookingSettings) this.bookingSettings = this.getDefaultBookingSettings();
+    },
+
+    getDefaultBookingSettings() {
+        return {
+            bookingStyle: 'classic',
+            intervalMinutes: 60,
+            breakEnabled: true,
+            breakStart: '12:00',
+            breakEnd: '14:00',
+            allowCustomTime: true,
+            weeklySchedule: Object.fromEntries(Array.from({ length: 7 }, (_, day) => [String(day), {
+                enabled: true,
+                start: '09:00',
+                end: '18:00'
+            }]))
+        };
+    },
+
+    applyBookingTheme() {
+        const style = ['classic', 'gold', 'minimal'].includes(this.bookingSettings?.bookingStyle)
+            ? this.bookingSettings.bookingStyle
+            : 'classic';
+        document.body.classList.remove('booking-theme-classic', 'booking-theme-gold', 'booking-theme-minimal');
+        document.body.classList.add(`booking-theme-${style}`);
+    },
+
+    timeToMinutes(value) {
+        const [hours, minutes] = String(value || '').split(':').map(Number);
+        return (hours * 60) + minutes;
+    },
+
+    getAvailableTimesForDate(dateValue) {
+        const dateParts = String(dateValue || '').slice(0, 10).split('-').map(Number);
+        if (dateParts.length !== 3 || dateParts.some(Number.isNaN)) return [];
+
+        const day = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).getDay();
+        const schedule = this.bookingSettings?.weeklySchedule?.[String(day)];
+        if (!schedule?.enabled) return [];
+
+        const interval = [15, 30, 60].includes(Number(this.bookingSettings?.intervalMinutes))
+            ? Number(this.bookingSettings.intervalMinutes)
+            : 60;
+        const start = this.timeToMinutes(schedule.start);
+        const end = this.timeToMinutes(schedule.end);
+        const breakStart = this.timeToMinutes(this.bookingSettings.breakStart);
+        const breakEnd = this.timeToMinutes(this.bookingSettings.breakEnd);
+        const times = [];
+
+        for (let minutes = start; minutes <= end; minutes += interval) {
+            if (this.bookingSettings.breakEnabled !== false && breakStart < breakEnd && minutes >= breakStart && minutes < breakEnd) continue;
+            times.push(`${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`);
+        }
+        return times;
     },
 
     setDefaultDate() {
@@ -70,8 +129,12 @@ const app = {
 
     renderTimes() {
         const container = document.getElementById('times-list');
-        const customTimeSelected = this.booking.time && !this.availableTimes.includes(this.booking.time);
-        container.innerHTML = `${this.availableTimes.map(t => {
+        const date = document.getElementById('booking-date')?.value;
+        this.availableTimes = this.getAvailableTimesForDate(date);
+        const customTimeAllowed = this.bookingSettings?.allowCustomTime !== false;
+        const customTimeSelected = customTimeAllowed && this.booking.time && !this.availableTimes.includes(this.booking.time);
+        const dayIsOpen = this.availableTimes.length > 0;
+        const timesMarkup = this.availableTimes.map(t => {
             const isBooked = this.bookedTimes.includes(t);
             const isSelected = this.booking.time === t;
             return `
@@ -80,13 +143,17 @@ const app = {
                     ${t}
                 </div>
             `;
-        }).join('')}
+        }).join('');
+        const customTimeMarkup = customTimeAllowed && dayIsOpen ? `
             <div class="time-card time-card-other glass ${customTimeSelected ? 'selected' : ''}" onclick="app.selectCustomTime(this)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); app.selectCustomTime(this); }" role="button" tabindex="0" aria-label="Escolher outro hor&aacute;rio">
                 <span>
                     <strong>Outro hor&aacute;rio</strong>
                     <small>Definir manualmente</small>
                 </span>
-            </div>`;
+            </div>` : '';
+        container.innerHTML = dayIsOpen
+            ? `${timesMarkup}${customTimeMarkup}`
+            : '<div class="time-empty-state">A barbearia n&atilde;o atende neste dia. Escolha outra data.</div>';
 
         const customPicker = document.getElementById('custom-time-picker');
         const customInput = document.getElementById('custom-time');
@@ -119,8 +186,12 @@ const app = {
         const dateInput = document.getElementById('booking-date');
         if (dateInput) {
             dateInput.onchange = () => {
+                this.booking.time = null;
+                document.getElementById('summary-time-val').innerText = '--';
                 if (this.booking.professional) {
                     this.loadBookedTimes();
+                } else {
+                    this.renderTimes();
                 }
             };
         }
@@ -201,6 +272,7 @@ const app = {
     },
 
     selectCustomTime(el) {
+        if (this.bookingSettings?.allowCustomTime === false || !this.availableTimes.length) return;
         document.querySelectorAll('.time-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
         this.booking.time = null;
@@ -310,6 +382,7 @@ const app = {
     },
 
     setCustomTime(time) {
+        if (this.bookingSettings?.allowCustomTime === false || !this.availableTimes.length) return;
         const isValidTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
         if (!isValidTime) {
             this.booking.time = null;

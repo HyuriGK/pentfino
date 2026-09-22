@@ -24,6 +24,14 @@ CREATE TABLE IF NOT EXISTS monthly_goals (
     UNIQUE (barber_id, goal_year, goal_month)
 );
 
+CREATE TABLE IF NOT EXISTS barber_settings (
+    barber_id INTEGER PRIMARY KEY REFERENCES barbers(id) ON DELETE CASCADE,
+    booking_style VARCHAR(30) NOT NULL DEFAULT 'classic',
+    schedule JSONB NOT NULL DEFAULT '{}'::jsonb,
+    allow_custom_time BOOLEAN NOT NULL DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS services (
     id SERIAL PRIMARY KEY,
     barber_id INTEGER REFERENCES barbers(id),

@@ -264,6 +264,7 @@ const admin = {
     selectedBillingType: 'all',
     monthlyGoal: 0,
     monthlyGoalDefined: false,
+    bookingSettings: null,
     professionalPhotoCrop: {
         image: null,
         sourceUrl: '',
@@ -319,7 +320,7 @@ const admin = {
             const firstAvailable = [
                 ['agenda', 'agenda'], ['billing', 'billing'], ['clientes', 'clientes'],
                 ['vendas', 'vendas'], ['estoque', 'estoque'], ['barbeiros', 'barbeiros'],
-                ['comissoes', 'comissoes'], ['servicos', 'servicos']
+                ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['configuracoes', 'configuracoes']
             ].find(([permission]) => auth.can(permission));
             if (firstAvailable) this.showTab(firstAvailable[1]);
         }
@@ -399,7 +400,7 @@ const admin = {
     },
 
     showTab(tab) {
-        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', clientes: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos' };
+        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', clientes: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
         if (tab === 'administracao' && auth.user?.role !== 'administrador') {
             auth.notify('Acesso exclusivo do administrador.', 'error');
             return;
@@ -414,7 +415,7 @@ const admin = {
         if(target) target.classList.add('active');
         
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'comissoes', 'billing', 'administracao'];
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -471,6 +472,10 @@ const admin = {
 
         if (tab === 'servicos') {
             this.loadServices();
+        }
+
+        if (tab === 'configuracoes') {
+            this.loadBookingSettings();
         }
 
         if (tab === 'comissoes') {
@@ -534,7 +539,7 @@ const admin = {
 
         const labels = {
             dashboard: 'Dashboard', agenda: 'Agenda', billing: 'Faturamento', clientes: 'Clientes',
-            vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços'
+            vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços', configuracoes: 'Configurações'
         };
         const enabled = Object.keys(labels).filter(key => user.permissions?.[key] !== false);
         if (!enabled.length) return '<span class="permission-chip muted">Sem acesso</span>';
@@ -3004,6 +3009,159 @@ const admin = {
             this.closeModal('professional');
             this.loadProfessionals();
         } catch (err) { alert('Erro ao salvar barbeiro'); }
+    },
+
+    getDefaultBookingSettings() {
+        return {
+            bookingStyle: 'classic',
+            intervalMinutes: 60,
+            breakEnabled: true,
+            breakStart: '12:00',
+            breakEnd: '14:00',
+            allowCustomTime: true,
+            weeklySchedule: Object.fromEntries(Array.from({ length: 7 }, (_, day) => [String(day), {
+                enabled: true,
+                start: '09:00',
+                end: '18:00'
+            }]))
+        };
+    },
+
+    async loadBookingSettings() {
+        const feedback = document.getElementById('booking-settings-feedback');
+        try {
+            const response = await auth.apiRequest(`/api/business-settings/${auth.user.id}`);
+            const data = await response.json();
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível carregar as configurações.');
+            this.bookingSettings = data.settings || this.getDefaultBookingSettings();
+        } catch (err) {
+            console.error('Erro ao carregar configurações de agendamento:', err);
+            this.bookingSettings = this.getDefaultBookingSettings();
+            if (feedback) {
+                feedback.className = 'settings-feedback is-error';
+                feedback.innerText = err.message || 'Não foi possível carregar as configurações.';
+            }
+        }
+
+        this.renderBookingSettings();
+    },
+
+    renderBookingSettings() {
+        const settings = this.bookingSettings || this.getDefaultBookingSettings();
+        const styleInput = document.querySelector(`input[name="booking-style"][value="${settings.bookingStyle}"]`)
+            || document.querySelector('input[name="booking-style"]');
+        if (styleInput) styleInput.checked = true;
+
+        const interval = document.getElementById('booking-interval');
+        const breakEnabled = document.getElementById('booking-break-enabled');
+        const breakStart = document.getElementById('booking-break-start');
+        const breakEnd = document.getElementById('booking-break-end');
+        const allowCustom = document.getElementById('booking-allow-custom-time');
+        if (interval) interval.value = String(settings.intervalMinutes || 60);
+        if (breakEnabled) breakEnabled.checked = settings.breakEnabled !== false;
+        if (breakStart) breakStart.value = settings.breakStart || '12:00';
+        if (breakEnd) breakEnd.value = settings.breakEnd || '14:00';
+        if (allowCustom) allowCustom.checked = settings.allowCustomTime !== false;
+
+        document.querySelectorAll('.booking-schedule-row').forEach(row => {
+            const daySettings = settings.weeklySchedule?.[row.dataset.day] || { enabled: true, start: '09:00', end: '18:00' };
+            const enabled = row.querySelector('[data-schedule-field="enabled"]');
+            const start = row.querySelector('[data-schedule-field="start"]');
+            const end = row.querySelector('[data-schedule-field="end"]');
+            if (enabled) enabled.checked = daySettings.enabled !== false;
+            if (start) start.value = daySettings.start || '09:00';
+            if (end) end.value = daySettings.end || '18:00';
+            row.classList.toggle('is-closed', enabled && !enabled.checked);
+        });
+
+        if (breakEnabled) {
+            breakEnabled.onchange = () => document.getElementById('booking-break-fields')?.classList.toggle('is-disabled', !breakEnabled.checked);
+            breakEnabled.onchange();
+        }
+        document.querySelectorAll('.booking-schedule-row [data-schedule-field="enabled"]').forEach(input => {
+            input.onchange = () => input.closest('.booking-schedule-row')?.classList.toggle('is-closed', !input.checked);
+        });
+    },
+
+    collectBookingSettings() {
+        const weeklySchedule = {};
+        document.querySelectorAll('.booking-schedule-row').forEach(row => {
+            weeklySchedule[row.dataset.day] = {
+                enabled: Boolean(row.querySelector('[data-schedule-field="enabled"]')?.checked),
+                start: row.querySelector('[data-schedule-field="start"]')?.value || '09:00',
+                end: row.querySelector('[data-schedule-field="end"]')?.value || '18:00'
+            };
+        });
+
+        return {
+            bookingStyle: document.querySelector('input[name="booking-style"]:checked')?.value || 'classic',
+            intervalMinutes: Number(document.getElementById('booking-interval')?.value || 60),
+            breakEnabled: Boolean(document.getElementById('booking-break-enabled')?.checked),
+            breakStart: document.getElementById('booking-break-start')?.value || '12:00',
+            breakEnd: document.getElementById('booking-break-end')?.value || '14:00',
+            allowCustomTime: Boolean(document.getElementById('booking-allow-custom-time')?.checked),
+            weeklySchedule
+        };
+    },
+
+    async saveBookingSettings() {
+        const button = document.getElementById('save-booking-settings-btn');
+        const feedback = document.getElementById('booking-settings-feedback');
+        const settings = this.collectBookingSettings();
+        const enabledDays = Object.values(settings.weeklySchedule).filter(day => day.enabled);
+        const hasInvalidDay = enabledDays.some(day => !day.start || !day.end || day.start >= day.end);
+        const hasInvalidBreak = settings.breakEnabled && (!settings.breakStart || !settings.breakEnd || settings.breakStart >= settings.breakEnd);
+
+        if (!enabledDays.length) {
+            if (feedback) {
+                feedback.className = 'settings-feedback is-error';
+                feedback.innerText = 'Ative pelo menos um dia de atendimento.';
+            }
+            return;
+        }
+        if (hasInvalidDay || hasInvalidBreak) {
+            if (feedback) {
+                feedback.className = 'settings-feedback is-error';
+                feedback.innerText = 'Confira os horários de abertura, fechamento e intervalo.';
+            }
+            return;
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.innerText = 'Salvando...';
+        }
+        if (feedback) {
+            feedback.className = 'settings-feedback';
+            feedback.innerText = 'Salvando configurações...';
+        }
+
+        try {
+            const response = await auth.apiRequest(`/api/business-settings/${auth.user.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(settings)
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível salvar as configurações.');
+            this.bookingSettings = data.settings || settings;
+            if (feedback) {
+                feedback.className = 'settings-feedback is-success';
+                feedback.innerText = 'Configurações salvas. O link público já está atualizado.';
+            }
+            auth.notify('Configurações da reserva atualizadas.', 'success');
+        } catch (err) {
+            console.error('Erro ao salvar configurações de agendamento:', err);
+            if (feedback) {
+                feedback.className = 'settings-feedback is-error';
+                feedback.innerText = err.message || 'Não foi possível salvar as configurações.';
+            }
+            auth.notify(err.message || 'Não foi possível salvar as configurações.', 'error');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerText = 'Salvar configurações';
+            }
+        }
     },
 
     // Services Management

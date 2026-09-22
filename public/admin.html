@@ -162,6 +162,14 @@
                     </svg>
                     <span class="nav-text">Serviços</span>
                 </div>
+                <div class="nav-item" data-permission="configuracoes" onclick="admin.showTab('configuracoes')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-1.42 1.42-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21h-2v-.08a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06-1.42-1.42.06-.06A1.65 1.65 0 0 0 9.6 15a1.65 1.65 0 0 0-1.51-1H8v-2h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06 1.42-1.42.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V6h2v.08a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06 1.42 1.42-.06.06A1.65 1.65 0 0 0 19.4 11c.14.6.69 1 1.31 1H21v2h-.29a1.65 1.65 0 0 0-1.31 1z"></path>
+                    </svg>
+                    <span class="nav-text">Configura&ccedil;&otilde;es</span>
+                </div>
                 <div class="nav-item admin-only hidden" onclick="admin.showTab('administracao')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -508,6 +516,107 @@
                 </div>
             </div>
 
+            <div id="tab-configuracoes" class="hidden">
+                <div class="settings-page-header">
+                    <div>
+                        <span class="settings-eyebrow">Reserva p&uacute;blica</span>
+                        <h2>Configura&ccedil;&otilde;es</h2>
+                        <p>Escolha o estilo da tela de agendamento e defina quando sua barbearia atende.</p>
+                    </div>
+                    <button class="btn btn-primary" id="save-booking-settings-btn" onclick="admin.saveBookingSettings()">Salvar configura&ccedil;&otilde;es</button>
+                </div>
+
+                <div class="settings-layout">
+                    <section class="glass settings-card">
+                        <div class="settings-card-heading">
+                            <div>
+                                <span class="settings-eyebrow">Apar&ecirc;ncia</span>
+                                <h3>Estilo da tela de agendamento</h3>
+                            </div>
+                            <span class="settings-card-icon">01</span>
+                        </div>
+                        <p class="settings-card-description">A escolha ser&aacute; aplicada no link p&uacute;blico compartilhado com seus clientes.</p>
+                        <div class="booking-style-grid" role="radiogroup" aria-label="Estilo da tela de agendamento">
+                            <label class="booking-style-option">
+                                <input type="radio" name="booking-style" value="classic">
+                                <span class="booking-style-preview booking-style-preview-classic"><i></i><b></b><em></em></span>
+                                <span class="booking-style-copy"><strong>Cl&aacute;ssico</strong><small>Visual BarberPoint</small></span>
+                            </label>
+                            <label class="booking-style-option">
+                                <input type="radio" name="booking-style" value="gold">
+                                <span class="booking-style-preview booking-style-preview-gold"><i></i><b></b><em></em></span>
+                                <span class="booking-style-copy"><strong>Dourado</strong><small>Mais destaque para a marca</small></span>
+                            </label>
+                            <label class="booking-style-option">
+                                <input type="radio" name="booking-style" value="minimal">
+                                <span class="booking-style-preview booking-style-preview-minimal"><i></i><b></b><em></em></span>
+                                <span class="booking-style-copy"><strong>Minimalista</strong><small>Limpo e discreto</small></span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="glass settings-card">
+                        <div class="settings-card-heading">
+                            <div>
+                                <span class="settings-eyebrow">Regras</span>
+                                <h3>Intervalos dos hor&aacute;rios</h3>
+                            </div>
+                            <span class="settings-card-icon">02</span>
+                        </div>
+                        <p class="settings-card-description">Os hor&aacute;rios s&atilde;o gerados de acordo com a abertura, fechamento e intervalo escolhidos.</p>
+                        <div class="settings-inline-fields">
+                            <div class="input-group-new">
+                                <label for="booking-interval">Intervalo entre atendimentos</label>
+                                <select id="booking-interval">
+                                    <option value="15">A cada 15 minutos</option>
+                                    <option value="30">A cada 30 minutos</option>
+                                    <option value="60">A cada 60 minutos</option>
+                                </select>
+                            </div>
+                            <label class="settings-check-row">
+                                <input type="checkbox" id="booking-break-enabled">
+                                <span><strong>Usar intervalo</strong><small>Ocultar os hor&aacute;rios de pausa da agenda.</small></span>
+                            </label>
+                        </div>
+                        <div class="settings-inline-fields settings-break-fields" id="booking-break-fields">
+                            <div class="input-group-new">
+                                <label for="booking-break-start">In&iacute;cio da pausa</label>
+                                <input type="time" id="booking-break-start">
+                            </div>
+                            <div class="input-group-new">
+                                <label for="booking-break-end">Fim da pausa</label>
+                                <input type="time" id="booking-break-end">
+                            </div>
+                        </div>
+                        <label class="settings-check-row settings-check-row-wide">
+                            <input type="checkbox" id="booking-allow-custom-time">
+                            <span><strong>Permitir “Outro hor&aacute;rio”</strong><small>Deixe o cliente informar um hor&aacute;rio fora da grade configurada.</small></span>
+                        </label>
+                    </section>
+                </div>
+
+                <section class="glass settings-card settings-schedule-card">
+                    <div class="settings-card-heading">
+                        <div>
+                            <span class="settings-eyebrow">Funcionamento</span>
+                            <h3>Hor&aacute;rios de atendimento</h3>
+                        </div>
+                        <span class="settings-card-icon">03</span>
+                    </div>
+                    <p class="settings-card-description">Ative os dias em que a barbearia atende e defina o hor&aacute;rio de cada dia.</p>
+                    <div class="booking-schedule-list" id="booking-schedule-list">
+                        <div class="booking-schedule-row" data-day="0"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>Domingo</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
+                        <div class="booking-schedule-row" data-day="1"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>Segunda-feira</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
+                        <div class="booking-schedule-row" data-day="2"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>Ter&ccedil;a-feira</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
+                        <div class="booking-schedule-row" data-day="3"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>Quarta-feira</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
+                        <div class="booking-schedule-row" data-day="4"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>Quinta-feira</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
+                        <div class="booking-schedule-row" data-day="5"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>Sexta-feira</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
+                        <div class="booking-schedule-row" data-day="6"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>S&aacute;bado</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
+                    </div>
+                    <p class="settings-feedback" id="booking-settings-feedback" aria-live="polite"></p>
+                </section>
+            </div>
+
             <div id="tab-administracao" class="hidden">
                 <div class="admin-panel-heading">
                     <div>
@@ -572,6 +681,7 @@
                                 <label class="permission-option"><input type="checkbox" value="barbeiros" checked><span><strong>Equipe</strong><small>Barbeiros e serviços</small></span></label>
                                 <label class="permission-option"><input type="checkbox" value="comissoes" checked><span><strong>Comissões</strong><small>Repasses da equipe</small></span></label>
                                 <label class="permission-option"><input type="checkbox" value="servicos" checked><span><strong>Serviços</strong><small>Catálogo e preços</small></span></label>
+                                <label class="permission-option"><input type="checkbox" value="configuracoes" checked><span><strong>Configurações</strong><small>Estilo e horários da reserva</small></span></label>
                             </div>
                         </div>
 

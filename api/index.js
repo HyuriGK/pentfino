@@ -8,8 +8,111 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'BarberPoint_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
 const DEFAULT_MONTHLY_GOAL = 0;
-const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos'];
+const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos', 'configuracoes'];
 const DEFAULT_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map(key => [key, true]));
+
+const BOOKING_TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+const BOOKING_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
+const createDefaultBookingSettings = () => ({
+    bookingStyle: 'classic',
+    intervalMinutes: 60,
+    breakEnabled: true,
+    breakStart: '12:00',
+    breakEnd: '14:00',
+    allowCustomTime: true,
+    weeklySchedule: Object.fromEntries(BOOKING_DAYS.map(day => [String(day), {
+        enabled: true,
+        start: '09:00',
+        end: '18:00'
+    }]))
+});
+
+const normalizeBookingSettings = (source = {}) => {
+    const defaults = createDefaultBookingSettings();
+    const rawSchedule = source.weeklySchedule && typeof source.weeklySchedule === 'object'
+        ? source.weeklySchedule
+        : {};
+    const validStyles = ['classic', 'gold', 'minimal'];
+    const interval = Number(source.intervalMinutes);
+    const breakStart = BOOKING_TIME_PATTERN.test(String(source.breakStart || ''))
+        ? String(source.breakStart)
+        : defaults.breakStart;
+    const breakEnd = BOOKING_TIME_PATTERN.test(String(source.breakEnd || ''))
+        ? String(source.breakEnd)
+        : defaults.breakEnd;
+
+    const weeklySchedule = Object.fromEntries(BOOKING_DAYS.map(day => {
+        const fallback = defaults.weeklySchedule[String(day)];
+        const config = rawSchedule[String(day)] || rawSchedule[day] || {};
+        const start = BOOKING_TIME_PATTERN.test(String(config.start || '')) ? String(config.start) : fallback.start;
+        const end = BOOKING_TIME_PATTERN.test(String(config.end || '')) ? String(config.end) : fallback.end;
+        return [String(day), {
+            enabled: config.enabled !== false,
+            start,
+            end
+        }];
+    }));
+
+    return {
+        bookingStyle: validStyles.includes(source.bookingStyle) ? source.bookingStyle : defaults.bookingStyle,
+        intervalMinutes: [15, 30, 60].includes(interval) ? interval : defaults.intervalMinutes,
+        breakEnabled: source.breakEnabled !== false,
+        breakStart,
+        breakEnd,
+        allowCustomTime: source.allowCustomTime !== false,
+        weeklySchedule
+    };
+};
+
+const timeToMinutes = value => {
+    const [hours, minutes] = String(value || '').split(':').map(Number);
+    return (hours * 60) + minutes;
+};
+
+const getAvailableBookingTimes = (settings, dateValue) => {
+    const normalized = normalizeBookingSettings(settings);
+    const parts = String(dateValue || '').slice(0, 10).split('-').map(Number);
+    if (parts.length !== 3 || parts.some(Number.isNaN)) return [];
+
+    const day = new Date(parts[0], parts[1] - 1, parts[2]).getDay();
+    const dayConfig = normalized.weeklySchedule[String(day)];
+    if (!dayConfig?.enabled) return [];
+
+    const start = timeToMinutes(dayConfig.start);
+    const end = timeToMinutes(dayConfig.end);
+    const breakStart = timeToMinutes(normalized.breakStart);
+    const breakEnd = timeToMinutes(normalized.breakEnd);
+    const times = [];
+
+    for (let minutes = start; minutes <= end; minutes += normalized.intervalMinutes) {
+        if (normalized.breakEnabled && breakStart < breakEnd && minutes >= breakStart && minutes < breakEnd) continue;
+        times.push(`${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`);
+    }
+
+    return times;
+};
+
+const readBookingSettingsRow = row => {
+    if (!row) return createDefaultBookingSettings();
+    let schedule = row.schedule;
+    if (typeof schedule === 'string') {
+        try { schedule = JSON.parse(schedule); } catch (_) { schedule = {}; }
+    }
+    return normalizeBookingSettings({
+        ...(schedule || {}),
+        bookingStyle: row.booking_style,
+        allowCustomTime: row.allow_custom_time
+    });
+};
+
+const fetchBookingSettings = async barberId => {
+    const result = await pool.query(
+        'SELECT booking_style, schedule, allow_custom_time FROM barber_settings WHERE barber_id = $1',
+        [barberId]
+    );
+    return readBookingSettingsRow(result.rows[0]);
+};
 
 const getUserRole = user => user.email === ADMIN_EMAIL && user.is_admin !== false ? 'administrador' : 'operador';
 const normalizePermissions = (permissions, isAdmin = false) => {
@@ -108,6 +211,15 @@ pool.on('connect', () => {
             UNIQUE (barber_id, goal_year, goal_month)
         )
     `).catch(e => console.error('Migration error (monthly_goals):', e));
+    pool.query(`
+        CREATE TABLE IF NOT EXISTS barber_settings (
+            barber_id INTEGER PRIMARY KEY REFERENCES barbers(id) ON DELETE CASCADE,
+            booking_style VARCHAR(30) NOT NULL DEFAULT 'classic',
+            schedule JSONB NOT NULL DEFAULT '{}'::jsonb,
+            allow_custom_time BOOLEAN NOT NULL DEFAULT TRUE,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `).catch(e => console.error('Migration error (barber_settings):', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -369,6 +481,78 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
     }
 });
 
+app.get('/api/business-settings/:barberId', authenticateToken, requireAnyPermission('configuracoes'), requireOwnBarber, async (req, res) => {
+    try {
+        const settings = await fetchBookingSettings(req.params.barberId);
+        res.json({ success: true, settings });
+    } catch (err) {
+        console.error('Erro ao carregar configurações da barbearia:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível carregar as configurações.' });
+    }
+});
+
+app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermission('configuracoes'), requireOwnBarber, async (req, res) => {
+    const { bookingStyle, intervalMinutes, breakEnabled, breakStart, breakEnd, allowCustomTime, weeklySchedule } = req.body || {};
+    const settings = normalizeBookingSettings({
+        bookingStyle,
+        intervalMinutes,
+        breakEnabled,
+        breakStart,
+        breakEnd,
+        allowCustomTime,
+        weeklySchedule
+    });
+
+    const invalidDay = Object.values(settings.weeklySchedule).some(day => (
+        day.enabled && timeToMinutes(day.start) >= timeToMinutes(day.end)
+    ));
+    const invalidBreak = settings.breakEnabled && timeToMinutes(settings.breakStart) >= timeToMinutes(settings.breakEnd);
+    if (invalidDay || invalidBreak) {
+        return res.status(400).json({ success: false, message: 'Confira os horários de abertura, fechamento e intervalo.' });
+    }
+
+    try {
+        const schedule = JSON.stringify({
+            intervalMinutes: settings.intervalMinutes,
+            breakEnabled: settings.breakEnabled,
+            breakStart: settings.breakStart,
+            breakEnd: settings.breakEnd,
+            weeklySchedule: settings.weeklySchedule
+        });
+        const result = await pool.query(`
+            INSERT INTO barber_settings (barber_id, booking_style, schedule, allow_custom_time, updated_at)
+            VALUES ($1, $2, $3::jsonb, $4, CURRENT_TIMESTAMP)
+            ON CONFLICT (barber_id) DO UPDATE SET
+                booking_style = EXCLUDED.booking_style,
+                schedule = EXCLUDED.schedule,
+                allow_custom_time = EXCLUDED.allow_custom_time,
+                updated_at = CURRENT_TIMESTAMP
+            RETURNING booking_style, schedule, allow_custom_time
+        `, [req.params.barberId, settings.bookingStyle, schedule, settings.allowCustomTime]);
+
+        res.json({ success: true, settings: readBookingSettingsRow(result.rows[0]) });
+    } catch (err) {
+        console.error('Erro ao salvar configurações da barbearia:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível salvar as configurações.' });
+    }
+});
+
+app.get('/api/public/settings/:barberId', async (req, res) => {
+    const barberId = Number.parseInt(req.params.barberId, 10);
+    if (!Number.isInteger(barberId) || barberId <= 0) {
+        return res.status(400).json({ success: false, message: 'Barbearia inválida.' });
+    }
+
+    try {
+        const settings = await fetchBookingSettings(barberId);
+        res.json({ success: true, settings });
+    } catch (err) {
+        console.error('Erro ao carregar configurações públicas:', err);
+        // Keep the public booking link usable while a new database is finishing its migration.
+        res.json({ success: true, settings: createDefaultBookingSettings() });
+    }
+});
+
 app.get('/api/appointments/:barberId', authenticateToken, requireAnyPermission('dashboard', 'agenda', 'billing', 'comissoes'), async (req, res) => {
     try {
         const { barberId } = req.params;
@@ -447,12 +631,28 @@ app.post('/api/appointments', async (req, res) => {
     try {
         // Use provided date or today if not provided
         const apptDate = date || new Date().toISOString().split('T')[0];
+        const normalizedTime = String(time || '').slice(0, 5);
+        if (!BOOKING_TIME_PATTERN.test(normalizedTime)) {
+            return res.status(400).json({ success: false, message: 'Informe um horário válido.' });
+        }
+
+        const bookingSettings = await fetchBookingSettings(barberId);
+        const dateParts = String(apptDate).slice(0, 10).split('-').map(Number);
+        const dateDay = dateParts.length === 3 && dateParts.every(Number.isInteger)
+            ? new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).getDay()
+            : null;
+        const daySettings = dateDay === null ? null : bookingSettings.weeklySchedule[String(dateDay)];
+        const configuredTimes = getAvailableBookingTimes(bookingSettings, apptDate);
+
+        if (!daySettings?.enabled || (!bookingSettings.allowCustomTime && !configuredTimes.includes(normalizedTime))) {
+            return res.status(400).json({ success: false, message: 'Este horário não está disponível para a barbearia.' });
+        }
 
         // 0. Check for collision
         const collision = await pool.query(`
             SELECT id FROM appointments 
             WHERE barber_id = $1 AND professional_id = $2 AND appointment_date = $3 AND appointment_time = $4 AND status != 'canceled'
-        `, [barberId, professionalId, apptDate, time]);
+        `, [barberId, professionalId, apptDate, normalizedTime]);
 
         if (collision.rows.length > 0) {
             return res.status(409).json({ success: false, message: 'Este horário já foi reservado para este barbeiro.' });
@@ -461,7 +661,7 @@ app.post('/api/appointments', async (req, res) => {
         // 1. Insert the appointment
         const result = await pool.query(
             'INSERT INTO appointments (barber_id, service_id, professional_id, client_name, client_phone, appointment_time, appointment_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-            [barberId, serviceId, professionalId, clientName, clientPhone, time, apptDate]
+            [barberId, serviceId, professionalId, clientName, clientPhone, normalizedTime, apptDate]
         );
 
         // 2. Sync with CRM (clients table) - Always ensure client exists for this Name + Phone combo
