@@ -6013,6 +6013,10 @@ button.btn > svg {
     height: 52px;
 }
 
+.admin-light .sidebar .logo {
+    gap: 20px;
+}
+
 .admin-light .sidebar .logo-text {
     font-size: 1.3rem;
     line-height: 1.15;
