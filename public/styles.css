@@ -8916,3 +8916,38 @@ textarea:focus-visible,
     overflow-wrap: anywhere;
 }
 
+/* Client history: keep the six fields visually separated and centered. */
+.admin-light #modal-client-details .client-history-table {
+    table-layout: fixed;
+}
+
+.admin-light #modal-client-details .client-history-table th,
+.admin-light #modal-client-details .client-history-table td {
+    text-align: center !important;
+    vertical-align: middle;
+    border-right: 1px solid rgba(59, 74, 85, 0.72);
+}
+
+.admin-light #modal-client-details .client-history-table th:last-child,
+.admin-light #modal-client-details .client-history-table td:last-child {
+    border-right: 0;
+}
+
+.admin-light #modal-client-details .client-history-table th:nth-child(1),
+.admin-light #modal-client-details .client-history-table td:nth-child(1) { width: 18%; }
+
+.admin-light #modal-client-details .client-history-table th:nth-child(2),
+.admin-light #modal-client-details .client-history-table td:nth-child(2) { width: 20%; }
+
+.admin-light #modal-client-details .client-history-table th:nth-child(3),
+.admin-light #modal-client-details .client-history-table td:nth-child(3) { width: 18%; }
+
+.admin-light #modal-client-details .client-history-table th:nth-child(4),
+.admin-light #modal-client-details .client-history-table td:nth-child(4) { width: 14%; }
+
+.admin-light #modal-client-details .client-history-table th:nth-child(5),
+.admin-light #modal-client-details .client-history-table td:nth-child(5) { width: 16%; }
+
+.admin-light #modal-client-details .client-history-table th:nth-child(6),
+.admin-light #modal-client-details .client-history-table td:nth-child(6) { width: 14%; }
+
