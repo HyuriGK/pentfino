@@ -8681,3 +8681,66 @@ textarea:focus-visible,
     }
 }
 
+/* Commission report: show the same barber photo used throughout the admin area. */
+.admin-light #modal-prof-comm-details .professional-detail-avatar {
+    overflow: hidden;
+}
+
+.admin-light #modal-prof-comm-details .professional-detail-avatar.has-photo {
+    background: #0b141b;
+}
+
+.admin-light #modal-prof-comm-details .professional-detail-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-light .commission-professional-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.admin-light .commission-professional-avatar {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(255, 214, 0, 0.5);
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(255, 214, 0, 0.2), rgba(255, 214, 0, 0.04));
+    color: var(--primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.admin-light .commission-professional-avatar.has-photo {
+    background: #0b141b;
+}
+
+.admin-light .commission-professional-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@media (max-width: 680px) {
+    .admin-light #modal-prof-comm-details .professional-detail-identity {
+        gap: 12px;
+    }
+
+    .admin-light #modal-prof-comm-details .professional-detail-avatar {
+        flex-basis: 52px;
+        width: 52px;
+        height: 52px;
+    }
+}
+

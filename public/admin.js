@@ -712,6 +712,14 @@ const admin = {
             return {
                 id: p.id,
                 name: p.name,
+                initials: p.name.split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(namePart => namePart[0])
+                    .join('')
+                    .toUpperCase() || 'BR',
+                photoUrl: p.photo_url ? this.escapeHtml(p.photo_url) : '',
+                photoAlt: this.escapeHtml(`Foto de ${p.name}`),
                 rate: p.commission || 0,
                 generated: totalGenerated,
                 shopShare: totalShopShare,
@@ -732,7 +740,16 @@ const admin = {
 
         container.innerHTML = commData.map(c => `
             <tr onclick="admin.showProfCommDetails(${c.id})" style="cursor: pointer;">
-                <td><strong style="color:var(--primary); text-decoration: underline;">${c.name}</strong></td>
+                <td>
+                    <div class="commission-professional-cell">
+                        <span class="commission-professional-avatar${c.photoUrl ? ' has-photo' : ''}">
+                            ${c.photoUrl
+                                ? `<img src="${c.photoUrl}" alt="${c.photoAlt}">`
+                                : this.escapeHtml(c.initials)}
+                        </span>
+                        <strong style="color:var(--primary); text-decoration: underline;">${this.escapeHtml(c.name)}</strong>
+                    </div>
+                </td>
                 <td><span class="svc-tag" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">${c.rate}%</span></td>
                 <td style="font-weight: 600;">R$ ${c.generated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--danger); font-weight: 600;">R$ ${c.shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -794,13 +811,24 @@ const admin = {
 
         // Fill modal
         document.getElementById('prof-details-name').innerText = prof.name;
-        document.getElementById('prof-details-initials').innerText = prof.name
+        const detailAvatar = document.getElementById('prof-details-initials');
+        const initials = prof.name
             .split(/\s+/)
             .filter(Boolean)
             .slice(0, 2)
             .map(namePart => namePart[0])
             .join('')
             .toUpperCase() || 'BR';
+        detailAvatar?.classList.toggle('has-photo', Boolean(prof.photo_url));
+        detailAvatar?.replaceChildren();
+        if (detailAvatar && prof.photo_url) {
+            const image = document.createElement('img');
+            image.src = prof.photo_url;
+            image.alt = `Foto de ${prof.name}`;
+            detailAvatar.appendChild(image);
+        } else if (detailAvatar) {
+            detailAvatar.innerText = initials;
+        }
         document.getElementById('prof-details-month').innerText = `${monthNames[this.selectedCommMonth]} ${currentYear}`;
         document.getElementById('prof-details-total-gen').innerText = `R$ ${totalGen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         document.getElementById('prof-details-shop-share').innerText = `R$ ${totalShopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
