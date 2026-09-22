@@ -3706,6 +3706,7 @@ const agenda = {
     showAppointmentDetails(event) {
         const name = event.title;
         const service = event.extendedProps.service;
+        const professional = event.extendedProps.professional || 'Geral';
         const duration = event.extendedProps.duration;
         const status = event.extendedProps.status;
         const timeOptions = { hour: '2-digit', minute: '2-digit' };
@@ -3714,6 +3715,7 @@ const agenda = {
         const endTime = end.toLocaleTimeString('pt-BR', timeOptions);
 
         document.getElementById('view-app-name').innerText = name;
+        document.getElementById('view-app-professional').innerText = professional;
         document.getElementById('view-app-service').innerText = `${service} · ${this.formatDuration(duration)}`;
         document.getElementById('view-app-time').innerText = time;
         document.getElementById('view-app-end-time').innerText = endTime;
@@ -3849,6 +3851,7 @@ const agenda = {
                 classNames: [`event-${a.status}`],
                 extendedProps: {
                     service: a.service_name,
+                    professional: a.professional_name || 'Geral',
                     status: a.status,
                     duration: a.service_duration,
                     appointment: {
