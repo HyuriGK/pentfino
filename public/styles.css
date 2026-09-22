@@ -957,6 +957,10 @@ html.session-restore-pending #auth-view {
     text-decoration: none !important;
 }
 
+.action-btns .btn-confirm-appointment.is-confirmed {
+    text-decoration: line-through !important;
+}
+
 .action-btns .btn-confirm-appointment:hover {
     background: #15803d;
     border-color: #15803d;

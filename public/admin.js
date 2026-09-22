@@ -268,6 +268,7 @@ const admin = {
     appointmentPollingTimer: null,
     appointmentsInitialized: false,
     knownPendingAppointmentIds: new Set(),
+    confirmedAppointmentIds: new Set(),
     appointmentAlertAudioContext: null,
     professionalPhotoCrop: {
         image: null,
@@ -980,7 +981,7 @@ const admin = {
                     </div>
                 </div>
                 <div class="action-btns">
-                    <button type="button" class="btn btn-confirm-appointment" onclick="admin.confirmAppointmentWhatsApp(${a.id})">Confirmar</button>
+                    <button type="button" class="btn btn-confirm-appointment${this.confirmedAppointmentIds.has(String(a.id)) ? ' is-confirmed' : ''}" onclick="admin.confirmAppointmentWhatsApp(${a.id})">Confirmar</button>
                     <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
                     <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
                 </div>
@@ -1020,6 +1021,9 @@ const admin = {
 
         const newWindow = window.open(`https://wa.me/${phoneWithCountryCode}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
         if (newWindow) newWindow.opener = null;
+
+        this.confirmedAppointmentIds.add(String(appointmentId));
+        this.renderAppointments();
     },
 
     confirmCompleteService(id, clientName) {
