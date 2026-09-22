@@ -8986,3 +8986,15 @@ textarea:focus-visible,
 .admin-light #modal-prof-comm-details .professional-history-table th:nth-child(6),
 .admin-light #modal-prof-comm-details .professional-history-table td:nth-child(6) { width: 14%; }
 
+/* Sidebar active state: use the gold tone from the BarberPoint logo. */
+.admin-light .nav-item.active {
+    color: #111a22;
+    background: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 8px 20px rgba(255, 214, 0, 0.2);
+}
+
+.admin-light .nav-item.active svg {
+    color: #111a22;
+}
+
