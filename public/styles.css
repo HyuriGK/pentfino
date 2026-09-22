@@ -9053,6 +9053,44 @@ textarea:focus-visible,
     text-transform: uppercase;
 }
 
+/* Sales history: separate each field and center the row content. */
+.admin-light #tab-vendas .data-table {
+    table-layout: fixed;
+}
+
+.admin-light #tab-vendas .data-table th,
+.admin-light #tab-vendas .data-table td {
+    text-align: center !important;
+    vertical-align: middle;
+    border-right: 1px solid rgba(59, 74, 85, 0.72);
+}
+
+.admin-light #tab-vendas .data-table th:last-child,
+.admin-light #tab-vendas .data-table td:last-child {
+    border-right: 0;
+}
+
+.admin-light #tab-vendas .data-table th:nth-child(1),
+.admin-light #tab-vendas .data-table td:nth-child(1) { width: 14%; }
+
+.admin-light #tab-vendas .data-table th:nth-child(2),
+.admin-light #tab-vendas .data-table td:nth-child(2) { width: 14%; }
+
+.admin-light #tab-vendas .data-table th:nth-child(3),
+.admin-light #tab-vendas .data-table td:nth-child(3) { width: 25%; }
+
+.admin-light #tab-vendas .data-table th:nth-child(4),
+.admin-light #tab-vendas .data-table td:nth-child(4) { width: 10%; }
+
+.admin-light #tab-vendas .data-table th:nth-child(5),
+.admin-light #tab-vendas .data-table td:nth-child(5) { width: 16%; }
+
+.admin-light #tab-vendas .data-table th:nth-child(6),
+.admin-light #tab-vendas .data-table td:nth-child(6) { width: 13%; }
+
+.admin-light #tab-vendas .data-table th:nth-child(7),
+.admin-light #tab-vendas .data-table td:nth-child(7) { width: 8%; }
+
 /* Sidebar active state: use the gold tone from the BarberPoint logo. */
 .admin-light .nav-item.active {
     color: #111a22;
