@@ -8744,3 +8744,26 @@ textarea:focus-visible,
     }
 }
 
+/* Manual booking time: keep the confirmed value centered inside the picker on mobile. */
+.booking-body .custom-time-picker {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.booking-body .custom-time-picker label,
+.booking-body .custom-time-picker input {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.booking-body .custom-time-picker input {
+    display: block;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    text-align: center;
+}
+
