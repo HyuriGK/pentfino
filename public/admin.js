@@ -267,6 +267,7 @@ const admin = {
     monthlyGoal: 0,
     monthlyGoalDefined: false,
     activeAdminPanel: 'overview',
+    financialValuesVisible: true,
     currentTab: 'home',
     navigationTimer: null,
     navigationRequestId: 0,
@@ -318,6 +319,7 @@ const admin = {
         this.setupProfessionalPhotoPicker();
         this.setupServicePhotoPicker();
         this.setupInventoryPhotoPicker();
+        this.loadFinancialVisibility();
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
         const initialLoads = [];
         if (['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) initialLoads.push(this.loadData());
@@ -341,6 +343,44 @@ const admin = {
         this.setupAppointmentAlertSound();
         this.startAppointmentPolling();
 
+    },
+
+    financialVisibilityStorageKey() {
+        const userKey = auth.user?.id || auth.user?.email || 'guest';
+        return `barberpoint_financial_visibility_${String(userKey).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    },
+
+    loadFinancialVisibility() {
+        const storedValue = authStorage.read(this.financialVisibilityStorageKey());
+        this.financialValuesVisible = storedValue !== 'hidden';
+        this.applyFinancialVisibility();
+    },
+
+    toggleFinancialVisibility() {
+        this.financialValuesVisible = !this.financialValuesVisible;
+        authStorage.write(this.financialVisibilityStorageKey(), this.financialValuesVisible ? 'visible' : 'hidden');
+        this.applyFinancialVisibility();
+    },
+
+    applyFinancialVisibility() {
+        const isVisible = this.financialValuesVisible;
+        document.querySelectorAll('[data-financial-value]').forEach(element => {
+            const visibleValue = element.dataset.visibleValue ?? element.textContent;
+            element.dataset.visibleValue = visibleValue;
+            element.textContent = isVisible ? visibleValue : '-----';
+        });
+        document.querySelectorAll('[data-financial-toggle]').forEach(card => {
+            card.classList.toggle('is-values-hidden', !isVisible);
+            card.setAttribute('aria-pressed', String(!isVisible));
+            card.setAttribute('title', isVisible ? 'Clique para ocultar os valores' : 'Clique para mostrar os valores');
+        });
+    },
+
+    setFinancialValue(id, value) {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.dataset.visibleValue = value;
+        element.textContent = this.financialValuesVisible ? value : '-----';
     },
 
     setupAppointmentAlertSound() {
@@ -1305,10 +1345,10 @@ const admin = {
         const monthlyExpenses = parseFloat(stats.monthlyExpenses || 0);
         const dailyExpenses = parseFloat(stats.dailyExpenses || 0);
 
-        document.getElementById('stat-revenue').innerText = formatMoney(monthlyRevenue);
-        document.getElementById('stat-revenue-today').innerText = `+ ${formatMoney(dailyRevenue)} hoje`;
-        document.getElementById('stat-expense').innerText = formatMoney(monthlyExpenses);
-        document.getElementById('stat-expense-today').innerText = `- ${formatMoney(dailyExpenses)} hoje`;
+        this.setFinancialValue('stat-revenue', formatMoney(monthlyRevenue));
+        this.setFinancialValue('stat-revenue-today', `+ ${formatMoney(dailyRevenue)} hoje`);
+        this.setFinancialValue('stat-expense', formatMoney(monthlyExpenses));
+        this.setFinancialValue('stat-expense-today', `- ${formatMoney(dailyExpenses)} hoje`);
         document.getElementById('stat-count').innerText = stats.count || 0;
         document.getElementById('stat-scheduled-count').innerText = this.pending.length;
     },

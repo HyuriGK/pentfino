@@ -236,15 +236,15 @@
 
             <div id="tab-home">
                 <div class="stat-grid">
-                    <div class="stat-card glass" style="border-left: 1px solid var(--border-bright);">
+                    <div class="stat-card glass dashboard-financial-toggle" data-financial-toggle role="button" tabindex="0" aria-pressed="false" title="Clique para ocultar os valores" onclick="admin.toggleFinancialVisibility()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); admin.toggleFinancialVisibility(); }" style="border-left: 1px solid var(--border-bright);">
                         <div class="stat-label">Receita Mensal</div>
-                        <div class="stat-value" id="stat-revenue" style="color: var(--success);">R$ 0,00</div>
-                        <div class="dashboard-stat-caption dashboard-stat-caption-positive" id="stat-revenue-today">+ R$ 0,00 hoje</div>
+                        <div class="stat-value" id="stat-revenue" data-financial-value style="color: var(--success);">R$ 0,00</div>
+                        <div class="dashboard-stat-caption dashboard-stat-caption-positive" id="stat-revenue-today" data-financial-value>+ R$ 0,00 hoje</div>
                     </div>
-                    <div class="stat-card glass dashboard-expense-card">
+                    <div class="stat-card glass dashboard-financial-toggle dashboard-expense-card" data-financial-toggle role="button" tabindex="0" aria-pressed="false" title="Clique para ocultar os valores" onclick="admin.toggleFinancialVisibility()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); admin.toggleFinancialVisibility(); }">
                         <div class="stat-label">Despesa Mensal</div>
-                        <div class="stat-value" id="stat-expense" style="color: var(--danger);">R$ 0,00</div>
-                        <div class="dashboard-stat-caption dashboard-stat-caption-negative" id="stat-expense-today">- R$ 0,00 hoje</div>
+                        <div class="stat-value" id="stat-expense" data-financial-value style="color: var(--danger);">R$ 0,00</div>
+                        <div class="dashboard-stat-caption dashboard-stat-caption-negative" id="stat-expense-today" data-financial-value>- R$ 0,00 hoje</div>
                     </div>
                     <div class="stat-card glass">
                         <div class="stat-label">Concluídos</div>

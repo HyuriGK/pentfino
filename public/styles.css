@@ -995,6 +995,27 @@ html.session-restore-pending #auth-view {
     color: var(--danger);
 }
 
+.dashboard-financial-toggle {
+    cursor: pointer;
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.dashboard-financial-toggle:hover,
+.dashboard-financial-toggle:focus-visible {
+    border-color: rgba(255, 214, 0, 0.55);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.16);
+    transform: translateY(-2px);
+}
+
+.dashboard-financial-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+.dashboard-financial-toggle.is-values-hidden .stat-value {
+    letter-spacing: 0.08em;
+}
+
 .dashboard-expense-card {
     border-left: 1px solid rgba(239, 68, 68, 0.42);
 }
