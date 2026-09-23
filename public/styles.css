@@ -6471,6 +6471,7 @@ button.btn > svg {
     width: 44px;
     height: 44px;
     object-fit: contain;
+    transform: scale(1.42);
 }
 
 .landing-body .logo-landing .logo-text {
@@ -6955,8 +6956,9 @@ button.btn > svg {
     }
 
     .landing-body .landing-brand-mark {
-        width: 28px;
-        height: 28px;
+        width: 36px;
+        height: 36px;
+        transform: scale(1.35);
     }
 
     .landing-body .landing-nav {
