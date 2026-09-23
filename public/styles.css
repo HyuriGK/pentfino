@@ -6236,7 +6236,7 @@ button.btn > svg {
 }
 
 .admin-light .sidebar .logo {
-    gap: 6px;
+    gap: 0;
 }
 
 .admin-light .sidebar .logo-text {
