@@ -9811,7 +9811,14 @@ textarea:focus-visible,
 .expense-modal-content {
     width: min(100%, 720px);
     max-width: 720px;
-    padding: 30px 34px 28px;
+    padding: 34px 40px 30px;
+}
+
+.admin-light .expense-modal-content {
+    width: min(100%, 720px);
+    max-width: 720px;
+    padding: 34px 40px 30px;
+    border-radius: 16px;
 }
 
 .expense-modal-header {
@@ -9836,11 +9843,24 @@ textarea:focus-visible,
 .expense-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    column-gap: 20px;
+    row-gap: 20px;
 }
 
 .expense-form-wide {
     grid-column: 1 / -1;
+}
+
+.expense-modal-content .expense-form-wide {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+}
+
+.expense-modal-content .expense-form-wide input,
+.expense-modal-content .expense-form-wide textarea {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .expense-form-grid .input-group-new {
@@ -9854,7 +9874,7 @@ textarea:focus-visible,
 }
 
 .expense-form-grid textarea {
-    min-height: 86px;
+    min-height: 96px;
     resize: vertical;
 }
 
@@ -9862,7 +9882,9 @@ textarea:focus-visible,
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    margin-top: 26px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
 }
 
 @media (max-width: 700px) {
