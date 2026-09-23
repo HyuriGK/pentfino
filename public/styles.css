@@ -6363,13 +6363,13 @@ button.btn > svg {
 
 .admin-light .sidebar-nav-scroll nav .nav-group-chevron {
     display: grid;
-    width: 26px;
-    height: 26px;
-    flex: 0 0 26px;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
     place-items: center;
-    border: 1px solid rgba(129, 144, 155, 0.42);
-    border-radius: 8px;
-    background: rgba(5, 12, 17, 0.35);
+    border: 1px solid rgba(129, 144, 155, 0.5);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.035);
     color: #a8b4bc;
     font-size: 0;
     line-height: 0;
@@ -6378,10 +6378,10 @@ button.btn > svg {
 
 .admin-light .sidebar-nav-scroll nav .nav-group-chevron::before {
     content: "";
-    width: 7px;
-    height: 7px;
-    border-right: 1.8px solid currentColor;
-    border-bottom: 1.8px solid currentColor;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
     transform: rotate(45deg) translate(-1px, -1px);
     transition: transform 160ms ease;
 }
@@ -6398,12 +6398,12 @@ button.btn > svg {
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-chevron {
     background: rgba(255, 214, 0, 0.1);
-    border-color: rgba(255, 214, 0, 0.36);
+    border-color: rgba(255, 214, 0, 0.48);
     color: var(--primary);
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron {
-    background: rgba(17, 26, 34, 0.5);
+    background: rgba(17, 26, 34, 0.72);
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron::before {
