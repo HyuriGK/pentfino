@@ -10313,15 +10313,6 @@ textarea:focus-visible,
     object-fit: contain;
 }
 
-.navigation-loader-eyebrow {
-    margin-bottom: 8px;
-    color: #d9b900;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.24em;
-}
-
 @keyframes navigationLoaderSpin {
     to { transform: rotate(360deg); }
 }
