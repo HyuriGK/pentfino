@@ -846,26 +846,40 @@ html.session-restore-pending #auth-view {
 }
 
 .logo-large {
-    font-size: 2.5rem;
-    margin-bottom: 4rem;
+    font-size: 2.25rem;
+    margin-bottom: 3.5rem;
     letter-spacing: -2px;
+}
+
+.auth-visual-copy {
+    max-width: 500px;
+}
+
+.auth-eyebrow {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
 }
 
 .auth-hero-text {
     font-family: 'Outfit', sans-serif;
-    font-size: 4rem;
-    line-height: 0.95;
-    letter-spacing: -3px;
-    margin-bottom: 1.5rem;
+    font-size: clamp(2.8rem, 4.5vw, 3.8rem);
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-bottom: 1rem;
     color: #fff;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .auth-subtext {
-    font-size: 1.25rem;
+    font-size: 1.05rem;
     color: var(--text-muted);
-    max-width: 450px;
-    line-height: 1.5;
+    max-width: 360px;
+    line-height: 1.6;
 }
 
 .auth-form-side {
@@ -4382,16 +4396,7 @@ aside nav {
 }
 
 .admin-light .auth-visual-side::after {
-    content: "BARBERPOINT";
-    position: absolute;
-    right: -26px;
-    bottom: 5%;
-    color: rgba(255, 214, 0, 0.045);
-    font-family: 'Outfit', sans-serif;
-    font-size: clamp(5rem, 11vw, 10rem);
-    font-weight: 800;
-    line-height: 0.8;
-    writing-mode: vertical-rl;
+    content: none;
 }
 
 .admin-light .auth-visual-overlay {
@@ -4405,11 +4410,11 @@ aside nav {
 }
 
 .admin-light .auth-card-new {
-    padding: 34px;
+    padding: clamp(28px, 3vw, 40px);
     background: #101920;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
 }
 
 .admin-light .auth-hero-text,
@@ -4425,13 +4430,20 @@ aside nav {
 }
 
 .admin-light .auth-hero-text {
-    max-width: 650px;
-    font-weight: 600;
+    max-width: 500px;
+    font-weight: 700;
 }
 
 .admin-light .auth-hero-text::after {
-    content: " Mais controle. Mais crescimento.";
-    color: var(--primary);
+    content: none;
+}
+
+.admin-light .auth-eyebrow {
+    color: #facc15;
+}
+
+.admin-light .auth-subtext {
+    color: #a6b4c2;
 }
 
 .admin-light .badge {
