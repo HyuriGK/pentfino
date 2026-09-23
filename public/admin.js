@@ -192,6 +192,7 @@ const auth = {
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('admin-view').classList.remove('hidden');
         this.applyDashboardAccess();
+        if (typeof ui !== 'undefined') ui.initNavGroups();
         admin.init();
     },
 
@@ -4502,6 +4503,43 @@ const sessionManager = {
 };
 
 const ui = {
+    navGroupStorageKey() {
+        const userKey = auth.user?.id || auth.user?.email || 'guest';
+        return `barberpoint_sidebar_groups_${String(userKey).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    },
+
+    setNavGroupState(group, isExpanded, heading, persist = true) {
+        const title = heading || document.querySelector(`.nav-group-title[data-group="${group}"]`);
+        if (!title) return;
+
+        title.setAttribute('aria-expanded', String(isExpanded));
+        title.classList.toggle('is-collapsed', !isExpanded);
+        document.querySelectorAll(`[data-sidebar-group="${group}"]`).forEach(item => {
+            item.classList.toggle('nav-group-item-collapsed', !isExpanded);
+        });
+
+        if (persist) {
+            let saved = {};
+            try { saved = JSON.parse(authStorage.read(this.navGroupStorageKey()) || '{}'); } catch (_) { /* Ignore invalid state. */ }
+            saved[group] = isExpanded;
+            authStorage.write(this.navGroupStorageKey(), JSON.stringify(saved));
+        }
+    },
+
+    toggleNavGroup(group, heading) {
+        const isExpanded = heading?.getAttribute('aria-expanded') !== 'false';
+        this.setNavGroupState(group, !isExpanded, heading);
+    },
+
+    initNavGroups() {
+        let saved = {};
+        try { saved = JSON.parse(authStorage.read(this.navGroupStorageKey()) || '{}'); } catch (_) { /* Use defaults. */ }
+        document.querySelectorAll('.nav-group-title[data-group]').forEach(heading => {
+            const group = heading.dataset.group;
+            this.setNavGroupState(group, saved[group] !== false, heading, false);
+        });
+    },
+
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         if (window.innerWidth <= 1024) {
@@ -4521,6 +4559,7 @@ const ui = {
         if (isCollapsed) {
             document.getElementById('sidebar').classList.add('collapsed');
         }
+        this.initNavGroups();
     }
 };
 

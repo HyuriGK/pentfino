@@ -6312,15 +6312,41 @@ button.btn > svg {
 .admin-light .sidebar-nav-scroll nav .nav-group-title {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    width: 100%;
     min-height: 28px;
     padding: 12px 12px 4px;
+    border: 0;
+    background: transparent;
     color: #687783;
+    cursor: pointer;
     font-size: 0.62rem;
     font-weight: 800;
     letter-spacing: 0.14em;
     line-height: 1;
     text-transform: uppercase;
-    pointer-events: none;
+    text-align: left;
+    transition: color 160ms ease;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title:hover,
+.admin-light .sidebar-nav-scroll nav .nav-group-title:focus-visible {
+    color: var(--text-main);
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-chevron {
+    color: #81909b;
+    font-size: 0.95rem;
+    line-height: 0.7;
+    transition: transform 160ms ease;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron {
+    transform: rotate(-90deg);
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-item-collapsed {
+    display: none !important;
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[data-group="overview"] {

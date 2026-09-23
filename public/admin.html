@@ -89,10 +89,18 @@
             </div>
             <div class="sidebar-nav-scroll">
             <nav>
-                <div class="nav-group-title" data-group="overview"><span class="nav-text">Vis&atilde;o geral</span></div>
-                <div class="nav-group-title" data-group="finance"><span class="nav-text">Financeiro</span></div>
-                <div class="nav-group-title" data-group="management"><span class="nav-text">Gest&atilde;o</span></div>
-                <div class="nav-group-title" data-group="system"><span class="nav-text">Sistema</span></div>
+                <button type="button" class="nav-group-title" data-group="overview" aria-expanded="true" onclick="ui.toggleNavGroup('overview', this)">
+                    <span class="nav-text">Vis&atilde;o geral</span><span class="nav-group-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <button type="button" class="nav-group-title" data-group="finance" aria-expanded="true" onclick="ui.toggleNavGroup('finance', this)">
+                    <span class="nav-text">Financeiro</span><span class="nav-group-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <button type="button" class="nav-group-title" data-group="management" aria-expanded="true" onclick="ui.toggleNavGroup('management', this)">
+                    <span class="nav-text">Gest&atilde;o</span><span class="nav-group-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <button type="button" class="nav-group-title" data-group="system" aria-expanded="true" onclick="ui.toggleNavGroup('system', this)">
+                    <span class="nav-text">Sistema</span><span class="nav-group-chevron" aria-hidden="true">⌄</span>
+                </button>
 
                 <div class="nav-item active" data-sidebar-group="overview" data-permission="dashboard" onclick="admin.showTab('home')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
