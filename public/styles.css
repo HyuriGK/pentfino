@@ -7342,6 +7342,14 @@ button.btn > svg {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+
+    .navigation-loader-mark::before {
+        animation: navigationLoaderSpin 0.82s linear infinite !important;
+    }
+
+    .navigation-loader-mark::after {
+        animation: navigationLoaderSpinReverse 1.3s linear infinite !important;
+    }
 }
 
 /* Agenda workspace */
@@ -10268,38 +10276,38 @@ textarea:focus-visible,
     position: relative;
     display: grid;
     place-items: center;
-    width: 70px;
-    height: 70px;
-    margin-bottom: 22px;
+    width: 88px;
+    height: 88px;
+    margin-bottom: 27px;
     border-radius: 50%;
     background: transparent;
 }
 
 .navigation-loader-mark::before {
     position: absolute;
-    inset: -3px;
-    border: 1.5px solid transparent;
+    inset: -5px;
+    border: 2px solid transparent;
     border-top-color: #ffd600;
-    border-right-color: rgba(255, 214, 0, 0.62);
+    border-right-color: rgba(255, 214, 0, 0.68);
     border-radius: 50%;
-    animation: navigationLoaderSpin 0.9s linear infinite;
+    animation: navigationLoaderSpin 0.82s linear infinite;
     content: "";
 }
 
 .navigation-loader-mark::after {
     position: absolute;
-    inset: -10px;
-    border: 1px solid transparent;
-    border-bottom-color: rgba(121, 137, 145, 0.72);
-    border-left-color: rgba(121, 137, 145, 0.24);
+    inset: -14px;
+    border: 1.5px solid transparent;
+    border-bottom-color: rgba(121, 137, 145, 0.84);
+    border-left-color: rgba(121, 137, 145, 0.35);
     border-radius: 50%;
-    animation: navigationLoaderSpinReverse 1.45s linear infinite;
+    animation: navigationLoaderSpinReverse 1.3s linear infinite;
     content: "";
 }
 
 .navigation-loader-mark img {
-    width: 40px;
-    height: 40px;
+    width: 54px;
+    height: 54px;
     object-fit: contain;
 }
 
