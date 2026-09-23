@@ -10278,16 +10278,16 @@ textarea:focus-visible,
     position: relative;
     display: grid;
     place-items: center;
-    width: 88px;
-    height: 88px;
-    margin-bottom: 27px;
+    width: 108px;
+    height: 108px;
+    margin-bottom: 32px;
     border-radius: 50%;
     background: transparent;
 }
 
 .navigation-loader-mark::before {
     position: absolute;
-    inset: -5px;
+    inset: -6px;
     border: 2px solid transparent;
     border-top-color: #ffd600;
     border-right-color: rgba(255, 214, 0, 0.68);
@@ -10298,7 +10298,7 @@ textarea:focus-visible,
 
 .navigation-loader-mark::after {
     position: absolute;
-    inset: -14px;
+    inset: -16px;
     border: 1.5px solid transparent;
     border-bottom-color: rgba(121, 137, 145, 0.84);
     border-left-color: rgba(121, 137, 145, 0.35);
@@ -10308,8 +10308,8 @@ textarea:focus-visible,
 }
 
 .navigation-loader-mark img {
-    width: 54px;
-    height: 54px;
+    width: 72px;
+    height: 72px;
     object-fit: contain;
 }
 
