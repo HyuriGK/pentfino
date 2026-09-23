@@ -6236,15 +6236,15 @@ button.btn > svg {
 }
 
 .admin-light .sidebar .logo {
-    gap: 8px;
+    gap: 6px;
 }
 
 .admin-light .sidebar .logo-text {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.32rem;
+    font-size: 1.42rem;
     font-weight: 800;
     line-height: 1;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.01em;
     text-transform: uppercase;
     transform: none;
 }
