@@ -203,6 +203,12 @@ const auth = {
         document.querySelectorAll('[data-permission]').forEach(el => {
             el.classList.toggle('hidden', !this.can(el.dataset.permission));
         });
+        document.querySelectorAll('.nav-group-title[data-group]').forEach(title => {
+            const group = title.dataset.group;
+            const hasVisibleItem = [...document.querySelectorAll(`[data-sidebar-group="${group}"]`)]
+                .some(item => !item.classList.contains('hidden'));
+            title.classList.toggle('hidden', !hasVisibleItem);
+        });
     },
 
     can(permission) {

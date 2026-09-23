@@ -6308,6 +6308,58 @@ button.btn > svg {
     isolation: isolate;
 }
 
+.admin-light .sidebar-nav-scroll nav .nav-group-title {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 12px 12px 4px;
+    color: #687783;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[data-group="overview"] {
+    order: 1;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[data-group="finance"] {
+    order: 10;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[data-group="management"] {
+    order: 20;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[data-group="system"] {
+    order: 30;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-item[data-sidebar-group="overview"] {
+    order: 2;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-item[data-sidebar-group="finance"] {
+    order: 11;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-item[data-sidebar-group="management"] {
+    order: 21;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-item[data-sidebar-group="system"] {
+    order: 31;
+}
+
+@media (min-width: 1025px) {
+    .admin-light .sidebar.collapsed .nav-group-title {
+        display: none;
+    }
+}
+
 .admin-light .dashboard-title,
 .admin-light .list-header h2,
 .admin-light .queue-header h2,
