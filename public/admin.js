@@ -264,6 +264,8 @@ const admin = {
     selectedBillingYear: new Date().getFullYear(),
     selectedBillingType: 'all',
     selectedExpensePeriod: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
+    selectedExpenseMonth: new Date().getMonth(),
+    selectedExpenseYear: new Date().getFullYear(),
     monthlyGoal: 0,
     monthlyGoalDefined: false,
     activeAdminPanel: 'overview',
@@ -1923,6 +1925,20 @@ const admin = {
         this.renderExpenses();
     },
 
+    setExpenseMonth(month) {
+        const monthIndex = Number(month);
+        if (!Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11) return;
+        this.selectedExpenseMonth = monthIndex;
+        this.selectedExpensePeriod = `${this.selectedExpenseYear}-${String(monthIndex + 1).padStart(2, '0')}`;
+        this.updateExpenseMonthUI();
+        this.renderExpenses();
+    },
+
+    updateExpenseMonthUI() {
+        document.querySelectorAll('#expenses-month-selector .billing-month-btn')
+            .forEach((button, index) => button.classList.toggle('active', index === this.selectedExpenseMonth));
+    },
+
     formatExpenseDate(value) {
         const [year, month, day] = String(value || '').slice(0, 10).split('-');
         return year && month && day ? `${day}/${month}/${year}` : '--/--/----';
@@ -1936,6 +1952,12 @@ const admin = {
 
     renderExpenses() {
         const period = this.selectedExpensePeriod || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+        const [periodYear, periodMonth] = period.split('-').map(Number);
+        if (periodYear && periodMonth) {
+            this.selectedExpenseYear = periodYear;
+            this.selectedExpenseMonth = periodMonth - 1;
+            this.updateExpenseMonthUI();
+        }
         const periodExpenses = (this.expenses || []).filter(expense => String(expense.expense_date || '').slice(0, 7) === period);
         const formatCurrency = value => `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         const total = periodExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
@@ -1945,9 +1967,6 @@ const admin = {
             return totals;
         }, {});
         const topCategory = Object.entries(categoryTotals).sort((first, second) => second[1] - first[1])[0];
-        const periodInput = document.getElementById('expenses-period-filter');
-        if (periodInput && periodInput.value !== period) periodInput.value = period;
-
         document.getElementById('expenses-total-period')?.replaceChildren(formatCurrency(total));
         document.getElementById('expenses-count-period')?.replaceChildren(String(periodExpenses.length));
         document.getElementById('expenses-top-category')?.replaceChildren(topCategory ? `${topCategory[0]} · ${formatCurrency(topCategory[1])}` : '--');

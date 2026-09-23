@@ -352,9 +352,19 @@
                     <button class="btn btn-primary" onclick="admin.openExpenseModal()">+ Lançar Despesa</button>
                 </div>
 
-                <div class="expenses-toolbar">
-                    <label for="expenses-period-filter">Período</label>
-                    <input type="month" id="expenses-period-filter" onchange="admin.setExpensePeriod(this.value)">
+                <div id="expenses-month-selector" class="glass billing-month-selector" aria-label="Selecionar m&ecirc;s">
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(0)">Jan</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(1)">Fev</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(2)">Mar</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(3)">Abr</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(4)">Mai</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(5)">Jun</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(6)">Jul</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(7)">Ago</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(8)">Set</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(9)">Out</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(10)">Nov</button>
+                    <button class="btn btn-ghost month-btn billing-month-btn" onclick="admin.setExpenseMonth(11)">Dez</button>
                 </div>
 
                 <div class="expenses-summary-grid">
