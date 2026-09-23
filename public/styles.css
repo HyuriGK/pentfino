@@ -1071,7 +1071,8 @@ html.session-restore-pending #auth-view {
 }
 
 .dashboard-financial-toggle.is-values-hidden .stat-value {
-    letter-spacing: 0.08em;
+    /* Keep the currency prefix visually attached to the masked amount. */
+    letter-spacing: -2px;
 }
 
 .dashboard-expense-card {
