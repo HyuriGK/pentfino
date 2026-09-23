@@ -571,7 +571,12 @@ const admin = {
         this.currentTab = tab;
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         const target = [...document.querySelectorAll('.nav-item')].find(el => el.getAttribute('onclick')?.includes(`showTab('${tab}')`));
-        if(target) target.classList.add('active');
+        if (target) {
+            target.classList.add('active');
+            if (target.dataset.sidebarGroup && target.classList.contains('nav-group-item-collapsed')) {
+                ui.setNavGroupState(target.dataset.sidebarGroup, true);
+            }
+        }
 
         const requestId = ++this.navigationRequestId;
         clearTimeout(this.navigationTimer);
@@ -4536,7 +4541,7 @@ const ui = {
         try { saved = JSON.parse(authStorage.read(this.navGroupStorageKey()) || '{}'); } catch (_) { /* Use defaults. */ }
         document.querySelectorAll('.nav-group-title[data-group]').forEach(heading => {
             const group = heading.dataset.group;
-            this.setNavGroupState(group, saved[group] !== false, heading, false);
+            this.setNavGroupState(group, saved[group] === true, heading, false);
         });
     },
 
