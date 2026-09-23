@@ -6363,27 +6363,22 @@ button.btn > svg {
 
 .admin-light .sidebar-nav-scroll nav .nav-group-chevron {
     display: grid;
-    width: 30px;
-    height: 30px;
-    flex: 0 0 30px;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
     place-items: center;
-    border: 1px solid rgba(129, 144, 155, 0.5);
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.035);
     color: #a8b4bc;
     font-size: 0;
     line-height: 0;
-    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+    transition: color 160ms ease, transform 160ms ease;
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-chevron::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg) translate(-1px, -1px);
-    transition: transform 160ms ease;
+    content: "+";
+    font-size: 1.35rem;
+    font-weight: 400;
+    line-height: 1;
+    transform: none;
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] {
@@ -6397,17 +6392,15 @@ button.btn > svg {
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-chevron {
-    background: rgba(255, 214, 0, 0.1);
-    border-color: rgba(255, 214, 0, 0.48);
     color: var(--primary);
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron {
-    background: rgba(17, 26, 34, 0.72);
+    color: #a8b4bc;
 }
 
-.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron::before {
-    transform: rotate(-45deg) translate(-1px, -1px);
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-chevron::before {
+    content: "-";
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-item-collapsed {
