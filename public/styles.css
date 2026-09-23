@@ -1479,7 +1479,9 @@ aside nav {
     min-height: 112px;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     padding: 28px 32px;
+    text-align: left;
     background: transparent !important;
 }
 
