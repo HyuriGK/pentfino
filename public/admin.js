@@ -364,12 +364,19 @@ const admin = {
         this.applyFinancialVisibility();
     },
 
+    maskFinancialValue(value) {
+        const text = String(value ?? '');
+        return /R\$\s*[-\d.,]+/.test(text)
+            ? text.replace(/R\$\s*[-\d.,]+/, 'R$ -----')
+            : '-----';
+    },
+
     applyFinancialVisibility() {
         const isVisible = this.financialValuesVisible;
         document.querySelectorAll('[data-financial-value]').forEach(element => {
             const visibleValue = element.dataset.visibleValue ?? element.textContent;
             element.dataset.visibleValue = visibleValue;
-            element.textContent = isVisible ? visibleValue : '-----';
+            element.textContent = isVisible ? visibleValue : this.maskFinancialValue(visibleValue);
         });
         document.querySelectorAll('[data-financial-toggle]').forEach(card => {
             card.classList.toggle('is-values-hidden', !isVisible);
@@ -382,7 +389,7 @@ const admin = {
         const element = document.getElementById(id);
         if (!element) return;
         element.dataset.visibleValue = value;
-        element.textContent = this.financialValuesVisible ? value : '-----';
+        element.textContent = this.financialValuesVisible ? value : this.maskFinancialValue(value);
     },
 
     setupAppointmentAlertSound() {
