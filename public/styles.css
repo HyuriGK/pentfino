@@ -6422,6 +6422,7 @@ button.btn > svg {
 
 .admin-light .sidebar-nav-scroll nav .nav-item[data-sidebar-standalone="dashboard"] {
     order: 0;
+    margin-top: 8px;
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-item[data-sidebar-group="finance"] {
