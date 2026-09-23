@@ -252,6 +252,7 @@ const admin = {
     history: [],
     inventory: [],
     sales: [],
+    expenses: [],
     clients: [],
     allClients: [], // For filtering
     users: [],
@@ -262,6 +263,7 @@ const admin = {
     selectedBillingMonth: new Date().getMonth(),
     selectedBillingYear: new Date().getFullYear(),
     selectedBillingType: 'all',
+    selectedExpensePeriod: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
     monthlyGoal: 0,
     monthlyGoalDefined: false,
     currentTab: 'home',
@@ -323,13 +325,14 @@ const admin = {
         if (auth.can('barbeiros') || auth.can('agenda') || auth.can('comissoes')) initialLoads.push(this.loadProfessionals());
         if (auth.can('servicos')) initialLoads.push(this.loadServices());
         if (auth.can('vendas') || auth.can('comissoes') || auth.can('billing')) initialLoads.push(this.loadSales());
+        if (auth.can('despesas')) initialLoads.push(this.loadExpenses());
         await Promise.all(initialLoads);
 
         if (!auth.can('dashboard')) {
             const firstAvailable = [
-                ['agenda', 'agenda'], ['billing', 'billing'], ['clientes', 'clientes'],
-                ['vendas', 'vendas'], ['estoque', 'estoque'], ['barbeiros', 'barbeiros'],
-                ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['configuracoes', 'configuracoes']
+            ['agenda', 'agenda'], ['billing', 'billing'], ['clientes', 'clientes'],
+            ['vendas', 'vendas'], ['estoque', 'estoque'], ['barbeiros', 'barbeiros'],
+                ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['despesas', 'despesas'], ['configuracoes', 'configuracoes']
             ].find(([permission]) => auth.can(permission));
             if (firstAvailable) this.showTab(firstAvailable[1], { skipLoading: true });
         }
@@ -492,7 +495,7 @@ const admin = {
     },
 
     showTab(tab, { skipLoading = false } = {}) {
-        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', clientes: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
+        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', despesas: 'despesas', clientes: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
         if (tab === 'administracao' && auth.user?.role !== 'administrador') {
             auth.notify('Acesso exclusivo do administrador.', 'error');
             return;
@@ -564,7 +567,7 @@ const admin = {
 
     activateTab(tab) {
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'administracao'];
+        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'despesas', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -608,6 +611,9 @@ const admin = {
         if (tab === 'vendas') {
             this.loadInventory(); // Load items for the sales modal
             this.loadSales();
+        }
+        if (tab === 'despesas') {
+            this.loadExpenses();
         }
         if (tab === 'estoque') {
             this.loadInventory();
@@ -687,7 +693,7 @@ const admin = {
         if (user.is_admin) return '<span class="permission-chip admin">Acesso total</span>';
 
         const labels = {
-            dashboard: 'Dashboard', agenda: 'Agenda', billing: 'Faturamento', clientes: 'Clientes',
+            dashboard: 'Dashboard', agenda: 'Agenda', billing: 'Faturamento', despesas: 'Despesas', clientes: 'Clientes',
             vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços', configuracoes: 'Ajustes'
         };
         const enabled = Object.keys(labels).filter(key => user.permissions?.[key] !== false);
@@ -1818,6 +1824,138 @@ const admin = {
                 </td>
             </tr>
         `).join('');
+    },
+
+    async loadExpenses() {
+        try {
+            const res = await auth.apiRequest(`/api/expenses/${auth.user.id}?t=${Date.now()}`);
+            if (!res.ok) throw new Error('Não foi possível carregar as despesas.');
+            this.expenses = await res.json();
+            this.renderExpenses();
+        } catch (err) {
+            console.error('Erro ao carregar despesas:', err);
+        }
+    },
+
+    setExpensePeriod(period) {
+        if (!/^\d{4}-\d{2}$/.test(String(period || ''))) return;
+        this.selectedExpensePeriod = period;
+        this.renderExpenses();
+    },
+
+    formatExpenseDate(value) {
+        const [year, month, day] = String(value || '').slice(0, 10).split('-');
+        return year && month && day ? `${day}/${month}/${year}` : '--/--/----';
+    },
+
+    formatExpensePeriod(period) {
+        const [year, month] = String(period || '').split('-').map(Number);
+        if (!year || !month) return '--';
+        return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    },
+
+    renderExpenses() {
+        const period = this.selectedExpensePeriod || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+        const periodExpenses = (this.expenses || []).filter(expense => String(expense.expense_date || '').slice(0, 7) === period);
+        const formatCurrency = value => `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        const total = periodExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+        const categoryTotals = periodExpenses.reduce((totals, expense) => {
+            const category = expense.category || 'Outros';
+            totals[category] = (totals[category] || 0) + Number(expense.amount || 0);
+            return totals;
+        }, {});
+        const topCategory = Object.entries(categoryTotals).sort((first, second) => second[1] - first[1])[0];
+        const periodInput = document.getElementById('expenses-period-filter');
+        if (periodInput && periodInput.value !== period) periodInput.value = period;
+
+        document.getElementById('expenses-total-period')?.replaceChildren(formatCurrency(total));
+        document.getElementById('expenses-count-period')?.replaceChildren(String(periodExpenses.length));
+        document.getElementById('expenses-top-category')?.replaceChildren(topCategory ? `${topCategory[0]} · ${formatCurrency(topCategory[1])}` : '--');
+        document.getElementById('expenses-period-label')?.replaceChildren(this.formatExpensePeriod(period));
+
+        const body = document.getElementById('expenses-table-body');
+        if (!body) return;
+        if (!periodExpenses.length) {
+            body.innerHTML = '<tr><td colspan="6" class="expenses-empty">Nenhuma despesa lançada neste período.</td></tr>';
+            return;
+        }
+
+        body.innerHTML = periodExpenses.map(expense => `
+            <tr>
+                <td class="expense-date-cell">${this.formatExpenseDate(expense.expense_date)}</td>
+                <td><strong>${this.escapeHtml(expense.description)}</strong></td>
+                <td><span class="expense-category-badge">${this.escapeHtml(expense.category || 'Outros')}</span></td>
+                <td class="expense-notes-cell">${this.escapeHtml(expense.notes || '—')}</td>
+                <td class="expense-value-cell">${formatCurrency(expense.amount)}</td>
+                <td class="expense-action-cell">
+                    <button class="btn-queue-cancel" aria-label="Excluir despesa" onclick="admin.deleteExpense(${Number(expense.id)})">×</button>
+                </td>
+            </tr>
+        `).join('');
+    },
+
+    openExpenseModal() {
+        const dateInput = document.getElementById('modal-expense-date');
+        const today = new Date();
+        const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        if (dateInput) dateInput.value = localDate;
+        document.getElementById('modal-expense-description').value = '';
+        document.getElementById('modal-expense-category').value = 'Outros';
+        document.getElementById('modal-expense-amount').value = '';
+        document.getElementById('modal-expense-notes').value = '';
+        this.openModal('expense');
+        setTimeout(() => document.getElementById('modal-expense-description')?.focus(), 0);
+    },
+
+    async saveExpense() {
+        const description = document.getElementById('modal-expense-description')?.value.trim();
+        const category = document.getElementById('modal-expense-category')?.value || 'Outros';
+        const amount = Number(String(document.getElementById('modal-expense-amount')?.value || '').replace(',', '.'));
+        const expenseDate = document.getElementById('modal-expense-date')?.value;
+        const notes = document.getElementById('modal-expense-notes')?.value.trim() || '';
+
+        if (!description || !Number.isFinite(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(expenseDate || '')) {
+            return auth.notify('Informe descrição, valor e data válidos para lançar a despesa.', 'error');
+        }
+
+        try {
+            const response = await auth.apiRequest('/api/expenses', {
+                method: 'POST',
+                body: JSON.stringify({ description, category, amount, expenseDate, notes })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.success === false) {
+                throw new Error(data.message || 'Não foi possível salvar a despesa.');
+            }
+
+            this.selectedExpensePeriod = expenseDate.slice(0, 7);
+            this.closeModal('expense');
+            await this.loadExpenses();
+            auth.notify('Despesa lançada com sucesso.', 'success');
+        } catch (err) {
+            console.error('Erro ao lançar despesa:', err);
+            auth.notify(err.message || 'Não foi possível salvar a despesa.', 'error');
+        }
+    },
+
+    async deleteExpense(id) {
+        const expense = (this.expenses || []).find(item => String(item.id) === String(id));
+        const description = this.escapeHtml(expense?.description || 'esta despesa');
+        this.openDeleteConfirm(`Deseja excluir a despesa <strong>${description}</strong>? Esta ação não pode ser desfeita.`, async () => {
+            try {
+                const response = await auth.apiRequest(`/api/expenses/${id}`, { method: 'DELETE' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || data.success === false) {
+                    throw new Error(data.message || 'Não foi possível excluir a despesa.');
+                }
+                await this.loadExpenses();
+                this.closeModal('delete-confirm');
+                auth.notify('Despesa excluída com sucesso.', 'success');
+            } catch (err) {
+                console.error('Erro ao excluir despesa:', err);
+                auth.notify(err.message || 'Não foi possível excluir a despesa.', 'error');
+            }
+        }, { requiresTyping: true });
     },
 
     async loadBillingData() {

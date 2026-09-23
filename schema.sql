@@ -24,6 +24,17 @@ CREATE TABLE IF NOT EXISTS monthly_goals (
     UNIQUE (barber_id, goal_year, goal_month)
 );
 
+CREATE TABLE IF NOT EXISTS expenses (
+    id SERIAL PRIMARY KEY,
+    barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+    description VARCHAR(160) NOT NULL,
+    category VARCHAR(60) NOT NULL DEFAULT 'Outros',
+    amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
+    expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS barber_settings (
     barber_id INTEGER PRIMARY KEY REFERENCES barbers(id) ON DELETE CASCADE,
     booking_style VARCHAR(30) NOT NULL DEFAULT 'classic',

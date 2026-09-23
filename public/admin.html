@@ -110,6 +110,14 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
                     <span class="nav-text">Faturamento</span>
                 </div>
+                <div class="nav-item" data-permission="despesas" onclick="admin.showTab('despesas')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2h9l3 3v17H6z"></path>
+                        <path d="M14 2v4h4"></path>
+                        <path d="M9 13h6M9 17h4"></path>
+                    </svg>
+                    <span class="nav-text">Despesas</span>
+                </div>
 
                 <div class="nav-item" data-permission="clientes" onclick="admin.showTab('clientes')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -325,6 +333,64 @@
                         <span>Quando houver atendimentos concluídos ou vendas registradas, a evolução diária aparecerá aqui.</span>
                     </div>
                     <canvas id="billingDailyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- TAB DESPESAS -->
+            <div id="tab-despesas" class="hidden">
+                <div class="list-header expenses-page-header">
+                    <div>
+                        <h2>Despesas</h2>
+                        <p>Registre os custos da barbearia e acompanhe o total por período.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="admin.openExpenseModal()">+ Lançar Despesa</button>
+                </div>
+
+                <div class="expenses-toolbar">
+                    <label for="expenses-period-filter">Período</label>
+                    <input type="month" id="expenses-period-filter" onchange="admin.setExpensePeriod(this.value)">
+                </div>
+
+                <div class="expenses-summary-grid">
+                    <div class="stat-card glass expenses-summary-card">
+                        <div class="stat-label">Total no período</div>
+                        <div class="stat-value" id="expenses-total-period">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card glass expenses-summary-card">
+                        <div class="stat-label">Lançamentos</div>
+                        <div class="stat-value" id="expenses-count-period">0</div>
+                    </div>
+                    <div class="stat-card glass expenses-summary-card">
+                        <div class="stat-label">Maior categoria</div>
+                        <div class="stat-value expenses-top-category" id="expenses-top-category">--</div>
+                    </div>
+                </div>
+
+                <div class="expenses-table-container glass">
+                    <div class="expenses-table-heading">
+                        <div>
+                            <span class="expenses-kicker">Histórico financeiro</span>
+                            <h3>Despesas lançadas</h3>
+                        </div>
+                        <span id="expenses-period-label" class="expenses-period-label">--</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table expenses-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Observação</th>
+                                    <th>Valor</th>
+                                    <th aria-label="Ações"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-table-body">
+                                <tr><td colspan="6" class="expenses-empty">Nenhuma despesa lançada neste período.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -710,6 +776,7 @@
                                 <label class="permission-option"><input type="checkbox" value="dashboard" checked><span><strong>Dashboard</strong><small>Visão geral e indicadores</small></span></label>
                                 <label class="permission-option"><input type="checkbox" value="agenda" checked><span><strong>Agenda</strong><small>Atendimentos e calendário</small></span></label>
                                 <label class="permission-option"><input type="checkbox" value="billing" checked><span><strong>Faturamento</strong><small>Metas e resultados</small></span></label>
+                                <label class="permission-option"><input type="checkbox" value="despesas" checked><span><strong>Despesas</strong><small>Custos da barbearia</small></span></label>
                                 <label class="permission-option"><input type="checkbox" value="clientes" checked><span><strong>Clientes</strong><small>Cadastro e histórico</small></span></label>
                                 <label class="permission-option"><input type="checkbox" value="vendas" checked><span><strong>Vendas</strong><small>Registro de produtos</small></span></label>
                                 <label class="permission-option"><input type="checkbox" value="estoque" checked><span><strong>Estoque</strong><small>Produtos e quantidades</small></span></label>
@@ -1241,6 +1308,57 @@
             <div class="monthly-goal-modal-footer">
                 <button class="btn btn-ghost" onclick="admin.closeModal('monthly-goal')">Cancelar</button>
                 <button class="btn btn-primary" onclick="admin.saveMonthlyGoal()">Salvar meta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPENSE CREATION MODAL -->
+    <div id="modal-expense" class="modal-overlay hidden">
+        <div class="modal-content expense-modal-content">
+            <header class="modal-header expense-modal-header">
+                <div>
+                    <span class="expenses-kicker">Controle financeiro</span>
+                    <h2 class="modal-title">Lançar Despesa</h2>
+                    <p>Registre um custo da barbearia para acompanhar o resultado real do período.</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('expense')" aria-label="Fechar">×</button>
+            </header>
+
+            <div class="expense-form-grid">
+                <div class="input-group-new expense-form-wide">
+                    <label for="modal-expense-description">Descrição</label>
+                    <input autocomplete="off" type="text" id="modal-expense-description" maxlength="160" placeholder="Ex: Aluguel da barbearia">
+                </div>
+                <div class="input-group-new">
+                    <label for="modal-expense-category">Categoria</label>
+                    <select id="modal-expense-category">
+                        <option value="Aluguel">Aluguel</option>
+                        <option value="Salários">Salários</option>
+                        <option value="Produtos">Produtos</option>
+                        <option value="Contas">Contas</option>
+                        <option value="Manutenção">Manutenção</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Impostos">Impostos</option>
+                        <option value="Outros" selected>Outros</option>
+                    </select>
+                </div>
+                <div class="input-group-new">
+                    <label for="modal-expense-amount">Valor (R$)</label>
+                    <input autocomplete="off" type="number" id="modal-expense-amount" min="0.01" step="0.01" placeholder="0,00">
+                </div>
+                <div class="input-group-new">
+                    <label for="modal-expense-date">Data</label>
+                    <input autocomplete="off" type="date" id="modal-expense-date">
+                </div>
+                <div class="input-group-new expense-form-wide">
+                    <label for="modal-expense-notes">Observação <span>(opcional)</span></label>
+                    <textarea autocomplete="off" id="modal-expense-notes" rows="3" maxlength="500" placeholder="Inclua um detalhe importante sobre este lançamento"></textarea>
+                </div>
+            </div>
+
+            <div class="expense-modal-footer">
+                <button class="btn btn-ghost" onclick="admin.closeModal('expense')">Cancelar</button>
+                <button class="btn btn-primary" onclick="admin.saveExpense()">Salvar Despesa</button>
             </div>
         </div>
     </div>

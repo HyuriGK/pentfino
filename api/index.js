@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'BarberPoint_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
 const DEFAULT_MONTHLY_GOAL = 0;
-const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos', 'configuracoes'];
+const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'despesas', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos', 'configuracoes'];
 const DEFAULT_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map(key => [key, true]));
 
 const BOOKING_TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -249,6 +249,18 @@ pool.on('connect', () => {
             UNIQUE (barber_id, goal_year, goal_month)
         )
     `).catch(e => console.error('Migration error (monthly_goals):', e));
+    pool.query(`
+        CREATE TABLE IF NOT EXISTS expenses (
+            id SERIAL PRIMARY KEY,
+            barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+            description VARCHAR(160) NOT NULL,
+            category VARCHAR(60) NOT NULL DEFAULT 'Outros',
+            amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
+            expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `).catch(e => console.error('Migration error (expenses):', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS barber_settings (
             barber_id INTEGER PRIMARY KEY REFERENCES barbers(id) ON DELETE CASCADE,
@@ -936,6 +948,64 @@ app.put('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, req
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'N\u00E3o foi poss\u00EDvel salvar a meta mensal.' });
+    }
+});
+
+// Expenses API
+app.get('/api/expenses/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('despesas'), async (req, res) => {
+    const barberId = Number(req.params.barberId);
+    try {
+        const result = await pool.query(`
+            SELECT id, description, category, amount, expense_date, notes, created_at
+            FROM expenses
+            WHERE barber_id = $1
+            ORDER BY expense_date DESC, created_at DESC
+        `, [barberId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Erro ao carregar despesas:', err);
+        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel carregar as despesas.' });
+    }
+});
+
+app.post('/api/expenses', authenticateToken, requireAnyPermission('despesas'), async (req, res) => {
+    const barberId = Number(req.user.id);
+    const description = String(req.body.description || '').trim();
+    const category = String(req.body.category || 'Outros').trim() || 'Outros';
+    const amount = Number(String(req.body.amount ?? '').replace(',', '.'));
+    const expenseDate = String(req.body.expenseDate || '').slice(0, 10);
+    const notes = String(req.body.notes || '').trim() || null;
+
+    if (!description || description.length > 160 || !Number.isFinite(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(expenseDate)) {
+        return res.status(400).json({ success: false, message: 'Informe descrição, valor e data válidos para a despesa.' });
+    }
+
+    try {
+        const result = await pool.query(`
+            INSERT INTO expenses (barber_id, description, category, amount, expense_date, notes)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, description, category, amount, expense_date, notes, created_at
+        `, [barberId, description, category.slice(0, 60), amount, expenseDate, notes]);
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error('Erro ao lançar despesa:', err);
+        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel salvar a despesa.' });
+    }
+});
+
+app.delete('/api/expenses/:id', authenticateToken, requireAnyPermission('despesas'), async (req, res) => {
+    try {
+        const result = await pool.query(
+            'DELETE FROM expenses WHERE id = $1 AND barber_id = $2 RETURNING id',
+            [Number(req.params.id), Number(req.user.id)]
+        );
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Despesa nÃ£o encontrada.' });
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro ao excluir despesa:', err);
+        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel excluir a despesa.' });
     }
 });
 
