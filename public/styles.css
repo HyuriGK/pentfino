@@ -9855,6 +9855,14 @@ textarea:focus-visible,
     box-sizing: border-box;
 }
 
+.admin-light #modal-expense textarea:focus,
+.admin-light #modal-expense textarea:focus-visible {
+    background: #0c141b !important;
+    border-color: var(--border-bright) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
 .expense-form-grid .input-group-new {
     margin-bottom: 0;
 }
