@@ -1610,6 +1610,55 @@
         </div>
     </div>
 
+    <!-- MODAL BILLING DAY DETAILS -->
+    <div id="modal-billing-day-details" class="modal-overlay hidden">
+        <div class="modal-content billing-day-details-content">
+            <header class="billing-day-details-header">
+                <div>
+                    <span class="billing-day-details-kicker">Detalhamento diário</span>
+                    <h2 id="billing-day-details-title" class="billing-day-details-title">Detalhes do dia</h2>
+                    <p id="billing-day-details-period" class="billing-day-details-period">--</p>
+                </div>
+                <button class="btn-icon-close" onclick="admin.closeModal('billing-day-details')" aria-label="Fechar detalhes">×</button>
+            </header>
+
+            <div class="billing-day-details-body">
+                <div id="billing-day-details-filter" class="billing-day-details-filter">Todos</div>
+
+                <div class="billing-day-details-summary">
+                    <div class="billing-day-details-stat">
+                        <span>Serviços</span>
+                        <strong id="billing-day-services-total">R$ 0,00</strong>
+                    </div>
+                    <div class="billing-day-details-stat">
+                        <span>Vendas</span>
+                        <strong id="billing-day-sales-total">R$ 0,00</strong>
+                    </div>
+                    <div class="billing-day-details-stat billing-day-details-stat-total">
+                        <span>Total da barra</span>
+                        <strong id="billing-day-total">R$ 0,00</strong>
+                    </div>
+                </div>
+
+                <div class="table-responsive billing-day-details-table-shell">
+                    <table class="data-table billing-day-details-table">
+                        <thead>
+                            <tr>
+                                <th>Horário</th>
+                                <th>Tipo</th>
+                                <th>Cliente</th>
+                                <th>Registro</th>
+                                <th>Profissional</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billing-day-details-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL LOGOUT CONFIRMATION -->
     <div id="modal-logout" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px; text-align: center;">

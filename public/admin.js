@@ -2229,6 +2229,16 @@ const admin = {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 350 },
+                onClick: (_event, elements) => {
+                    const element = elements?.[0];
+                    const index = element?.index ?? element?._index;
+                    if (!Number.isInteger(index)) return;
+                    this.openBillingDayDetails(index + 1, monthName, type);
+                },
+                onHover: (event, elements) => {
+                    const target = event?.native?.target;
+                    if (target) target.style.cursor = elements?.length ? 'pointer' : 'default';
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -2249,6 +2259,79 @@ const admin = {
                 }
             }
         });
+    },
+
+    openBillingDayDetails(day, monthName, type = 'all') {
+        const month = Number.isInteger(this.selectedBillingMonth) ? this.selectedBillingMonth : new Date().getMonth();
+        const year = Number.isInteger(this.selectedBillingYear) ? this.selectedBillingYear : new Date().getFullYear();
+        const dayNumber = Number(day);
+        const matchesDay = value => {
+            const date = this.billingDateParts(value);
+            return date && date.year === year && date.month === month && date.day === dayNumber;
+        };
+
+        const serviceRecords = (this.allAppointments || []).filter(appointment =>
+            appointment.status === 'completed' && matchesDay(appointment.appointment_date)
+        );
+        const salesRecords = (this.sales || []).filter(sale => matchesDay(sale.sale_date || sale.created_at));
+        const visibleServices = type === 'sales' ? [] : serviceRecords;
+        const visibleSales = type === 'services' ? [] : salesRecords;
+        const serviceTotal = visibleServices.reduce((total, appointment) => total + Number(appointment.service_price || 0), 0);
+        const salesTotal = visibleSales.reduce((total, sale) => total + Number(sale.total_price || 0), 0);
+        const formatCurrency = value => `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        const formatTime = value => {
+            const date = new Date(value);
+            return Number.isNaN(date.getTime())
+                ? '--:--'
+                : date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        };
+        const dayLabel = String(dayNumber).padStart(2, '0');
+        const typeLabels = { all: 'Todos', services: 'Serviços', sales: 'Vendas' };
+        const records = [
+            ...visibleServices.map(appointment => ({
+                kind: 'service',
+                type: 'Serviço',
+                time: String(appointment.appointment_time || '').slice(0, 5) || '--:--',
+                client: appointment.client_name || 'Cliente não informado',
+                description: appointment.service_name || 'Serviço',
+                professional: appointment.professional_name || 'Não informado',
+                value: Number(appointment.service_price || 0)
+            })),
+            ...visibleSales.map(sale => ({
+                kind: 'sale',
+                type: 'Venda',
+                time: formatTime(sale.sale_date || sale.created_at),
+                client: sale.client_name || 'Consumidor',
+                description: `${sale.item_name || 'Produto'}${Number(sale.quantity || 0) > 1 ? ` (${sale.quantity} un.)` : ''}`,
+                professional: sale.professional_name || 'Não informado',
+                value: Number(sale.total_price || 0)
+            }))
+        ].sort((first, second) => first.time.localeCompare(second.time));
+
+        document.getElementById('billing-day-details-title')?.replaceChildren(`Detalhes do dia ${dayLabel}`);
+        document.getElementById('billing-day-details-period')?.replaceChildren(`${dayLabel} de ${monthName} ${year}`);
+        document.getElementById('billing-day-details-filter')?.replaceChildren(typeLabels[type] || 'Todos');
+        document.getElementById('billing-day-services-total')?.replaceChildren(formatCurrency(serviceTotal));
+        document.getElementById('billing-day-sales-total')?.replaceChildren(formatCurrency(salesTotal));
+        document.getElementById('billing-day-total')?.replaceChildren(formatCurrency(serviceTotal + salesTotal));
+
+        const tableBody = document.getElementById('billing-day-details-table-body');
+        if (tableBody) {
+            tableBody.innerHTML = records.length > 0
+                ? records.map(record => `
+                    <tr>
+                        <td>${this.escapeHtml(record.time)}</td>
+                        <td><span class="billing-day-record-type ${record.kind}">${record.type}</span></td>
+                        <td>${this.escapeHtml(record.client)}</td>
+                        <td>${this.escapeHtml(record.description)}</td>
+                        <td>${this.escapeHtml(record.professional)}</td>
+                        <td class="billing-day-record-value">${formatCurrency(record.value)}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6" class="billing-day-details-empty">Nenhum registro compõe esta barra.</td></tr>';
+        }
+
+        this.openModal('billing-day-details');
     },
 
     async deleteSale(id, itemName) {

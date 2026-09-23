@@ -8396,6 +8396,212 @@ textarea:focus-visible,
     }
 }
 
+/* Billing day details: records that make up a clicked chart bar. */
+.billing-day-details-content {
+    display: flex;
+    width: min(100%, 1080px);
+    max-width: 1080px;
+    height: min(760px, calc(100vh - 48px));
+    max-height: calc(100vh - 48px);
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    background: #101920;
+}
+
+.billing-day-details-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px 34px 22px;
+    border-bottom: 1px solid var(--border);
+}
+
+.billing-day-details-kicker {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.billing-day-details-title {
+    margin: 0;
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    line-height: 1.05;
+}
+
+.billing-day-details-period {
+    margin: 7px 0 0;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.billing-day-details-body {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden;
+    padding: 24px 34px 30px;
+}
+
+.billing-day-details-filter {
+    align-self: flex-start;
+    padding: 6px 11px;
+    border: 1px solid rgba(255, 214, 0, 0.35);
+    border-radius: 999px;
+    color: var(--primary);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.billing-day-details-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.billing-day-details-stat {
+    display: flex;
+    min-height: 84px;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.billing-day-details-stat span {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.billing-day-details-stat strong {
+    color: var(--text-main);
+    font-size: 1.18rem;
+}
+
+.billing-day-details-stat-total {
+    border-color: rgba(255, 214, 0, 0.35);
+}
+
+.billing-day-details-stat-total strong,
+.billing-day-record-value {
+    color: var(--primary) !important;
+}
+
+.billing-day-details-table-shell {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(5, 9, 13, 0.34);
+}
+
+.billing-day-details-table {
+    min-width: 760px;
+    margin-top: 0 !important;
+}
+
+.billing-day-details-table th,
+.billing-day-details-table td {
+    padding: 14px 16px !important;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.billing-day-details-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #0b141b;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.billing-day-details-table td {
+    color: var(--text-main);
+    font-size: 0.84rem;
+}
+
+.billing-day-details-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.billing-day-record-type {
+    display: inline-flex;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.billing-day-record-type.service {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ade80;
+}
+
+.billing-day-record-type.sale {
+    background: rgba(255, 214, 0, 0.12);
+    color: var(--primary);
+}
+
+.billing-day-details-empty {
+    padding: 34px 20px !important;
+    color: var(--text-muted) !important;
+    text-align: center !important;
+}
+
+@media (max-width: 700px) {
+    .billing-day-details-content {
+        height: calc(100vh - 20px);
+        max-height: calc(100vh - 20px);
+        border-radius: 16px;
+    }
+
+    .billing-day-details-header {
+        padding: 22px 20px 18px;
+    }
+
+    .billing-day-details-body {
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .billing-day-details-summary {
+        gap: 8px;
+    }
+
+    .billing-day-details-stat {
+        min-height: 76px;
+        padding: 12px;
+    }
+
+    .billing-day-details-stat strong {
+        font-size: 0.98rem;
+    }
+}
+
 /* Client details modal: framed profile view with a clear history hierarchy. */
 .admin-light #modal-client-details {
     align-items: center;
