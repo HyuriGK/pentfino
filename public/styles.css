@@ -6363,16 +6363,27 @@ button.btn > svg {
 
 .admin-light .sidebar-nav-scroll nav .nav-group-chevron {
     display: grid;
-    width: 22px;
-    height: 22px;
-    flex: 0 0 22px;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
     place-items: center;
-    border: 1px solid rgba(129, 144, 155, 0.35);
-    border-radius: 6px;
+    border: 1px solid rgba(129, 144, 155, 0.42);
+    border-radius: 8px;
+    background: rgba(5, 12, 17, 0.35);
     color: #a8b4bc;
-    font-size: 1rem;
-    line-height: 0.7;
-    transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+    font-size: 0;
+    line-height: 0;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-chevron::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-right: 1.8px solid currentColor;
+    border-bottom: 1.8px solid currentColor;
+    transform: rotate(45deg) translate(-1px, -1px);
+    transition: transform 160ms ease;
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] {
@@ -6387,11 +6398,16 @@ button.btn > svg {
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-chevron {
     background: rgba(255, 214, 0, 0.1);
+    border-color: rgba(255, 214, 0, 0.36);
     color: var(--primary);
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron {
-    transform: rotate(-90deg);
+    background: rgba(17, 26, 34, 0.5);
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron::before {
+    transform: rotate(-45deg) translate(-1px, -1px);
 }
 
 .admin-light .sidebar-nav-scroll nav .nav-group-item-collapsed {
