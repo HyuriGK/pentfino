@@ -85,6 +85,7 @@
                     <span class="logo-text">BarberPoint</span>
                 </div>
             </div>
+            <div class="sidebar-nav-scroll">
             <nav>
                 <div class="nav-item active" data-permission="dashboard" onclick="admin.showTab('home')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -191,7 +192,10 @@
                     </svg>
                     <span class="nav-text">Administração</span>
                 </div>
-                <div class="nav-item" data-permission="dashboard" style="color: var(--success); margin-top: 10px;" onclick="admin.openShareModal()">
+            </nav>
+            </div>
+            <div class="sidebar-footer">
+                <div class="nav-item" data-permission="dashboard" style="color: var(--success);" onclick="admin.openShareModal()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
@@ -200,7 +204,7 @@
                     </svg>
                     <span class="nav-text">Compartilhar</span>
                 </div>
-                <div class="nav-item" style="color: var(--danger); margin-top: auto;" onclick="admin.confirmLogout()">
+                <div class="nav-item" style="color: var(--danger);" onclick="admin.confirmLogout()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -211,7 +215,7 @@
                 </div>
 
 
-            </nav>
+            </div>
         </aside>
 
         <div id="navigation-loader" class="navigation-loader" aria-live="polite" aria-hidden="true">

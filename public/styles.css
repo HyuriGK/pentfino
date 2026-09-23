@@ -380,7 +380,7 @@ html.session-restore-pending #auth-view {
     padding: 1.6rem 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0;
     background: var(--bg-sidebar);
     border-radius: 0 22px 22px 0;
     border-left: none;
@@ -388,6 +388,7 @@ html.session-restore-pending #auth-view {
     transition: var(--transition);
     overflow: hidden;
     flex-shrink: 0;
+    min-height: 0;
 }
 
 .sidebar.collapsed {
@@ -412,6 +413,52 @@ html.session-restore-pending #auth-view {
     justify-content: space-between;
     margin-bottom: 2rem;
     padding: 0;
+}
+
+.sidebar-nav-scroll {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.48) transparent;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.48);
+    border-radius: 999px;
+}
+
+.sidebar-nav-scroll nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    padding-right: 4px;
+}
+
+.sidebar-footer {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.sidebar-footer .nav-item {
+    flex-shrink: 0;
 }
 
 .toggle-btn {
@@ -477,6 +524,11 @@ html.session-restore-pending #auth-view {
     justify-content: center;
     padding: 14px;
     gap: 0;
+}
+
+.sidebar.collapsed .sidebar-nav-scroll,
+.sidebar.collapsed .sidebar-footer {
+    width: 100%;
 }
 
 .sidebar.collapsed .nav-item svg {
@@ -6179,21 +6231,24 @@ button.btn > svg {
     box-shadow: none;
 }
 
-/* Keep adjacent navigation states visually separate. */
-.admin-light .sidebar nav {
-    gap: 6px;
+/* Keep the category list scrollable while the footer remains pinned. */
+.admin-light .sidebar-nav-scroll {
+    margin: 0 -4px 0 0;
+    padding-right: 0;
 }
 
-/* Sidebar hierarchy: main navigation -> share -> brand -> logout. */
+.admin-light .sidebar-nav-scroll nav {
+    display: flex;
+    gap: 6px;
+    padding-right: 4px;
+}
+
+/* Keep the sidebar layout compact while preserving the fixed footer. */
 .admin-light .sidebar {
     gap: 8px;
 }
 
-.admin-light .sidebar nav {
-    display: contents;
-}
-
-.admin-light .sidebar nav .nav-item {
+.admin-light .sidebar-nav-scroll nav .nav-item {
     order: 1;
     flex-shrink: 0;
 }
@@ -6203,18 +6258,13 @@ button.btn > svg {
     gap: 4px;
 }
 
-.admin-light .sidebar nav .nav-item {
+.admin-light .sidebar-nav-scroll nav .nav-item {
     min-height: 42px;
     padding: 9px 12px;
 }
 
-.admin-light .sidebar nav .nav-item[onclick*="openShareModal"] {
-    order: 2;
-    margin-top: auto !important;
-}
-
-/* Administration is restricted to the administrator and sits directly below the share link. */
-.admin-light .sidebar nav .nav-item.admin-only {
+/* Administration remains part of the scrollable category list. */
+.admin-light .sidebar-nav-scroll nav .nav-item.admin-only {
     order: 3;
     margin-top: 0 !important;
     margin-bottom: 0;
@@ -6247,12 +6297,6 @@ button.btn > svg {
     letter-spacing: -0.01em;
     text-transform: uppercase;
     transform: none;
-}
-
-.admin-light .sidebar nav .nav-item[onclick*="confirmLogout"] {
-    order: 4;
-    margin-top: 0 !important;
-    margin-bottom: 0;
 }
 
 .admin-light .sidebar .nav-item {
