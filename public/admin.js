@@ -266,6 +266,7 @@ const admin = {
     selectedExpensePeriod: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
     monthlyGoal: 0,
     monthlyGoalDefined: false,
+    activeAdminPanel: 'overview',
     currentTab: 'home',
     navigationTimer: null,
     navigationRequestId: 0,
@@ -609,6 +610,7 @@ const admin = {
             this.loadClients();
         }
         if (tab === 'administracao') {
+            this.openAdminPanel('overview');
             this.loadUsers();
         }
         if (tab === 'vendas') {
@@ -638,6 +640,32 @@ const admin = {
 
         if (tab === 'comissoes') {
             this.loadSales().then(() => this.loadCommissions());
+        }
+    },
+
+    openAdminPanel(panel = 'overview', options = {}) {
+        const validPanels = ['overview', 'users', 'create', 'logs'];
+        const nextPanel = validPanels.includes(panel) ? panel : 'overview';
+        const overview = document.getElementById('admin-panel-overview');
+        const usersLayout = document.getElementById('admin-users-layout');
+        const logs = document.getElementById('admin-panel-logs');
+        const createPanel = document.querySelector('[data-admin-content-panel="create"]');
+        const usersPanel = document.querySelector('[data-admin-content-panel="users"]');
+        const contentPanelVisible = ['users', 'create'].includes(nextPanel);
+
+        overview?.classList.toggle('hidden', nextPanel !== 'overview');
+        usersLayout?.classList.toggle('hidden', !contentPanelVisible);
+        logs?.classList.toggle('hidden', nextPanel !== 'logs');
+        createPanel?.classList.toggle('hidden', nextPanel !== 'create');
+        usersPanel?.classList.toggle('hidden', nextPanel !== 'users');
+        this.activeAdminPanel = nextPanel;
+
+        if (nextPanel === 'users') {
+            this.loadUsers();
+        }
+
+        if (nextPanel === 'create' && options.reset !== false) {
+            this.cancelUserEdit();
         }
     },
 
@@ -731,6 +759,7 @@ const admin = {
         const user = this.users.find(item => item.id === id);
         if (!user) return;
 
+        this.openAdminPanel('create', { reset: false });
         document.getElementById('edit-user-id').value = user.id;
         document.getElementById('new-user-shop').value = user.shop_name || '';
         document.getElementById('new-user-email').value = user.email || '';
@@ -812,7 +841,7 @@ const admin = {
 
             this.cancelUserEdit();
             auth.notify(id ? 'Usuario atualizado com sucesso!' : 'Usuario criado com sucesso!', 'success');
-            this.loadUsers();
+            this.openAdminPanel('users');
         } catch (err) {
             console.error('Save User Error:', err);
             auth.notify('Erro ao salvar usuario.', 'error');

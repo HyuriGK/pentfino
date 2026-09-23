@@ -398,6 +398,7 @@
                         </table>
                     </div>
                 </div>
+
             </div>
 
             <div id="tab-agenda" class="hidden">
@@ -737,8 +738,67 @@
                     </div>
                 </div>
 
-                <div class="admin-users-layout">
-                    <div class="glass admin-user-form">
+                <div id="admin-panel-overview" class="admin-subpanel" data-admin-panel="overview">
+                    <div class="admin-module-grid">
+                        <button type="button" class="admin-module-card glass" onclick="admin.openAdminPanel('users')">
+                            <span class="admin-module-icon" aria-hidden="true">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </span>
+                            <span class="admin-module-card-copy">
+                                <span class="admin-module-card-kicker">Contas cadastradas</span>
+                                <strong>Gest&atilde;o de usu&aacute;rios</strong>
+                                <small>Consulte, edite e suspenda os acessos do sistema.</small>
+                            </span>
+                            <span class="admin-module-card-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+
+                        <button type="button" class="admin-module-card glass" onclick="admin.openAdminPanel('create')">
+                            <span class="admin-module-icon" aria-hidden="true">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="8" r="4"></circle>
+                                    <path d="M5 21a7 7 0 0 1 14 0"></path>
+                                    <path d="M19 8v6"></path>
+                                    <path d="M16 11h6"></path>
+                                </svg>
+                            </span>
+                            <span class="admin-module-card-copy">
+                                <span class="admin-module-card-kicker">Conta de acesso</span>
+                                <strong>Criar usu&aacute;rio</strong>
+                                <small>Cadastre uma conta e escolha as &aacute;reas liberadas.</small>
+                            </span>
+                            <span class="admin-module-card-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+
+                        <button type="button" class="admin-module-card glass admin-module-card-coming-soon" onclick="admin.openAdminPanel('logs')">
+                            <span class="admin-module-icon" aria-hidden="true">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 4h16v16H4z"></path>
+                                    <path d="M8 8h8"></path>
+                                    <path d="M8 12h8"></path>
+                                    <path d="M8 16h5"></path>
+                                </svg>
+                            </span>
+                            <span class="admin-module-card-copy">
+                                <span class="admin-module-card-kicker">Em breve</span>
+                                <strong>Logs de atividades</strong>
+                                <small>Acompanhe as a&ccedil;&otilde;es importantes realizadas no painel.</small>
+                            </span>
+                            <span class="admin-module-card-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="admin-users-layout" class="admin-users-layout hidden">
+                    <div class="glass admin-user-form" data-admin-content-panel="create">
+                        <div class="admin-subpanel-toolbar">
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="admin.openAdminPanel('overview')">&larr; Administra&ccedil;&atilde;o</button>
+                            <span class="admin-subpanel-label">Cria&ccedil;&atilde;o de usu&aacute;rio</span>
+                        </div>
                         <div class="admin-form-heading">
                             <div>
                                 <span class="admin-form-eyebrow">Conta de acesso</span>
@@ -805,7 +865,11 @@
                         <button class="btn btn-primary btn-full" id="save-user-btn" onclick="admin.saveUser()">Criar usuário</button>
                     </div>
 
-                    <div class="admin-users-list">
+                    <div class="admin-users-list" data-admin-content-panel="users">
+                        <div class="admin-subpanel-toolbar">
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="admin.openAdminPanel('overview')">&larr; Administra&ccedil;&atilde;o</button>
+                            <span class="admin-subpanel-label">Gest&atilde;o de usu&aacute;rios</span>
+                        </div>
                         <div class="admin-users-list-heading">
                             <div>
                                 <span class="admin-form-eyebrow">Contas cadastradas</span>
@@ -827,6 +891,22 @@
                                 <tbody id="users-table-body"></tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <div id="admin-panel-logs" class="admin-subpanel hidden" data-admin-panel="logs">
+                    <div class="admin-subpanel-view-header">
+                        <div>
+                            <span class="admin-panel-kicker">Monitoramento</span>
+                            <h3>Logs de atividades</h3>
+                            <p>O hist&oacute;rico das a&ccedil;&otilde;es do painel ficar&aacute; dispon&iacute;vel aqui em breve.</p>
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="admin.openAdminPanel('overview')">&larr; Voltar</button>
+                    </div>
+                    <div class="admin-coming-soon glass">
+                        <span class="admin-coming-soon-icon" aria-hidden="true">&middot;&middot;&middot;</span>
+                        <strong>Painel em desenvolvimento</strong>
+                        <p>Este espa&ccedil;o j&aacute; est&aacute; preparado para receber os registros de acesso, altera&ccedil;&otilde;es e opera&ccedil;&otilde;es realizadas pelos usu&aacute;rios.</p>
                     </div>
                 </div>
             </div>
