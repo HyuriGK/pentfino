@@ -5898,6 +5898,24 @@ aside nav {
     font-size: 0.68rem;
 }
 
+.admin-user-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-user-actions .btn-danger {
+    border: 1px solid rgba(237, 58, 64, 0.42);
+    background: rgba(237, 58, 64, 0.08);
+    color: #ff8588;
+}
+
+.admin-user-actions .btn-danger:hover {
+    border-color: rgba(237, 58, 64, 0.7);
+    background: rgba(237, 58, 64, 0.16);
+    color: #fff;
+}
+
 .account-status,
 .permission-chip {
     display: inline-flex;

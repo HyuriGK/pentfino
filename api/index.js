@@ -138,7 +138,7 @@ const fetchBookingSettings = async barberId => {
     return readBookingSettingsRow(result.rows[0]);
 };
 
-const getUserRole = user => user.email === ADMIN_EMAIL && user.is_admin !== false ? 'administrador' : 'operador';
+const getUserRole = user => user.is_admin === true ? 'administrador' : 'operador';
 const normalizePermissions = (permissions, isAdmin = false) => {
     if (isAdmin) return { ...DEFAULT_PERMISSIONS };
 
@@ -165,7 +165,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
-    if (req.user?.role !== 'administrador' || req.user?.email !== ADMIN_EMAIL) {
+    if (req.user?.role !== 'administrador') {
         return res.status(403).json({ success: false, message: 'Acesso restrito ao administrador.' });
     }
     next();
@@ -222,7 +222,7 @@ const ensureAppointmentPaymentSchema = () => {
 };
 
 const requireAnyPermission = (...permissions) => async (req, res, next) => {
-    if (req.user?.role === 'administrador' && req.user?.email === ADMIN_EMAIL) return next();
+    if (req.user?.role === 'administrador') return next();
 
     try {
         const result = await pool.query(
@@ -347,7 +347,6 @@ pool.on('connect', () => {
         'UPDATE barbers SET permissions = $1::jsonb WHERE permissions IS NULL OR permissions = $2::jsonb',
         [JSON.stringify(DEFAULT_PERMISSIONS), '{}']
     ).catch(() => {});
-    pool.query('UPDATE barbers SET is_admin = FALSE WHERE email <> $1', [ADMIN_EMAIL]).catch(() => {});
     pool.query(`
         INSERT INTO barbers (email, password, shop_name, is_admin)
         VALUES ($1, $2, $3, TRUE)
@@ -516,7 +515,7 @@ app.patch('/api/admin/marketing-leads/:id', authenticateToken, requireAdmin, asy
 app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT id, email, shop_name, (email = $1) AS is_admin, permissions, is_active, created_at
+            SELECT id, email, shop_name, is_admin, (email = $1) AS is_main_admin, permissions, is_active, created_at
             FROM barbers
             ORDER BY (email = $1) DESC, created_at DESC
         `, [ADMIN_EMAIL]);
@@ -534,18 +533,18 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
         return res.status(400).json({ success: false, message: 'Informe nome da barbearia, e-mail e senha.' });
     }
 
-    if (role === 'administrador' && email !== ADMIN_EMAIL) {
-        return res.status(400).json({ success: false, message: 'Somente o usuário principal pode ter cargo administrador.' });
+    if (!['operador', 'administrador'].includes(role)) {
+        return res.status(400).json({ success: false, message: 'Perfil de usuário inválido.' });
     }
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const isAdmin = role === 'administrador' && email === ADMIN_EMAIL;
+        const isAdmin = role === 'administrador';
         const normalizedPermissions = normalizePermissions(permissions, isAdmin);
         const result = await pool.query(
             `INSERT INTO barbers (email, password, shop_name, is_admin, permissions, is_active)
              VALUES ($1, $2, $3, $4, $5::jsonb, $6)
-             RETURNING id, email, shop_name, (email = $7) AS is_admin, permissions, is_active, created_at`,
+             RETURNING id, email, shop_name, is_admin, (email = $7) AS is_main_admin, permissions, is_active, created_at`,
             [email, hashedPassword, shop, isAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), ADMIN_EMAIL]
         );
 
@@ -567,6 +566,10 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
         return res.status(400).json({ success: false, message: 'Informe nome da barbearia e e-mail.' });
     }
 
+    if (!['operador', 'administrador'].includes(role)) {
+        return res.status(400).json({ success: false, message: 'Perfil de usuário inválido.' });
+    }
+
     try {
         const existing = await pool.query('SELECT id, email FROM barbers WHERE id = $1', [id]);
         const user = existing.rows[0];
@@ -581,10 +584,6 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
             return res.status(400).json({ success: false, message: 'O e-mail do administrador principal não pode ser alterado.' });
         }
 
-        if (role === 'administrador' && email !== ADMIN_EMAIL) {
-            return res.status(400).json({ success: false, message: 'Somente o usuário principal pode ter cargo administrador.' });
-        }
-
         if (isMainAdmin && role !== 'administrador') {
             return res.status(400).json({ success: false, message: 'O administrador principal não pode virar operador.' });
         }
@@ -593,7 +592,7 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
             return res.status(400).json({ success: false, message: 'O administrador principal não pode ser desativado.' });
         }
 
-        const newIsAdmin = role === 'administrador' && email === ADMIN_EMAIL;
+        const newIsAdmin = role === 'administrador';
         const normalizedPermissions = normalizePermissions(permissions, newIsAdmin);
 
         let result;
@@ -603,7 +602,7 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
                 `UPDATE barbers
                  SET email = $1, shop_name = $2, password = $3, is_admin = $4, permissions = $5::jsonb, is_active = $6
                  WHERE id = $7
-                 RETURNING id, email, shop_name, (email = $8) AS is_admin, permissions, is_active, created_at`,
+                 RETURNING id, email, shop_name, is_admin, (email = $8) AS is_main_admin, permissions, is_active, created_at`,
                 [email, shop, hashedPassword, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
             );
         } else {
@@ -611,7 +610,7 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
                 `UPDATE barbers
                  SET email = $1, shop_name = $2, is_admin = $3, permissions = $4::jsonb, is_active = $5
                  WHERE id = $6
-                 RETURNING id, email, shop_name, (email = $7) AS is_admin, permissions, is_active, created_at`,
+                 RETURNING id, email, shop_name, is_admin, (email = $7) AS is_main_admin, permissions, is_active, created_at`,
                 [email, shop, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
             );
         }
@@ -623,6 +622,40 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
             return res.status(409).json({ success: false, message: 'Este e-mail já está cadastrado.' });
         }
         res.status(500).json({ success: false, message: 'Erro ao atualizar usuário.' });
+    }
+});
+
+app.delete('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const userId = Number(req.params.id);
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+        return res.status(400).json({ success: false, message: 'Usuário inválido.' });
+    }
+
+    if (userId === Number(req.user?.id)) {
+        return res.status(400).json({ success: false, message: 'A conta atualmente conectada não pode ser excluída.' });
+    }
+
+    try {
+        const existing = await pool.query('SELECT id, email FROM barbers WHERE id = $1', [userId]);
+        const user = existing.rows[0];
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+        }
+
+        if (user.email === ADMIN_EMAIL) {
+            return res.status(400).json({ success: false, message: 'A conta principal não pode ser excluída.' });
+        }
+
+        await pool.query('DELETE FROM barbers WHERE id = $1', [userId]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro ao excluir usuário:', err);
+        if (err.code === '23503') {
+            return res.status(409).json({ success: false, message: 'Não é possível excluir esta conta porque existem dados vinculados. Desative o usuário para bloquear o acesso.' });
+        }
+        res.status(500).json({ success: false, message: 'Erro ao excluir usuário.' });
     }
 });
 

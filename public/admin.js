@@ -777,9 +777,10 @@ const admin = {
                     <td>${user.is_active === false ? '<span class="account-status inactive">Inativo</span>' : '<span class="account-status active">Ativo</span>'}</td>
                     <td><div class="permission-summary">${this.renderPermissionSummary(user)}</div></td>
                     <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '--'}</td>
-                    <td>
+                    <td><div class="admin-user-actions">
                         <button class="btn btn-ghost btn-sm" onclick="admin.editUser(${user.id})">Editar</button>
-                    </td>
+                        ${user.is_main_admin || String(user.id) === String(auth.user?.id) ? '' : `<button class="btn btn-danger btn-sm" onclick="admin.deleteUser(${user.id})">Excluir</button>`}
+                    </div></td>
                 </tr>
             `).join('');
         } catch (err) {
@@ -896,6 +897,12 @@ const admin = {
         inputs.forEach(input => { input.checked = shouldSelectAll; });
     },
 
+    handleUserRoleChange(role) {
+        const isAdmin = role === 'administrador';
+        const permissions = this.getSelectedPermissions();
+        this.setPermissionInputs(permissions, isAdmin);
+    },
+
     editUser(id) {
         const user = this.users.find(item => item.id === id);
         if (!user) return;
@@ -909,13 +916,46 @@ const admin = {
         document.getElementById('new-user-role').value = user.is_admin ? 'administrador' : 'operador';
         document.getElementById('new-user-active').checked = user.is_active !== false;
         this.setPermissionInputs(user.permissions, user.is_admin);
-        document.getElementById('new-user-email').disabled = user.is_admin;
-        document.getElementById('new-user-role').disabled = user.is_admin;
-        document.getElementById('new-user-active').disabled = user.is_admin;
+        const isMainAdmin = Boolean(user.is_main_admin || user.email === 'brasil.hyuri@gmail.com');
+        document.getElementById('new-user-email').disabled = isMainAdmin;
+        document.getElementById('new-user-role').disabled = isMainAdmin;
+        document.getElementById('new-user-active').disabled = isMainAdmin;
         document.getElementById('user-form-title').innerText = 'Editar usuário';
         document.getElementById('save-user-btn').innerText = 'Salvar alterações';
         document.getElementById('cancel-edit-user-btn').classList.remove('hidden');
         document.querySelector('.admin-user-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    async deleteUser(id) {
+        if (auth.user?.role !== 'administrador') return;
+
+        const user = this.users.find(item => String(item.id) === String(id));
+        if (!user) return;
+        if (user.is_main_admin || String(user.id) === String(auth.user?.id)) {
+            return auth.notify('A conta principal e a conta atual não podem ser excluídas.', 'error');
+        }
+
+        const name = this.escapeHtml(user.shop_name || user.email || 'este usuário');
+        this.openDeleteConfirm(
+            `Deseja excluir a conta <strong>${name}</strong>? Todos os dados vinculados a ela poderão ser afetados. Esta ação não pode ser desfeita.`,
+            async () => {
+                try {
+                    const response = await auth.apiRequest(`/api/admin/users/${id}`, { method: 'DELETE' });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || data.success === false) {
+                        throw new Error(data.message || 'Não foi possível excluir o usuário.');
+                    }
+
+                    this.closeModal('delete-confirm');
+                    await this.loadUsers();
+                    auth.notify('Usuário excluído com sucesso.', 'success');
+                } catch (err) {
+                    console.error('Erro ao excluir usuário:', err);
+                    auth.notify(err.message || 'Não foi possível excluir o usuário.', 'error');
+                }
+            },
+            { requiresTyping: true }
+        );
     },
 
     cancelUserEdit() {

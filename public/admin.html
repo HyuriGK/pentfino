@@ -867,9 +867,9 @@
                             </div>
                             <div class="input-group-new">
                                 <label>Perfil</label>
-                                <select id="new-user-role">
+                                <select id="new-user-role" onchange="admin.handleUserRoleChange(this.value)">
                                     <option value="operador">Operador</option>
-                                    <option value="administrador" disabled>Administrador principal</option>
+                                    <option value="administrador">Administrador</option>
                                 </select>
                             </div>
                         </div>
