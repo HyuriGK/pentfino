@@ -412,9 +412,12 @@ const admin = {
         try {
             const needsAppointments = ['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission));
             const needsStats = auth.can('dashboard') || auth.can('billing');
+            const today = new Date();
+            const statsDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const statsQuery = `?year=${today.getFullYear()}&month=${today.getMonth() + 1}&date=${statsDate}`;
             const [aptRes, statRes] = await Promise.all([
                 needsAppointments ? auth.apiRequest(`/api/appointments/${auth.user.id}`) : Promise.resolve(null),
-                needsStats ? auth.apiRequest(`/api/stats/${auth.user.id}`) : Promise.resolve(null)
+                needsStats ? auth.apiRequest(`/api/stats/${auth.user.id}${statsQuery}`) : Promise.resolve(null)
             ]);
 
             if (aptRes) {
@@ -1267,8 +1270,16 @@ const admin = {
     },
 
     updateStats(stats) {
-        const revenue = parseFloat(stats.revenue || 0);
-        document.getElementById('stat-revenue').innerText = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        const formatMoney = value => `R$ ${parseFloat(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        const monthlyRevenue = parseFloat(stats.monthlyRevenue ?? stats.revenue ?? 0);
+        const dailyRevenue = parseFloat(stats.dailyRevenue || 0);
+        const monthlyExpenses = parseFloat(stats.monthlyExpenses || 0);
+        const dailyExpenses = parseFloat(stats.dailyExpenses || 0);
+
+        document.getElementById('stat-revenue').innerText = formatMoney(monthlyRevenue);
+        document.getElementById('stat-revenue-today').innerText = `+ ${formatMoney(dailyRevenue)} hoje`;
+        document.getElementById('stat-expense').innerText = formatMoney(monthlyExpenses);
+        document.getElementById('stat-expense-today').innerText = `- ${formatMoney(dailyExpenses)} hoje`;
         document.getElementById('stat-count').innerText = stats.count || 0;
         document.getElementById('stat-scheduled-count').innerText = this.pending.length;
     },

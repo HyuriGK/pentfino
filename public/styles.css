@@ -810,6 +810,25 @@ html.session-restore-pending #auth-view {
     color: var(--text-muted);
 }
 
+.dashboard-stat-caption {
+    margin-top: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.dashboard-stat-caption-positive {
+    color: var(--success);
+}
+
+.dashboard-stat-caption-negative {
+    color: var(--danger);
+}
+
+.dashboard-expense-card {
+    border-left: 1px solid rgba(239, 68, 68, 0.42);
+}
+
 .billing-card .stat-value {
     font-size: 1.75rem !important;
 }
@@ -4314,6 +4333,10 @@ aside nav {
 .admin-light #billing-total-month,
 .admin-light #prof-details-prof-share {
     color: var(--success) !important;
+}
+
+.admin-light #stat-expense {
+    color: var(--danger) !important;
 }
 
 .admin-light .retention-card {

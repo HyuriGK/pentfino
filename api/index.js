@@ -863,32 +863,71 @@ app.delete('/api/appointments/:id', authenticateToken, requireAnyPermission('age
     }
 });
 
-app.get('/api/stats/:barberId', authenticateToken, requireAnyPermission('dashboard', 'billing'), async (req, res) => {
+app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('dashboard', 'billing'), async (req, res) => {
     try {
-        const { barberId } = req.params;
-        // Total from services
+        const barberId = Number(req.params.barberId);
+        const currentDate = new Date();
+        const year = Number(req.query.year) || currentDate.getFullYear();
+        const month = Number(req.query.month) || currentDate.getMonth() + 1;
+        const monthDays = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        const defaultDate = `${year}-${String(month).padStart(2, '0')}-${String(Math.min(currentDate.getDate(), monthDays)).padStart(2, '0')}`;
+        const requestedDate = String(req.query.date || defaultDate).slice(0, 10);
+        const requestedDateParts = requestedDate.split('-').map(Number);
+        const normalizedRequestedDate = requestedDateParts.length === 3 && requestedDateParts.every(Number.isInteger)
+            ? new Date(Date.UTC(requestedDateParts[0], requestedDateParts[1] - 1, requestedDateParts[2])).toISOString().slice(0, 10)
+            : '';
+
+        if (!Number.isInteger(barberId) || !Number.isInteger(year) || year < 2000 || !Number.isInteger(month) || month < 1 || month > 12 || !/^\d{4}-\d{2}-\d{2}$/.test(requestedDate) || normalizedRequestedDate !== requestedDate || requestedDate.slice(0, 7) !== `${year}-${String(month).padStart(2, '0')}`) {
+            return res.status(400).json({ success: false, message: 'Período inválido.' });
+        }
+
+        const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
+        const nextMonthStart = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
+
+        // Service revenue totals, plus the selected month and day.
         const svcResult = await pool.query(`
-            SELECT COALESCE(SUM(COALESCE(s.price, 0)), 0) as revenue, COUNT(a.id) as count
+            SELECT
+                COALESCE(SUM(CASE WHEN a.status = 'completed' THEN COALESCE(s.price, 0) ELSE 0 END), 0) AS revenue,
+                COUNT(*) FILTER (WHERE a.status = 'completed') AS count,
+                COALESCE(SUM(CASE WHEN a.status = 'completed' AND a.appointment_date >= $2::date AND a.appointment_date < $3::date THEN COALESCE(s.price, 0) ELSE 0 END), 0) AS monthly_revenue,
+                COALESCE(SUM(CASE WHEN a.status = 'completed' AND a.appointment_date = $4::date THEN COALESCE(s.price, 0) ELSE 0 END), 0) AS daily_revenue
             FROM appointments a
             LEFT JOIN services s ON a.service_id = s.id
-            WHERE a.barber_id = $1 AND a.status = 'completed'
-        `, [barberId]);
+            WHERE a.barber_id = $1
+        `, [barberId, monthStart, nextMonthStart, requestedDate]);
 
-        // Total from sales
+        // Product sales totals, plus the selected month and day.
         const salesResult = await pool.query(`
-            SELECT COALESCE(SUM(total_price), 0) as revenue
+            SELECT
+                COALESCE(SUM(total_price), 0) AS revenue,
+                COALESCE(SUM(total_price) FILTER (WHERE sale_date >= $2::date AND sale_date < $3::date), 0) AS monthly_revenue,
+                COALESCE(SUM(total_price) FILTER (WHERE sale_date::date = $4::date), 0) AS daily_revenue
             FROM sales
             WHERE barber_id = $1
-        `, [barberId]);
+        `, [barberId, monthStart, nextMonthStart, requestedDate]);
+
+        const expensesResult = await pool.query(`
+            SELECT
+                COALESCE(SUM(amount) FILTER (WHERE expense_date >= $2::date AND expense_date < $3::date), 0) AS monthly_expenses,
+                COALESCE(SUM(amount) FILTER (WHERE expense_date = $4::date), 0) AS daily_expenses
+            FROM expenses
+            WHERE barber_id = $1
+        `, [barberId, monthStart, nextMonthStart, requestedDate]);
 
         const serviceRev = parseFloat(svcResult.rows[0].revenue);
         const salesRev = parseFloat(salesResult.rows[0].revenue);
+        const monthlyRevenue = parseFloat(svcResult.rows[0].monthly_revenue) + parseFloat(salesResult.rows[0].monthly_revenue);
+        const dailyRevenue = parseFloat(svcResult.rows[0].daily_revenue) + parseFloat(salesResult.rows[0].daily_revenue);
 
         res.json({
             revenue: serviceRev + salesRev,
             count: parseInt(svcResult.rows[0].count),
             serviceRevenue: serviceRev,
-            salesRevenue: salesRev
+            salesRevenue: salesRev,
+            monthlyRevenue,
+            dailyRevenue,
+            monthlyExpenses: parseFloat(expensesResult.rows[0].monthly_expenses),
+            dailyExpenses: parseFloat(expensesResult.rows[0].daily_expenses)
         });
     } catch (err) {
         console.error(err);
