@@ -184,6 +184,29 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
+let marketingLeadSchemaPromise;
+const ensureMarketingLeadSchema = () => {
+    if (!marketingLeadSchemaPromise) {
+        marketingLeadSchemaPromise = pool.query(`
+            CREATE TABLE IF NOT EXISTS marketing_leads (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(120) NOT NULL,
+                phone VARCHAR(30) NOT NULL,
+                source VARCHAR(50) NOT NULL DEFAULT 'landing_demo',
+                status VARCHAR(20) NOT NULL DEFAULT 'new',
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                contacted_at TIMESTAMP
+            )
+        `).then(() => pool.query(
+            'CREATE INDEX IF NOT EXISTS marketing_leads_created_at_idx ON marketing_leads (created_at DESC)'
+        )).catch(error => {
+            marketingLeadSchemaPromise = null;
+            throw error;
+        });
+    }
+    return marketingLeadSchemaPromise;
+};
+
 let appointmentPaymentSchemaPromise;
 const ensureAppointmentPaymentSchema = () => {
     if (!appointmentPaymentSchemaPromise) {
@@ -418,6 +441,76 @@ app.post('/api/register', (req, res) => {
         success: false,
         message: 'Novos usuários devem ser criados pelo painel de Administração.'
     });
+});
+
+app.post('/api/public/marketing-leads', async (req, res) => {
+    const name = String(req.body?.name || '').trim().replace(/\s+/g, ' ');
+    const phone = String(req.body?.phone || '').trim();
+
+    if (name.length < 2 || name.length > 120) {
+        return res.status(400).json({ success: false, message: 'Informe um nome válido.' });
+    }
+
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 13) {
+        return res.status(400).json({ success: false, message: 'Informe um telefone válido com DDD.' });
+    }
+
+    try {
+        await ensureMarketingLeadSchema();
+        const result = await pool.query(`
+            INSERT INTO marketing_leads (name, phone, source)
+            VALUES ($1, $2, 'landing_demo')
+            RETURNING id, name, phone, source, status, created_at
+        `, [name, phone]);
+
+        res.status(201).json({ success: true, lead: result.rows[0] });
+    } catch (err) {
+        console.error('Erro ao salvar triagem de marketing:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível registrar sua solicitação.' });
+    }
+});
+
+app.get('/api/admin/marketing-leads', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        await ensureMarketingLeadSchema();
+        const result = await pool.query(`
+            SELECT id, name, phone, source, status, created_at, contacted_at
+            FROM marketing_leads
+            ORDER BY created_at DESC
+        `);
+        res.json({ success: true, leads: result.rows });
+    } catch (err) {
+        console.error('Erro ao carregar leads de marketing:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível carregar as triagens.' });
+    }
+});
+
+app.patch('/api/admin/marketing-leads/:id', authenticateToken, requireAdmin, async (req, res) => {
+    const status = String(req.body?.status || '').trim();
+    if (!['new', 'contacted', 'archived'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Status inválido.' });
+    }
+
+    try {
+        await ensureMarketingLeadSchema();
+        const result = await pool.query(`
+            UPDATE marketing_leads
+            SET status = $1,
+                contacted_at = CASE WHEN $1 = 'contacted' THEN COALESCE(contacted_at, CURRENT_TIMESTAMP) ELSE contacted_at END
+            WHERE id = $2
+            RETURNING id, name, phone, source, status, created_at, contacted_at
+        `, [status, req.params.id]);
+
+        if (!result.rowCount) {
+            return res.status(404).json({ success: false, message: 'Triagem não encontrada.' });
+        }
+
+        res.json({ success: true, lead: result.rows[0] });
+    } catch (err) {
+        console.error('Erro ao atualizar lead de marketing:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível atualizar a triagem.' });
+    }
 });
 
 app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {

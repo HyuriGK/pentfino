@@ -784,6 +784,21 @@
                             <span class="admin-module-card-arrow" aria-hidden="true">&rarr;</span>
                         </button>
 
+                        <button type="button" class="admin-module-card glass" onclick="admin.openAdminPanel('marketing')">
+                            <span class="admin-module-icon admin-module-icon-marketing" aria-hidden="true">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"></path>
+                                    <path d="M8 8h8M8 11.5h5"></path>
+                                </svg>
+                            </span>
+                            <span class="admin-module-card-copy">
+                                <span class="admin-module-card-kicker">Capta&ccedil;&atilde;o da landing</span>
+                                <strong>Marketing e triagens</strong>
+                                <small>Veja quem pediu demonstra&ccedil;&atilde;o e chame no WhatsApp.</small>
+                            </span>
+                            <span class="admin-module-card-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+
                         <button type="button" class="admin-module-card glass admin-module-card-coming-soon" onclick="admin.openAdminPanel('logs')">
                             <span class="admin-module-icon" aria-hidden="true">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -901,6 +916,48 @@
                                 <tbody id="users-table-body"></tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <div id="admin-panel-marketing" class="admin-subpanel hidden" data-admin-panel="marketing">
+                    <div class="admin-subpanel-view-header">
+                        <div>
+                            <span class="admin-panel-kicker">Capta&ccedil;&atilde;o da landing</span>
+                            <h3>Marketing e triagens</h3>
+                            <p>Solicita&ccedil;&otilde;es de demonstra&ccedil;&atilde;o recebidas pelo chat da p&aacute;gina inicial.</p>
+                        </div>
+                        <div class="admin-subpanel-actions">
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="admin.loadMarketingLeads()">Atualizar</button>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="admin.openAdminPanel('overview')">&larr; Voltar</button>
+                        </div>
+                    </div>
+
+                    <div class="marketing-summary-grid">
+                        <div class="stat-card glass marketing-summary-card">
+                            <span class="stat-label">Total de triagens</span>
+                            <strong id="marketing-leads-count" class="stat-value">0</strong>
+                        </div>
+                        <div class="stat-card glass marketing-summary-card marketing-summary-card-highlight">
+                            <span class="stat-label">Aguardando contato</span>
+                            <strong id="marketing-leads-new-count" class="stat-value">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="data-table-container marketing-leads-table-shell">
+                        <table class="data-table marketing-leads-table">
+                            <thead>
+                                <tr>
+                                    <th>Interessado</th>
+                                    <th>Telefone</th>
+                                    <th>Recebido em</th>
+                                    <th>Status</th>
+                                    <th>A&ccedil;&atilde;o</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marketing-leads-table-body">
+                                <tr><td colspan="5" class="marketing-leads-empty">Carregando triagens...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

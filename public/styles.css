@@ -6912,6 +6912,102 @@ button.btn > svg {
     background: var(--landing-teal);
 }
 
+/* Marketing triage inside the administrator panel. */
+.admin-light .admin-module-icon-marketing {
+    color: var(--primary);
+    background: rgba(255, 214, 0, 0.12);
+    border-color: rgba(255, 214, 0, 0.24);
+}
+
+.admin-light .admin-subpanel-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-light .marketing-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.admin-light .marketing-summary-card {
+    min-height: 118px;
+    padding: 22px 24px;
+    border-top: 2px solid var(--border-bright);
+}
+
+.admin-light .marketing-summary-card-highlight {
+    border-top-color: var(--primary);
+}
+
+.admin-light .marketing-summary-card .stat-value {
+    margin-top: 10px;
+    font-size: 2rem;
+}
+
+.admin-light .marketing-leads-table-shell {
+    overflow-x: auto;
+}
+
+.admin-light .marketing-leads-table {
+    min-width: 760px;
+}
+
+.admin-light .marketing-leads-table td strong,
+.admin-light .marketing-leads-table td small {
+    display: block;
+}
+
+.admin-light .marketing-lead-source {
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.admin-light .marketing-lead-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.admin-light .marketing-lead-status.new {
+    color: var(--primary);
+    border-color: rgba(255, 214, 0, 0.34);
+    background: rgba(255, 214, 0, 0.08);
+}
+
+.admin-light .marketing-lead-status.contacted {
+    color: var(--success);
+    border-color: rgba(33, 199, 120, 0.34);
+    background: rgba(33, 199, 120, 0.08);
+}
+
+.admin-light .marketing-lead-status.archived {
+    color: var(--text-muted);
+}
+
+.admin-light .marketing-whatsapp-btn {
+    white-space: nowrap;
+}
+
+.admin-light .marketing-leads-empty {
+    padding: 42px 24px !important;
+    color: var(--text-muted);
+    text-align: center;
+}
+
 @media (max-width: 900px) {
     .landing-body .landing-nav a[href="admin.html"] {
         display: none;

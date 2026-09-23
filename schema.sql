@@ -95,6 +95,18 @@ CREATE TABLE IF NOT EXISTS clients (
     UNIQUE (barber_id, name, phone)
 );
 
+CREATE TABLE IF NOT EXISTS marketing_leads (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    phone VARCHAR(30) NOT NULL,
+    source VARCHAR(50) NOT NULL DEFAULT 'landing_demo',
+    status VARCHAR(20) NOT NULL DEFAULT 'new',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    contacted_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS marketing_leads_created_at_idx ON marketing_leads (created_at DESC);
+
 CREATE TABLE IF NOT EXISTS inventory (
     id SERIAL PRIMARY KEY,
     barber_id INTEGER REFERENCES barbers(id),

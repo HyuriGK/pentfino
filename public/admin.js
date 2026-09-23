@@ -256,6 +256,7 @@ const admin = {
     clients: [],
     allClients: [], // For filtering
     users: [],
+    marketingLeads: [],
 
     professionals: [],
     services: [],
@@ -693,10 +694,11 @@ const admin = {
     },
 
     openAdminPanel(panel = 'overview', options = {}) {
-        const validPanels = ['overview', 'users', 'create', 'logs'];
+        const validPanels = ['overview', 'users', 'create', 'marketing', 'logs'];
         const nextPanel = validPanels.includes(panel) ? panel : 'overview';
         const overview = document.getElementById('admin-panel-overview');
         const usersLayout = document.getElementById('admin-users-layout');
+        const marketing = document.getElementById('admin-panel-marketing');
         const logs = document.getElementById('admin-panel-logs');
         const createPanel = document.querySelector('[data-admin-content-panel="create"]');
         const usersPanel = document.querySelector('[data-admin-content-panel="users"]');
@@ -704,6 +706,7 @@ const admin = {
 
         overview?.classList.toggle('hidden', nextPanel !== 'overview');
         usersLayout?.classList.toggle('hidden', !contentPanelVisible);
+        marketing?.classList.toggle('hidden', nextPanel !== 'marketing');
         logs?.classList.toggle('hidden', nextPanel !== 'logs');
         createPanel?.classList.toggle('hidden', nextPanel !== 'create');
         usersPanel?.classList.toggle('hidden', nextPanel !== 'users');
@@ -711,6 +714,10 @@ const admin = {
 
         if (nextPanel === 'users') {
             this.loadUsers();
+        }
+
+        if (nextPanel === 'marketing') {
+            this.loadMarketingLeads();
         }
 
         if (nextPanel === 'create' && options.reset !== false) {
@@ -766,6 +773,79 @@ const admin = {
         } catch (err) {
             console.error('Load Users Error:', err);
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 24px;">Nao foi possivel carregar os usuarios.</td></tr>';
+        }
+    },
+
+    async loadMarketingLeads() {
+        if (auth.user?.role !== 'administrador') return;
+
+        const tbody = document.getElementById('marketing-leads-table-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = '<tr><td colspan="5" class="marketing-leads-empty">Carregando triagens...</td></tr>';
+
+        try {
+            const res = await auth.apiRequest('/api/admin/marketing-leads');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message || 'Erro ao carregar triagens.');
+
+            this.marketingLeads = Array.isArray(data.leads) ? data.leads : [];
+            const pendingCount = this.marketingLeads.filter(lead => lead.status === 'new').length;
+            document.getElementById('marketing-leads-count').textContent = this.marketingLeads.length;
+            document.getElementById('marketing-leads-new-count').textContent = pendingCount;
+
+            if (!this.marketingLeads.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="marketing-leads-empty">Nenhuma triagem recebida ainda.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = this.marketingLeads.map(lead => {
+                const statusLabel = lead.status === 'contacted' ? 'Contatado' : (lead.status === 'archived' ? 'Arquivado' : 'Novo');
+                const statusClass = lead.status === 'contacted' ? 'contacted' : (lead.status === 'archived' ? 'archived' : 'new');
+                const phone = this.escapeHtml(lead.phone || '--');
+                const receivedAt = lead.created_at ? new Date(lead.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '--';
+                const action = lead.status === 'contacted'
+                    ? `<button type="button" class="btn btn-ghost btn-sm" onclick="admin.openMarketingLeadWhatsapp(${lead.id})">Abrir WhatsApp</button>`
+                    : `<button type="button" class="btn btn-primary btn-sm marketing-whatsapp-btn" onclick="admin.openMarketingLeadWhatsapp(${lead.id})">Chamar no WhatsApp</button>`;
+
+                return `
+                    <tr>
+                        <td><strong>${this.escapeHtml(lead.name)}</strong><small class="marketing-lead-source">Demonstração pelo site</small></td>
+                        <td>${phone}</td>
+                        <td>${receivedAt}</td>
+                        <td><span class="marketing-lead-status ${statusClass}">${statusLabel}</span></td>
+                        <td>${action}</td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (err) {
+            console.error('Load Marketing Leads Error:', err);
+            tbody.innerHTML = '<tr><td colspan="5" class="marketing-leads-empty">Não foi possível carregar as triagens.</td></tr>';
+        }
+    },
+
+    async openMarketingLeadWhatsapp(id) {
+        const lead = this.marketingLeads.find(item => Number(item.id) === Number(id));
+        if (!lead) return;
+
+        const phone = String(lead.phone || '').replace(/\D/g, '');
+        const whatsappPhone = phone.startsWith('55') ? phone : `55${phone}`;
+        const message = `Olá, ${lead.name}! Aqui é da equipe BarberPoint. Recebemos seu pedido de demonstração gratuita. Podemos conversar sobre como organizar melhor a agenda e a rotina da sua barbearia?`;
+        const url = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`;
+        const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+        if (newWindow) newWindow.opener = null;
+
+        if (lead.status !== 'contacted') {
+            try {
+                await auth.apiRequest(`/api/admin/marketing-leads/${lead.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: 'contacted' })
+                });
+                lead.status = 'contacted';
+                await this.loadMarketingLeads();
+            } catch (err) {
+                console.error('Erro ao atualizar status da triagem:', err);
+            }
         }
     },
 
