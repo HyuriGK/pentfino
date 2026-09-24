@@ -1515,7 +1515,7 @@ const admin = {
                     <button type="button" class="btn btn-confirm-appointment${this.confirmedAppointmentIds.has(String(a.id)) ? ' is-confirmed' : ''}"${this.confirmedAppointmentIds.has(String(a.id)) ? ' disabled aria-disabled="true"' : ` onclick="admin.confirmAppointmentWhatsApp(${a.id})"`}>${this.confirmedAppointmentIds.has(String(a.id)) ? 'Confirmado' : 'Confirmar'}</button>
                     <div class="appointment-actions">
                         <button type="button" class="btn appointment-actions-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="appointment-actions-${a.id}" onclick="admin.toggleAppointmentActions(${a.id}, event)">
-                            Ações <span aria-hidden="true">⌄</span>
+                            Ações <span class="appointment-actions-chevron" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="m4 6 4 4 4-4"></path></svg></span>
                         </button>
                         <div id="appointment-actions-${a.id}" class="appointment-actions-menu" role="menu" aria-hidden="true">
                             <button type="button" class="appointment-action-menu-item" role="menuitem" onclick="admin.setAppointmentStatus(${a.id}, 'arrived')">

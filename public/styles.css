@@ -1238,11 +1238,24 @@ html.session-restore-pending #auth-view {
     border-color: var(--border-bright);
 }
 
-.appointment-actions-trigger span {
-    color: var(--primary);
-    font-size: 1rem;
-    line-height: 1;
-    transform: translateY(-1px);
+.appointment-actions-chevron {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: color 160ms ease, transform 180ms ease;
+}
+
+.appointment-actions-chevron svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .appointment-actions-trigger:hover,
@@ -1250,6 +1263,15 @@ html.session-restore-pending #auth-view {
     color: var(--text-main);
     background: rgba(255, 214, 0, 0.08);
     border-color: rgba(255, 214, 0, 0.55);
+}
+
+.appointment-actions-trigger:hover .appointment-actions-chevron,
+.appointment-actions-trigger[aria-expanded="true"] .appointment-actions-chevron {
+    color: var(--primary);
+}
+
+.appointment-actions-trigger[aria-expanded="true"] .appointment-actions-chevron {
+    transform: rotate(180deg);
 }
 
 .appointment-actions-menu {
