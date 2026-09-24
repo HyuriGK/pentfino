@@ -592,12 +592,13 @@
         display: flex;
         justify-content: center;
         width: 52px;
-        min-height: 48px;
+        min-height: 46px;
         margin: 0 auto;
-        padding: 12px;
-        border-color: transparent;
-        background: transparent;
-        box-shadow: none;
+        padding: 10px;
+        border-color: transparent !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 12px;
     }
 
     .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-label {
@@ -619,8 +620,9 @@
     .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:hover,
     .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:focus-visible,
     .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] {
-        border-color: #b9e4c9;
-        background: #eaf8ef;
+        border-color: #b9e4c9 !important;
+        background: #eaf8ef !important;
+        box-shadow: 0 6px 14px rgba(27, 145, 84, 0.08) !important;
     }
 
     .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-icon,
