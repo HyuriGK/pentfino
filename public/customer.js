@@ -13,7 +13,8 @@ const app = {
         time: null,
         client: { name: '', phone: '' }
     },
-    bookedTimes: [],
+    bookedAppointments: [],
+    availabilityLoaded: false,
     myAppointments: [],
     dateStripStart: null,
 
@@ -80,39 +81,108 @@ const app = {
         return (hours * 60) + minutes;
     },
 
+    durationToMinutes(value) {
+        const text = String(value ?? '').trim().toLowerCase().replace(',', '.');
+        const match = text.match(/(\d+(?:\.\d+)?)\s*(hora|horas|h|minuto|minutos|min|m)?/i);
+        if (!match) return 30;
+        const amount = Number(match[1]);
+        if (!Number.isFinite(amount) || amount <= 0) return 30;
+        return /^h/i.test(match[2] || '') ? Math.round(amount * 60) : Math.round(amount);
+    },
+
+    serviceDurationMinutes() {
+        return this.durationToMinutes(this.booking.service?.duration || 30);
+    },
+
+    getBusinessClock() {
+        const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Sao_Paulo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hourCycle: 'h23'
+        }).formatToParts(new Date()).map(part => [part.type, part.value]));
+        return {
+            date: `${parts.year}-${parts.month}-${parts.day}`,
+            minutes: (Number(parts.hour) * 60) + Number(parts.minute)
+        };
+    },
+
+    rangesOverlap(startA, endA, startB, endB) {
+        return startA < endB && startB < endA;
+    },
+
+    getBookingDayContext(dateValue) {
+        const dateKey = String(dateValue || '').slice(0, 10);
+        if ((this.bookingSettings?.blockedDates || []).includes(dateKey)) return null;
+        const dateParts = dateKey.split('-').map(Number);
+        if (dateParts.length !== 3 || dateParts.some(Number.isNaN)) return null;
+
+        const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        if (date.getFullYear() !== dateParts[0] || date.getMonth() !== dateParts[1] - 1 || date.getDate() !== dateParts[2]) return null;
+        const schedule = this.bookingSettings?.weeklySchedule?.[String(date.getDay())];
+        return schedule?.enabled ? { dateKey, schedule } : null;
+    },
+
+    isBookingWindowBlocked(dateValue, timeValue, durationMinutes = this.serviceDurationMinutes()) {
+        const context = this.getBookingDayContext(dateValue);
+        if (!context) return true;
+
+        const start = this.timeToMinutes(timeValue);
+        const end = start + Math.max(1, Number(durationMinutes) || 30);
+        const scheduleStart = this.timeToMinutes(context.schedule.start);
+        const scheduleEnd = this.timeToMinutes(context.schedule.end);
+        if (start < scheduleStart || end > scheduleEnd) return true;
+
+        const breakStart = this.timeToMinutes(this.bookingSettings?.breakStart);
+        const breakEnd = this.timeToMinutes(this.bookingSettings?.breakEnd);
+        if (this.bookingSettings?.breakEnabled !== false && breakStart < breakEnd && this.rangesOverlap(start, end, breakStart, breakEnd)) return true;
+
+        return (this.bookingSettings?.blockedTimes || []).some(block => (
+            block.date === context.dateKey
+            && block.start
+            && block.end
+            && this.rangesOverlap(start, end, this.timeToMinutes(block.start), this.timeToMinutes(block.end))
+        ));
+    },
+
+    isBookedTime(timeValue, durationMinutes = this.serviceDurationMinutes()) {
+        const start = this.timeToMinutes(timeValue);
+        const end = start + Math.max(1, Number(durationMinutes) || 30);
+        return this.bookedAppointments.some(appointment => {
+            const bookedStart = this.timeToMinutes(appointment.time);
+            const bookedEnd = bookedStart + this.durationToMinutes(appointment.duration);
+            return this.rangesOverlap(start, end, bookedStart, bookedEnd);
+        });
+    },
+
     isTimeInPast(dateValue, timeValue) {
         const selectedDate = String(dateValue || '').slice(0, 10);
-        const now = new Date();
-        const today = this.dateToValue(now);
+        const current = this.getBusinessClock();
+        const today = current.date;
         if (selectedDate < today) return true;
         if (selectedDate !== today) return false;
-        return this.timeToMinutes(timeValue) <= (now.getHours() * 60) + now.getMinutes();
+        return this.timeToMinutes(timeValue) <= current.minutes;
     },
 
     getAvailableTimesForDate(dateValue) {
-        const dateKey = String(dateValue || '').slice(0, 10);
-        if ((this.bookingSettings?.blockedDates || []).includes(dateKey)) return [];
-        const dateParts = String(dateValue || '').slice(0, 10).split('-').map(Number);
-        if (dateParts.length !== 3 || dateParts.some(Number.isNaN)) return [];
-
-        const day = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).getDay();
-        const schedule = this.bookingSettings?.weeklySchedule?.[String(day)];
-        if (!schedule?.enabled) return [];
+        const context = this.getBookingDayContext(dateValue);
+        if (!context) return [];
 
         const interval = [15, 30, 60].includes(Number(this.bookingSettings?.intervalMinutes))
             ? Number(this.bookingSettings.intervalMinutes)
             : 60;
-        const start = this.timeToMinutes(schedule.start);
-        const end = this.timeToMinutes(schedule.end);
-        const breakStart = this.timeToMinutes(this.bookingSettings.breakStart);
-        const breakEnd = this.timeToMinutes(this.bookingSettings.breakEnd);
+        const duration = this.serviceDurationMinutes();
+        const start = this.timeToMinutes(context.schedule.start);
+        const end = this.timeToMinutes(context.schedule.end);
         const times = [];
 
-        for (let minutes = start; minutes <= end; minutes += interval) {
-            if (this.bookingSettings.breakEnabled !== false && breakStart < breakEnd && minutes >= breakStart && minutes < breakEnd) continue;
-            const blocked = (this.bookingSettings?.blockedTimes || []).some(block => block.date === dateKey && block.start && block.end && minutes >= this.timeToMinutes(block.start) && minutes < this.timeToMinutes(block.end));
-            if (blocked) continue;
-            times.push(`${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`);
+        for (let minutes = start; minutes + duration <= end; minutes += interval) {
+            const time = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+            if (this.isBookingWindowBlocked(dateValue, time, duration)) continue;
+            times.push(time);
         }
         return times;
     },
@@ -150,7 +220,7 @@ const app = {
         if (!dateInput || !options || !monthLabel) return;
 
         const selectedDate = this.parseDateValue(dateInput.value) || new Date();
-        const minimumDate = this.parseDateValue(dateInput.min) || new Date();
+        const minimumDate = this.parseDateValue(dateInput.min) || this.parseDateValue(this.getBusinessClock().date) || new Date();
         const minimumWeek = this.getWeekStart(minimumDate);
         const startDate = this.parseDateValue(this.dateStripStart) || this.getWeekStart(selectedDate);
         const safeStartDate = startDate < minimumWeek ? minimumWeek : startDate;
@@ -210,7 +280,7 @@ const app = {
     setDefaultDate() {
         const dateInput = document.getElementById('booking-date');
         if (dateInput) {
-            const today = new Date();
+            const today = this.parseDateValue(this.getBusinessClock().date) || new Date();
             dateInput.value = this.dateToValue(today);
             dateInput.min = this.dateToValue(today);
             this.dateStripStart = this.dateToValue(this.getWeekStart(today));
@@ -221,7 +291,7 @@ const app = {
     renderServices() {
         const container = document.getElementById('services-list');
         container.innerHTML = this.services.map(s => {
-            const photoUrl = s.photo_url || '';
+            const photoUrl = this.safeImageUrl(s.photo_url);
             const serviceName = this.escapeHtml(s.name);
             const safePhotoUrl = this.escapeHtml(photoUrl);
             const serviceInitial = this.escapeHtml(String(s.name || 'S').charAt(0).toUpperCase());
@@ -255,11 +325,11 @@ const app = {
         const customTimeSelected = customTimeAllowed && this.booking.time && !this.availableTimes.includes(this.booking.time);
         const dayIsOpen = scheduledTimes.length > 0;
         const timesMarkup = scheduledTimes.map(t => {
-            const isBooked = this.bookedTimes.includes(t);
+            const isBooked = this.isBookedTime(t);
             const isPast = this.isTimeInPast(date, t);
             const isUnavailable = isBooked || isPast;
-            const isSelected = this.booking.time === t && !isPast;
-            const unavailableLabel = isPast ? 'Horário já passado' : 'Horário indisponível';
+            const isSelected = this.booking.time === t && !isPast && !isBooked;
+            const unavailableLabel = isPast ? 'Horário já passado' : 'Horário indisponível para este profissional';
             return `
                 <div class="time-card glass ${isUnavailable ? 'booked' : ''} ${isSelected ? 'selected' : ''}"
                      ${isUnavailable ? `aria-disabled="true" title="${unavailableLabel}"` : `onclick="app.selectTime('${t}', this)"`}>
@@ -325,27 +395,56 @@ const app = {
         document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
         this.booking.service = this.services.find(s => s.id === id);
+        this.booking.professional = null;
+        this.bookedAppointments = [];
+        this.availabilityLoaded = false;
         document.getElementById('btn-next-step').disabled = false;
         
         // Live summary
         document.getElementById('active-booking-summary').classList.remove('hidden');
         document.getElementById('summary-service-name').innerText = this.booking.service.name;
 
-        // Populate professionals for this service (filtering can be added later)
         this.renderProfessionals();
+    },
+
+    getProfessionalsForSelectedService() {
+        const serviceId = Number(this.booking.service?.id);
+        if (!Number.isInteger(serviceId)) return [];
+        return this.professionals.filter(professional => (
+            Array.isArray(professional.services)
+            && professional.services.some(service => Number(service.id) === serviceId)
+        ));
+    },
+
+    safeImageUrl(value) {
+        try {
+            const url = new URL(String(value || ''), window.location.origin);
+            return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+        } catch (_) {
+            return '';
+        }
     },
 
     renderProfessionals() {
         const container = document.getElementById('professionals-list');
-        container.innerHTML = this.professionals.map(p => {
-            const photoUrl = p.photo_url || 'https://via.placeholder.com/40';
+        const professionals = this.getProfessionalsForSelectedService();
+        if (!professionals.length) {
+            container.innerHTML = '<div class="time-empty-state">Nenhum profissional está vinculado a este serviço.</div>';
+            document.getElementById('btn-next-to-details').disabled = true;
+            return;
+        }
+
+        container.innerHTML = professionals.map(p => {
+            const photoUrl = this.safeImageUrl(p.photo_url);
+            const professionalName = this.escapeHtml(p.name);
+            const initial = this.escapeHtml(String(p.name || 'P').charAt(0).toUpperCase());
             return `
                 <div class="service-card glass" onclick="app.selectProfessional(${p.id}, this)">
                     <div style="display:flex; align-items:center; gap:12px;">
                         <div class="prof-avatar-mini">
-                            <img src="${photoUrl}" alt="Foto de ${p.name}">
+                            ${photoUrl ? `<img src="${this.escapeHtml(photoUrl)}" alt="Foto de ${professionalName}">` : `<span aria-hidden="true">${initial}</span>`}
                         </div>
-                        <strong>${p.name}</strong>
+                        <strong>${professionalName}</strong>
                     </div>
                 </div>
             `;
@@ -355,7 +454,9 @@ const app = {
     selectProfessional(id, el) {
         document.querySelectorAll('#professionals-list .service-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
-        this.booking.professional = this.professionals.find(p => p.id === id);
+        this.booking.professional = this.getProfessionalsForSelectedService().find(p => p.id === id);
+        if (!this.booking.professional) return;
+        this.availabilityLoaded = false;
         document.getElementById('btn-next-to-details').disabled = false;
         document.getElementById('summary-prof-name').innerText = this.booking.professional.name;
         
@@ -376,17 +477,30 @@ const app = {
         if (!this.booking.professional || !date) return;
 
         try {
-            const res = await fetch(`/api/appointments/booked/list?barberId=${this.barberId}&professionalId=${this.booking.professional.id}&date=${date}`);
-            this.bookedTimes = await res.json();
+            const params = new URLSearchParams({
+                barberId: String(this.barberId),
+                professionalId: String(this.booking.professional.id),
+                serviceId: String(this.booking.service?.id || ''),
+                date
+            });
+            const res = await fetch(`/api/appointments/booked/list?${params.toString()}`);
+            if (!res.ok) throw new Error('Não foi possível consultar a disponibilidade.');
+            const data = await res.json();
+            this.bookedAppointments = Array.isArray(data) ? data : [];
+            this.availabilityLoaded = true;
             this.renderTimes();
         } catch (err) {
+            this.bookedAppointments = [];
+            this.availabilityLoaded = false;
+            const container = document.getElementById('times-list');
+            if (container) container.innerHTML = '<div class="time-empty-state">Não foi possível carregar os horários deste profissional. Tente novamente.</div>';
             console.error('Erro ao carregar horários ocupados');
         }
     },
 
     selectTime(time, el) {
         const date = document.getElementById('booking-date')?.value;
-        if (this.isTimeInPast(date, time)) {
+        if (this.isTimeInPast(date, time) || this.isBookingWindowBlocked(date, time) || this.isBookedTime(time)) {
             this.renderTimes();
             return;
         }
@@ -515,7 +629,7 @@ const app = {
         const date = document.getElementById('booking-date')?.value;
         if (this.bookingSettings?.allowCustomTime === false || !this.getAvailableTimesForDate(date).length) return;
         const isValidTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-        if (!isValidTime || this.isTimeInPast(date, time)) {
+        if (!isValidTime || this.isTimeInPast(date, time) || this.isBookingWindowBlocked(date, time) || this.isBookedTime(time)) {
             this.booking.time = null;
             document.getElementById('summary-time-val').innerText = '--';
             return;
@@ -545,8 +659,22 @@ const app = {
         const date = document.getElementById('booking-date').value;
 
         const validTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(this.booking.time || '');
+        if (!this.booking.service || !this.booking.professional) {
+            alert('Escolha o serviço e o profissional antes de continuar.');
+            return;
+        }
+        if (!this.availabilityLoaded) {
+            alert('A disponibilidade deste profissional ainda não foi carregada. Tente novamente.');
+            return;
+        }
         if (!validTime || this.isTimeInPast(date, this.booking.time)) {
-            alert('Este horário já passou. Escolha outro horário.');
+            alert('Escolha um horário válido.');
+            this.renderTimes();
+            return;
+        }
+        if (this.isBookingWindowBlocked(date, this.booking.time) || this.isBookedTime(this.booking.time)) {
+            alert('Este horário acabou de ficar indisponível para este profissional. Escolha outro.');
+            this.loadBookedTimes();
             this.renderTimes();
             return;
         }
@@ -578,16 +706,16 @@ const app = {
                     </div>
                     <div class="confirmation-service">
                         <span class="confirmation-label">Serviço escolhido</span>
-                        <strong>${this.booking.service.name}</strong>
+                        <strong>${this.escapeHtml(this.booking.service.name)}</strong>
                     </div>
                     <div class="confirmation-details">
                         <div class="confirmation-row">
                             <span>Data e horário</span>
-                            <strong>${new Date(date).toLocaleDateString('pt-BR')} às ${this.booking.time}</strong>
+                            <strong>${this.escapeHtml(new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR'))} às ${this.escapeHtml(this.booking.time)}</strong>
                         </div>
                         <div class="confirmation-row">
                             <span>Barbeiro</span>
-                            <strong>${this.booking.professional?.name || 'Não selecionado'}</strong>
+                            <strong>${this.escapeHtml(this.booking.professional?.name || 'Não selecionado')}</strong>
                         </div>
                     </div>
                 `;

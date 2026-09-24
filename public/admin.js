@@ -266,7 +266,7 @@ const auth = {
             .split(',')
             .map(value => value.trim())
             .filter(Boolean);
-        return requiredPermissions.length > 0 && requiredPermissions.some(key => this.user?.permissions?.[key] !== false);
+        return requiredPermissions.length > 0 && requiredPermissions.some(key => this.user?.permissions?.[key] === true);
     },
 
     logout() {
@@ -400,7 +400,7 @@ const admin = {
             const firstAvailable = [
             ['agenda', 'agenda'], ['billing', 'billing'], ['clientes', 'clientes'],
             ['vendas', 'vendas'], ['estoque', 'estoque'], ['barbeiros', 'barbeiros'],
-            ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['despesas', 'despesas'], ['configuracoes', 'configuracoes']
+            ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['despesas', 'despesas'], ['relatorios', 'relatorios'], ['configuracoes', 'configuracoes']
             ].find(([permission]) => auth.can(permission));
             if (firstAvailable) this.showTab(firstAvailable[1], { skipLoading: true });
         }
@@ -534,9 +534,9 @@ const admin = {
         try {
             const needsAppointments = ['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission));
             const needsStats = auth.can('dashboard') || auth.can('billing');
-            const today = new Date();
-            const statsDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-            const statsQuery = `?year=${today.getFullYear()}&month=${today.getMonth() + 1}&date=${statsDate}`;
+            const statsDate = this.currentDateValue();
+            const [statsYear, statsMonth] = statsDate.split('-').map(Number);
+            const statsQuery = `?year=${statsYear}&month=${statsMonth}&date=${statsDate}`;
             const [aptRes, statRes] = await Promise.all([
                 needsAppointments ? auth.apiRequest(`/api/appointments/${auth.user.id}`) : Promise.resolve(null),
                 needsStats ? auth.apiRequest(`/api/stats/${auth.user.id}${statsQuery}`) : Promise.resolve(null)
@@ -581,16 +581,21 @@ const admin = {
     },
 
     currentDateValue() {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Sao_Paulo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).formatToParts(new Date()).map(part => [part.type, part.value]));
+        return `${parts.year}-${parts.month}-${parts.day}`;
     },
 
     async loadReports() {
         const fromInput = document.getElementById('report-from');
         const toInput = document.getElementById('report-to');
-        const now = new Date();
-        if (fromInput && !fromInput.value) fromInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-        if (toInput && !toInput.value) toInput.value = this.currentDateValue();
+        const currentDate = this.currentDateValue();
+        if (fromInput && !fromInput.value) fromInput.value = `${currentDate.slice(0, 7)}-01`;
+        if (toInput && !toInput.value) toInput.value = currentDate;
         try {
             const response = await auth.apiRequest(`/api/reports/${auth.user.id}?from=${fromInput.value}&to=${toInput.value}`);
             const data = await response.json();
@@ -653,18 +658,8 @@ const admin = {
         }
     },
 
-    startPolling() {
-        // Refresh data every 30 seconds
-        setInterval(() => {
-            if (auth.user && ['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) {
-                this.loadData();
-                console.log('ðŸ”„ Agenda auto-atualizada');
-            }
-        }, 30000);
-    },
-
     showTab(tab, { skipLoading = false } = {}) {
-        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', relatorios: 'billing,comissoes,despesas,vendas', despesas: 'despesas', clientes: 'clientes', fidelidade: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
+        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', relatorios: 'relatorios', despesas: 'despesas', clientes: 'clientes', fidelidade: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
         if (tab === 'administracao' && auth.user?.role !== 'administrador') {
             auth.notify('Acesso exclusivo do administrador.', 'error');
             return;
@@ -1012,9 +1007,9 @@ const admin = {
 
         const labels = {
             dashboard: 'Dashboard', agenda: 'Agenda', billing: 'Faturamento', despesas: 'Despesas', clientes: 'Clientes',
-            vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços', configuracoes: 'Ajustes'
+            vendas: 'Vendas', estoque: 'Estoque', barbeiros: 'Equipe', comissoes: 'Comissões', servicos: 'Serviços', configuracoes: 'Ajustes', relatorios: 'Relatórios'
         };
-        const enabled = Object.keys(labels).filter(key => user.permissions?.[key] !== false);
+        const enabled = Object.keys(labels).filter(key => user.permissions?.[key] === true);
         if (!enabled.length) return '<span class="permission-chip muted">Sem acesso</span>';
 
         const visible = enabled.slice(0, 2).map(key => `<span class="permission-chip">${labels[key]}</span>`).join('');
@@ -1024,7 +1019,7 @@ const admin = {
 
     setPermissionInputs(permissions = {}, forceAll = false) {
         document.querySelectorAll('#user-permissions-grid input[type="checkbox"]').forEach(input => {
-            input.checked = forceAll || permissions[input.value] !== false;
+            input.checked = forceAll || permissions[input.value] === true;
             input.disabled = forceAll;
         });
     },
@@ -4729,7 +4724,10 @@ const agenda = {
         if (!preserveSource) this.sourceAppointments = appointments;
         this.allAppointments = appointments;
 
-        const today = new Date().toISOString().slice(0, 10);
+        const today = typeof admin !== 'undefined' && typeof admin.currentDateValue === 'function' ? admin.currentDateValue() : (() => {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        })();
         const countToday = appointments.filter(a => String(a.appointment_date).slice(0, 10) === today && a.status !== 'canceled').length;
         const countPending = appointments.filter(a => ['pending', 'confirmed', 'arrived', 'in_progress'].includes(a.status)).length;
         const countCompleted = appointments.filter(a => a.status === 'completed').length;
@@ -4908,7 +4906,6 @@ const ui = {
 window.onload = () => {
     auth.init();
     ui.init();
-    admin.startPolling();
 };
 // Global Modal Interactions
 document.addEventListener('keydown', (e) => {

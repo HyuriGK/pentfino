@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'BarberPoint_fallback_secret';
 const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
 const DEFAULT_MONTHLY_GOAL = 0;
-const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'despesas', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos', 'configuracoes'];
+const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'despesas', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos', 'configuracoes', 'relatorios'];
 const DEFAULT_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map(key => [key, true]));
 const PAYMENT_METHODS = ['cash', 'pix', 'card'];
 const APPOINTMENT_STATUSES = ['pending', 'confirmed', 'arrived', 'in_progress', 'completed', 'no_show', 'canceled'];
@@ -88,6 +88,26 @@ const timeToMinutes = value => {
     return (hours * 60) + minutes;
 };
 
+const durationToMinutes = value => {
+    const text = String(value ?? '').trim().toLowerCase().replace(',', '.');
+    const match = text.match(/(\d+(?:\.\d+)?)\s*(hora|horas|h|minuto|minutos|min|m)?/i);
+    if (!match) return 30;
+    const amount = Number(match[1]);
+    if (!Number.isFinite(amount) || amount <= 0) return 30;
+    return /^h/i.test(match[2] || '') ? Math.round(amount * 60) : Math.round(amount);
+};
+
+const rangesOverlap = (startA, endA, startB, endB) => startA < endB && startB < endA;
+
+const isValidDateValue = value => {
+    const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return false;
+    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    return date.getFullYear() === Number(match[1])
+        && date.getMonth() === Number(match[2]) - 1
+        && date.getDate() === Number(match[3]);
+};
+
 const getCurrentBookingClock = () => {
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Sao_Paulo',
@@ -112,39 +132,106 @@ const isBookingTimeInPast = (dateValue, timeValue) => {
     return date < current.date || (date === current.date && time <= current.minutes);
 };
 
-const getAvailableBookingTimes = (settings, dateValue) => {
+const getBookingDayConfig = (settings, dateValue) => {
     const normalized = normalizeBookingSettings(settings);
     const dateKey = String(dateValue || '').slice(0, 10);
-    if (normalized.blockedDates.includes(dateKey)) return [];
     const parts = String(dateValue || '').slice(0, 10).split('-').map(Number);
-    if (parts.length !== 3 || parts.some(Number.isNaN)) return [];
+    if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
 
     const day = new Date(parts[0], parts[1] - 1, parts[2]).getDay();
     const dayConfig = normalized.weeklySchedule[String(day)];
-    if (!dayConfig?.enabled) return [];
+    if (!dayConfig?.enabled || normalized.blockedDates.includes(dateKey)) return null;
 
-    const start = timeToMinutes(dayConfig.start);
-    const end = timeToMinutes(dayConfig.end);
-    const breakStart = timeToMinutes(normalized.breakStart);
-    const breakEnd = timeToMinutes(normalized.breakEnd);
+    return { normalized, dateKey, dayConfig };
+};
+
+const isBookingWindowBlocked = (settings, dateValue, timeValue, durationMinutes = 30) => {
+    const context = getBookingDayConfig(settings, dateValue);
+    if (!context) return true;
+
+    const start = timeToMinutes(timeValue);
+    const end = start + Math.max(1, Number(durationMinutes) || 30);
+    const scheduleStart = timeToMinutes(context.dayConfig.start);
+    const scheduleEnd = timeToMinutes(context.dayConfig.end);
+    if (start < scheduleStart || end > scheduleEnd) return true;
+
+    const breakStart = timeToMinutes(context.normalized.breakStart);
+    const breakEnd = timeToMinutes(context.normalized.breakEnd);
+    if (context.normalized.breakEnabled && breakStart < breakEnd && rangesOverlap(start, end, breakStart, breakEnd)) return true;
+
+    return context.normalized.blockedTimes.some(block => (
+        block.date === context.dateKey
+        && block.start
+        && block.end
+        && rangesOverlap(start, end, timeToMinutes(block.start), timeToMinutes(block.end))
+    ));
+};
+
+const getAvailableBookingTimes = (settings, dateValue, durationMinutes = 30) => {
+    const context = getBookingDayConfig(settings, dateValue);
+    if (!context) return [];
+
+    const duration = Math.max(1, Number(durationMinutes) || 30);
+    const start = timeToMinutes(context.dayConfig.start);
+    const end = timeToMinutes(context.dayConfig.end);
     const times = [];
 
-    for (let minutes = start; minutes <= end; minutes += normalized.intervalMinutes) {
-        if (normalized.breakEnabled && breakStart < breakEnd && minutes >= breakStart && minutes < breakEnd) continue;
-        const blocked = normalized.blockedTimes.some(block => block.date === dateKey && block.start && block.end && minutes >= timeToMinutes(block.start) && minutes < timeToMinutes(block.end));
-        if (blocked) continue;
+    for (let minutes = start; minutes + duration <= end; minutes += context.normalized.intervalMinutes) {
+        if (isBookingWindowBlocked(context.normalized, dateValue, `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`, duration)) continue;
         times.push(`${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`);
     }
 
     return times;
 };
 
-const isBookingTimeBlocked = (settings, dateValue, timeValue) => {
-    const normalized = normalizeBookingSettings(settings);
-    const dateKey = String(dateValue || '').slice(0, 10);
-    if (normalized.blockedDates.includes(dateKey)) return true;
-    const minutes = timeToMinutes(timeValue);
-    return normalized.blockedTimes.some(block => block.date === dateKey && block.start && block.end && minutes >= timeToMinutes(block.start) && minutes < timeToMinutes(block.end));
+const isBookingTimeBlocked = (settings, dateValue, timeValue, durationMinutes = 30) => (
+    isBookingWindowBlocked(settings, dateValue, timeValue, durationMinutes)
+);
+
+const getBookingDateValue = () => getCurrentBookingClock().date;
+
+const getBookingMonthStart = () => {
+    const date = getBookingDateValue();
+    return `${date.slice(0, 7)}-01`;
+};
+
+const getBookingSelection = async (db, barberId, serviceId, professionalId) => {
+    const result = await db.query(`
+        SELECT s.id AS service_id, s.duration, p.id AS professional_id
+        FROM barbers b
+        JOIN services s ON s.barber_id = b.id AND s.id = $2
+        JOIN professional_services ps ON ps.service_id = s.id AND ps.professional_id = $3
+        JOIN professionals p ON p.id = ps.professional_id AND p.barber_id = b.id
+        WHERE b.id = $1 AND b.is_active = TRUE
+    `, [barberId, serviceId, professionalId]);
+    return result.rows[0] || null;
+};
+
+const findAppointmentConflict = async (db, {
+    barberId,
+    professionalId,
+    appointmentDate,
+    appointmentTime,
+    durationMinutes,
+    excludeId = null
+}) => {
+    const result = await db.query(`
+        SELECT a.id, a.appointment_time, COALESCE(s.duration, '30') AS service_duration
+        FROM appointments a
+        LEFT JOIN services s ON s.id = a.service_id
+        WHERE a.barber_id = $1
+          AND a.professional_id = $2
+          AND a.appointment_date = $3
+          AND a.status NOT IN ('canceled', 'no_show')
+          AND ($4::integer IS NULL OR a.id <> $4)
+    `, [barberId, professionalId, appointmentDate, excludeId]);
+
+    return result.rows.find(row => rangesOverlap(
+        timeToMinutes(appointmentTime),
+        timeToMinutes(appointmentTime) + durationMinutes,
+        timeToMinutes(row.appointment_time),
+        timeToMinutes(row.appointment_time) + durationToMinutes(row.service_duration)
+    )) || null;
 };
 
 const readBookingSettingsRow = (row, overrides = {}) => {
@@ -189,7 +276,7 @@ const normalizePermissions = (permissions, isAdmin = false) => {
         try { source = JSON.parse(source); } catch (_) { source = {}; }
     }
 
-    return Object.fromEntries(PERMISSION_KEYS.map(key => [key, source?.[key] !== false]));
+    return Object.fromEntries(PERMISSION_KEYS.map(key => [key, source?.[key] === true]));
 };
 
 // Auth Middleware
@@ -256,6 +343,12 @@ const ensureOperationalSchema = () => {
             ALTER TABLE inventory ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10,2) NOT NULL DEFAULT 0;
             ALTER TABLE services ADD COLUMN IF NOT EXISTS is_package BOOLEAN NOT NULL DEFAULT FALSE;
             ALTER TABLE services ADD COLUMN IF NOT EXISTS package_sessions INTEGER;
+
+            CREATE TABLE IF NOT EXISTS professional_services (
+                professional_id INTEGER REFERENCES professionals(id) ON DELETE CASCADE,
+                service_id INTEGER REFERENCES services(id) ON DELETE CASCADE,
+                PRIMARY KEY (professional_id, service_id)
+            );
 
             CREATE TABLE IF NOT EXISTS booking_blocks (
                 id SERIAL PRIMARY KEY,
@@ -382,7 +475,7 @@ const ensureCashRegister = async (db, barberId, movementDate, openingBalance = 0
 };
 
 const upsertCashMovement = async ({ db = pool, barberId, sourceType, sourceId, amount, paymentMethod = 'cash', description, movementDate }) => {
-    const date = String(movementDate || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    const date = String(movementDate || getBookingDateValue()).slice(0, 10);
     const register = await ensureCashRegister(db, barberId, date);
     const normalizedAmount = Number(amount);
     const normalizedMethod = normalizePaymentMethod(paymentMethod);
@@ -1094,17 +1187,35 @@ app.get('/api/appointments/:barberId', authenticateToken, requireOwnBarber, requ
 });
 
 app.get('/api/appointments/booked/list', async (req, res) => {
-    const { barberId, professionalId, date } = req.query;
+    const barberId = Number(req.query.barberId);
+    const professionalId = Number(req.query.professionalId);
+    const date = String(req.query.date || '').slice(0, 10);
+    if (!Number.isInteger(barberId) || barberId <= 0 || !Number.isInteger(professionalId) || professionalId <= 0 || !isValidDateValue(date)) {
+        return res.status(400).json({ success: false, message: 'Informe uma barbearia, profissional e data válidos.' });
+    }
     try {
+        const professional = await pool.query(
+            'SELECT id FROM professionals WHERE id = $1 AND barber_id = $2',
+            [professionalId, barberId]
+        );
+        if (!professional.rows.length) {
+            return res.status(400).json({ success: false, message: 'Profissional inválido para esta barbearia.' });
+        }
+
         const result = await pool.query(`
-            SELECT SUBSTRING(appointment_time::text, 1, 5) as time
-            FROM appointments
-            WHERE barber_id = $1 AND professional_id = $2 AND appointment_date = $3 AND status != 'canceled'
+            SELECT SUBSTRING(a.appointment_time::text, 1, 5) AS time,
+                   COALESCE(s.duration, '30') AS duration
+            FROM appointments a
+            LEFT JOIN services s ON s.id = a.service_id
+            WHERE a.barber_id = $1
+              AND a.professional_id = $2
+              AND a.appointment_date = $3
+              AND a.status NOT IN ('canceled', 'no_show')
         `, [barberId, professionalId, date]);
-        res.json(result.rows.map(r => r.time));
+        res.json(result.rows.map(row => ({ time: row.time, duration: row.duration })));
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server Error');
+        res.status(500).json({ success: false, message: 'Não foi possível consultar os horários.' });
     }
 });
 
@@ -1115,11 +1226,11 @@ app.get('/api/public/appointments', async (req, res) => {
     const phone = String(req.query.phone || '').replace(/\D/g, '');
 
     if (!Number.isInteger(barberId) || barberId <= 0) {
-        return res.status(400).json({ success: false, message: 'Barbearia invÃ¡lida.' });
+        return res.status(400).json({ success: false, message: 'Barbearia inválida.' });
     }
 
     if (!/^\d{8,15}$/.test(phone)) {
-        return res.status(400).json({ success: false, message: 'Informe um WhatsApp vÃ¡lido.' });
+        return res.status(400).json({ success: false, message: 'Informe um WhatsApp válido.' });
     }
 
     try {
@@ -1127,7 +1238,7 @@ app.get('/api/public/appointments', async (req, res) => {
             SELECT a.id,
                    TO_CHAR(a.appointment_date, 'DD/MM/YYYY') AS appointment_date_display,
                    SUBSTRING(a.appointment_time::text, 1, 5) AS appointment_time_display,
-                   COALESCE(s.name, 'ServiÃ§o removido') AS service_name,
+                   COALESCE(s.name, 'Serviço removido') AS service_name,
                    COALESCE(p.name, 'Equipe') AS professional_name
             FROM appointments a
             LEFT JOIN services s ON a.service_id = s.id
@@ -1141,59 +1252,69 @@ app.get('/api/public/appointments', async (req, res) => {
         res.json({ success: true, appointments: result.rows });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel consultar os agendamentos.' });
+        res.status(500).json({ success: false, message: 'Não foi possível consultar os agendamentos.' });
     }
 });
 
 app.post('/api/appointments', async (req, res) => {
-    const { barberId, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
+    const barberId = Number(req.body?.barberId);
+    const serviceId = Number(req.body?.serviceId);
+    const professionalId = Number(req.body?.professionalId);
+    const clientName = String(req.body?.clientName || '').trim();
+    const clientPhone = String(req.body?.clientPhone || '').trim();
+    const time = String(req.body?.time || '').slice(0, 5);
+    const date = String(req.body?.date || getBookingDateValue()).slice(0, 10);
     let db;
     try {
         await ensureOperationalSchema();
         await ensureAppointmentPaymentSchema();
-        // Use provided date or today if not provided
-        const apptDate = date || getCurrentBookingClock().date;
-        const normalizedTime = String(time || '').slice(0, 5);
-        if (!BOOKING_TIME_PATTERN.test(normalizedTime)) {
-            return res.status(400).json({ success: false, message: 'Informe um horário válido.' });
+        if (!Number.isInteger(barberId) || barberId <= 0 || !Number.isInteger(serviceId) || serviceId <= 0 || !Number.isInteger(professionalId) || professionalId <= 0) {
+            return res.status(400).json({ success: false, message: 'Barbearia, serviço e profissional são obrigatórios.' });
         }
-        if (isBookingTimeInPast(apptDate, normalizedTime)) {
+        if (clientName.length < 2 || clientName.length > 100 || !/^\d{8,15}$/.test(clientPhone.replace(/\D/g, ''))) {
+            return res.status(400).json({ success: false, message: 'Informe nome e WhatsApp válidos.' });
+        }
+        if (!isValidDateValue(date) || !BOOKING_TIME_PATTERN.test(time)) {
+            return res.status(400).json({ success: false, message: 'Informe data e horário válidos.' });
+        }
+        if (isBookingTimeInPast(date, time)) {
             return res.status(400).json({ success: false, message: 'Este horário já passou. Escolha outro horário.' });
         }
 
-        const bookingSettings = await fetchBookingSettings(barberId);
-        const dateParts = String(apptDate).slice(0, 10).split('-').map(Number);
-        const dateDay = dateParts.length === 3 && dateParts.every(Number.isInteger)
-            ? new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).getDay()
-            : null;
-        const daySettings = dateDay === null ? null : bookingSettings.weeklySchedule[String(dateDay)];
-        const configuredTimes = getAvailableBookingTimes(bookingSettings, apptDate);
-
-        if (!daySettings?.enabled || isBookingTimeBlocked(bookingSettings, apptDate, normalizedTime) || (!bookingSettings.allowCustomTime && !configuredTimes.includes(normalizedTime))) {
-            return res.status(400).json({ success: false, message: 'Este horário não está disponível para a barbearia.' });
+        const selection = await getBookingSelection(pool, barberId, serviceId, professionalId);
+        if (!selection) {
+            return res.status(400).json({ success: false, message: 'O serviço não está disponível para este profissional.' });
         }
 
-        // 0. Check for collision
+        const durationMinutes = durationToMinutes(selection.duration);
+        const bookingSettings = await fetchBookingSettings(barberId);
+        const configuredTimes = getAvailableBookingTimes(bookingSettings, date, durationMinutes);
+
+        if (isBookingTimeBlocked(bookingSettings, date, time, durationMinutes) || (!bookingSettings.allowCustomTime && !configuredTimes.includes(time))) {
+            return res.status(400).json({ success: false, message: 'Este horário não está disponível para o serviço escolhido.' });
+        }
+
         db = await pool.connect();
         await db.query('BEGIN');
-        await db.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${barberId}:${professionalId}:${apptDate}:${normalizedTime}`]);
-        const collision = await db.query(`
-            SELECT id FROM appointments 
-            WHERE barber_id = $1 AND professional_id = $2 AND appointment_date = $3 AND appointment_time = $4 AND status NOT IN ('canceled', 'no_show')
-        `, [barberId, professionalId, apptDate, normalizedTime]);
+        await db.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${barberId}:${professionalId}:${date}`]);
+        const collision = await findAppointmentConflict(db, {
+            barberId,
+            professionalId,
+            appointmentDate: date,
+            appointmentTime: time,
+            durationMinutes
+        });
 
-        if (collision.rows.length > 0) {
+        if (collision) {
             await db.query('ROLLBACK');
-            return res.status(409).json({ success: false, message: 'Este horário já foi reservado para este barbeiro.' });
+            return res.status(409).json({ success: false, message: 'Este horário se sobrepõe a outro atendimento deste profissional.' });
         }
 
-        // 1. Insert the appointment
         const result = await db.query(
             'INSERT INTO appointments (barber_id, service_id, professional_id, client_name, client_phone, appointment_time, appointment_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-            [barberId, serviceId, professionalId, clientName, clientPhone, normalizedTime, apptDate]
+            [barberId, serviceId, professionalId, clientName, clientPhone, time, date]
         );
 
-        // 2. Sync with CRM (clients table) - Always ensure client exists for this Name + Phone combo
         await db.query(`
             INSERT INTO clients (barber_id, name, phone)
             VALUES ($1, $2, $3)
@@ -1206,8 +1327,8 @@ app.post('/api/appointments', async (req, res) => {
     } catch (err) {
         if (db) await db.query('ROLLBACK').catch(() => {});
         console.error(err);
-        if (err.code === '23505') return res.status(409).json({ success: false, message: 'Este horÃ¡rio jÃ¡ foi reservado.' });
-        res.status(500).send('Server Error');
+        if (err.code === '23505') return res.status(409).json({ success: false, message: 'Este horário já foi reservado.' });
+        res.status(500).json({ success: false, message: 'Não foi possível criar o agendamento.' });
     } finally {
         if (db) db.release();
     }
@@ -1216,6 +1337,7 @@ app.post('/api/appointments', async (req, res) => {
 app.patch('/api/appointments/:id', authenticateToken, requireAppointmentMutationPermission, async (req, res) => {
     const { id } = req.params;
     const { status, paymentStatus, paymentMethod, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
+    let db;
     try {
         await ensureOperationalSchema();
         await ensureAppointmentPaymentSchema();
@@ -1255,48 +1377,81 @@ app.patch('/api/appointments/:id', authenticateToken, requireAppointmentMutation
             return res.json({ success: true });
         }
 
-        if (!serviceId || !professionalId || !clientName || !clientPhone || !time || !date) {
+        const normalizedServiceId = Number(serviceId);
+        const normalizedProfessionalId = Number(professionalId);
+        const normalizedName = String(clientName || '').trim();
+        const normalizedPhone = String(clientPhone || '').trim();
+        const normalizedTime = String(time || '').slice(0, 5);
+        const normalizedDate = String(date || '').slice(0, 10);
+
+        if (!Number.isInteger(normalizedServiceId) || normalizedServiceId <= 0
+            || !Number.isInteger(normalizedProfessionalId) || normalizedProfessionalId <= 0
+            || normalizedName.length < 2 || normalizedName.length > 100
+            || !/^\d{8,15}$/.test(normalizedPhone.replace(/\D/g, ''))
+            || !isValidDateValue(normalizedDate) || !BOOKING_TIME_PATTERN.test(normalizedTime)) {
             return res.status(400).json({ success: false, message: 'Preencha todos os dados do agendamento.' });
         }
 
-        const collision = await pool.query(`
-            SELECT id FROM appointments
-            WHERE barber_id = $5
-              AND professional_id = $2
-              AND appointment_date = $3
-              AND appointment_time = $4
-              AND status NOT IN ('canceled', 'no_show')
-              AND id <> $1
-        `, [id, professionalId, date, time, req.user.id]);
-
-        if (collision.rows.length > 0) {
-            return res.status(409).json({ success: false, message: 'Este horário já está reservado para este barbeiro.' });
+        const selection = await getBookingSelection(pool, req.user.id, normalizedServiceId, normalizedProfessionalId);
+        if (!selection) {
+            return res.status(400).json({ success: false, message: 'O serviço não está disponível para este profissional.' });
         }
 
-        const result = await pool.query(`
+        const durationMinutes = durationToMinutes(selection.duration);
+        const bookingSettings = await fetchBookingSettings(req.user.id);
+        const configuredTimes = getAvailableBookingTimes(bookingSettings, normalizedDate, durationMinutes);
+        if (isBookingTimeBlocked(bookingSettings, normalizedDate, normalizedTime, durationMinutes)
+            || (!bookingSettings.allowCustomTime && !configuredTimes.includes(normalizedTime))) {
+            return res.status(400).json({ success: false, message: 'Este horário não está disponível para o serviço escolhido.' });
+        }
+
+        db = await pool.connect();
+        await db.query('BEGIN');
+        await db.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${req.user.id}:${normalizedProfessionalId}:${normalizedDate}`]);
+        const collision = await findAppointmentConflict(db, {
+            barberId: req.user.id,
+            professionalId: normalizedProfessionalId,
+            appointmentDate: normalizedDate,
+            appointmentTime: normalizedTime,
+            durationMinutes,
+            excludeId: Number(id)
+        });
+
+        if (collision) {
+            await db.query('ROLLBACK');
+            return res.status(409).json({ success: false, message: 'Este horário se sobrepõe a outro atendimento deste profissional.' });
+        }
+
+        const result = await db.query(`
             UPDATE appointments
             SET service_id = $1, professional_id = $2, client_name = $3,
                 client_phone = $4, appointment_time = $5, appointment_date = $6
             WHERE id = $7 AND barber_id = $8
             RETURNING *
-        `, [serviceId, professionalId, clientName, clientPhone, time, date, id, req.user.id]);
+        `, [normalizedServiceId, normalizedProfessionalId, normalizedName, normalizedPhone, normalizedTime, normalizedDate, id, req.user.id]);
 
         if (result.rows.length === 0) {
+            await db.query('ROLLBACK');
             return res.status(404).json({ success: false, message: 'Agendamento não encontrado.' });
         }
 
-        await pool.query(`
+        await db.query(`
             INSERT INTO clients (barber_id, name, phone)
             SELECT barber_id, $1, $2 FROM appointments WHERE id = $3
             ON CONFLICT (barber_id, name, phone) DO NOTHING
-        `, [clientName, clientPhone, id]);
+        `, [normalizedName, normalizedPhone, id]);
+
+        await db.query('COMMIT');
 
         await syncAppointmentCashMovement(pool, id, result.rows[0].status, result.rows[0].payment_status, result.rows[0].payment_method);
         await logAudit(req, 'appointment.updated', 'appointment', Number(id), { status: result.rows[0].status });
         res.json({ success: true, appointment: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server Error');
+        if (db) await db.query('ROLLBACK').catch(() => {});
+        res.status(500).json({ success: false, message: 'Não foi possível atualizar o agendamento.' });
+    } finally {
+        if (db) db.release();
     }
 });
 
@@ -1399,6 +1554,13 @@ app.post('/api/waitlist', authenticateToken, requireAnyPermission('agenda'), asy
             const professional = await pool.query('SELECT id FROM professionals WHERE id = $1 AND barber_id = $2', [professionalId, req.user.id]);
             if (!professional.rows.length) return res.status(400).json({ success: false, message: 'Barbeiro inválido.' });
         }
+        if (serviceId && professionalId) {
+            const assignment = await pool.query(
+                'SELECT 1 FROM professional_services WHERE professional_id = $1 AND service_id = $2',
+                [professionalId, serviceId]
+            );
+            if (!assignment.rows.length) return res.status(400).json({ success: false, message: 'O serviço não está disponível para este profissional.' });
+        }
         const result = await pool.query(`
             INSERT INTO waitlist_entries (barber_id, client_name, client_phone, service_id, professional_id, desired_date, notes)
             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
@@ -1431,11 +1593,12 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
     try {
         await ensureOperationalSchema();
         const barberId = Number(req.params.barberId);
-        const currentDate = new Date();
-        const year = Number(req.query.year) || currentDate.getFullYear();
-        const month = Number(req.query.month) || currentDate.getMonth() + 1;
+        const currentDateValue = getBookingDateValue();
+        const [currentYear, currentMonth, currentDay] = currentDateValue.split('-').map(Number);
+        const year = Number(req.query.year) || currentYear;
+        const month = Number(req.query.month) || currentMonth;
         const monthDays = new Date(Date.UTC(year, month, 0)).getUTCDate();
-        const defaultDate = `${year}-${String(month).padStart(2, '0')}-${String(Math.min(currentDate.getDate(), monthDays)).padStart(2, '0')}`;
+        const defaultDate = `${year}-${String(month).padStart(2, '0')}-${String(Math.min(currentDay, monthDays)).padStart(2, '0')}`;
         const requestedDate = String(req.query.date || defaultDate).slice(0, 10);
         const requestedDateParts = requestedDate.split('-').map(Number);
         const normalizedRequestedDate = requestedDateParts.length === 3 && requestedDateParts.every(Number.isInteger)
@@ -1506,7 +1669,8 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
         `, [barberId, monthStart, nextMonthStart]);
 
         const professionalRevenueResult = await pool.query(`
-            SELECT p.id, p.name, COALESCE(SUM(s.price), 0) AS revenue,
+            SELECT p.id, p.name,
+                   COALESCE(SUM(CASE WHEN a.status = 'completed' THEN COALESCE(s.price, 0) ELSE 0 END), 0) AS revenue,
                    COUNT(a.id) FILTER (WHERE a.status = 'completed') AS completed_count
             FROM professionals p
             LEFT JOIN appointments a ON a.professional_id = p.id AND a.barber_id = $1
@@ -1561,7 +1725,7 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
 // Cash register, reports and loyalty
 app.get('/api/cash/register/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing', 'vendas', 'despesas'), async (req, res) => {
     const barberId = Number(req.params.barberId);
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.date || '')) ? String(req.query.date) : new Date().toISOString().slice(0, 10);
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.date || '')) ? String(req.query.date) : getBookingDateValue();
     try {
         await ensureOperationalSchema();
         const register = await ensureCashRegister(pool, barberId, date);
@@ -1591,7 +1755,7 @@ app.get('/api/cash/register/:barberId', authenticateToken, requireOwnBarber, req
 });
 
 app.post('/api/cash/register/open', authenticateToken, requireAnyPermission('billing', 'vendas', 'despesas'), async (req, res) => {
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.date || '')) ? String(req.body.date) : new Date().toISOString().slice(0, 10);
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.date || '')) ? String(req.body.date) : getBookingDateValue();
     const openingBalance = Number(String(req.body?.openingBalance ?? 0).replace(',', '.'));
     if (!Number.isFinite(openingBalance) || openingBalance < 0) return res.status(400).json({ success: false, message: 'Saldo inicial invalido.' });
     try {
@@ -1637,10 +1801,10 @@ app.post('/api/cash/movements', authenticateToken, requireAnyPermission('billing
     }
 });
 
-app.get('/api/reports/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing', 'comissoes', 'despesas', 'vendas'), async (req, res) => {
+app.get('/api/reports/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('relatorios'), async (req, res) => {
     const barberId = Number(req.params.barberId);
-    const from = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.from || '')) ? String(req.query.from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
-    const to = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.to || '')) ? String(req.query.to) : new Date().toISOString().slice(0, 10);
+    const from = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.from || '')) ? String(req.query.from) : getBookingMonthStart();
+    const to = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.to || '')) ? String(req.query.to) : getBookingDateValue();
     try {
         await ensureOperationalSchema();
         const [services, sales, expenses, commissions, topServices, topProducts] = await Promise.all([
@@ -1661,7 +1825,7 @@ app.get('/api/reports/:barberId', authenticateToken, requireOwnBarber, requireAn
         }, expensesByCategory: expenses.rows, topServices: topServices.rows, topProducts: topProducts.rows });
     } catch (err) {
         console.error('Erro ao carregar relatorios:', err);
-        res.status(500).json({ success: false, message: 'Nao foi possivel carregar os relatorios.' });
+        res.status(500).json({ success: false, message: 'Não foi possível carregar os relatórios.' });
     }
 });
 
@@ -1696,8 +1860,9 @@ app.post('/api/loyalty/adjust', authenticateToken, requireAnyPermission('cliente
 
 app.get('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing'), async (req, res) => {
     const barberId = Number(req.params.barberId);
-    const year = Number(req.query.year) || new Date().getFullYear();
-    const month = Number(req.query.month) || new Date().getMonth() + 1;
+    const [currentYear, currentMonth] = getBookingDateValue().split('-').map(Number);
+    const year = Number(req.query.year) || currentYear;
+    const month = Number(req.query.month) || currentMonth;
 
     if (!Number.isInteger(year) || year < 2000 || !Number.isInteger(month) || month < 1 || month > 12) {
         return res.status(400).json({ success: false, message: 'Per\u00EDodo inv\u00E1lido.' });
@@ -1725,8 +1890,9 @@ app.get('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, req
 
 app.put('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing'), async (req, res) => {
     const barberId = Number(req.params.barberId);
-    const year = Number(req.body.year) || new Date().getFullYear();
-    const month = Number(req.body.month) || new Date().getMonth() + 1;
+    const [currentYear, currentMonth] = getBookingDateValue().split('-').map(Number);
+    const year = Number(req.body.year) || currentYear;
+    const month = Number(req.body.month) || currentMonth;
     const amount = Number(String(req.body.amount ?? '').replace(',', '.'));
 
     if (!Number.isInteger(year) || year < 2000 || !Number.isInteger(month) || month < 1 || month > 12 || !Number.isFinite(amount) || amount <= 0) {
@@ -1763,7 +1929,7 @@ app.get('/api/expenses/:barberId', authenticateToken, requireOwnBarber, requireA
         res.json(result.rows);
     } catch (err) {
         console.error('Erro ao carregar despesas:', err);
-        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel carregar as despesas.' });
+        res.status(500).json({ success: false, message: 'Não foi possível carregar as despesas.' });
     }
 });
 
@@ -1793,7 +1959,7 @@ app.post('/api/expenses', authenticateToken, requireAnyPermission('despesas'), a
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Erro ao lançar despesa:', err);
-        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel salvar a despesa.' });
+        res.status(500).json({ success: false, message: 'Não foi possível salvar a despesa.' });
     }
 });
 
@@ -1804,7 +1970,7 @@ app.delete('/api/expenses/:id', authenticateToken, requireAnyPermission('despesa
             [Number(req.params.id), Number(req.user.id)]
         );
         if (!result.rows.length) {
-            return res.status(404).json({ success: false, message: 'Despesa nÃ£o encontrada.' });
+            return res.status(404).json({ success: false, message: 'Despesa não encontrada.' });
         }
         await ensureOperationalSchema();
         await removeCashMovement(pool, req.user.id, 'expense', result.rows[0].id);
@@ -1812,7 +1978,7 @@ app.delete('/api/expenses/:id', authenticateToken, requireAnyPermission('despesa
         res.json({ success: true });
     } catch (err) {
         console.error('Erro ao excluir despesa:', err);
-        res.status(500).json({ success: false, message: 'NÃ£o foi possÃ­vel excluir a despesa.' });
+        res.status(500).json({ success: false, message: 'Não foi possível excluir a despesa.' });
     }
 });
 
@@ -2000,6 +2166,7 @@ app.delete('/api/services/:id', authenticateToken, requireAnyPermission('servico
 // Professionals API
 app.get('/api/professionals/:barberId', async (req, res) => {
     try {
+        await ensureOperationalSchema();
         const { barberId } = req.params;
         const result = await pool.query(`
             SELECT p.*, 
@@ -2034,6 +2201,7 @@ app.post('/api/professionals', authenticateToken, requireAnyPermission('barbeiro
 
 app.get('/api/professional-services/:profId', async (req, res) => {
     try {
+        await ensureOperationalSchema();
         const { profId } = req.params;
         const result = await pool.query(`
             SELECT s.* FROM services s
@@ -2268,7 +2436,7 @@ app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async 
         );
 
         if (inventoryResult.rowCount === 0) {
-            throw new Error('Produto nÃ£o encontrado ou estoque insuficiente');
+            throw new Error('Produto não encontrado ou estoque insuficiente');
         }
 
         const generatesCommission = inventoryResult.rows[0].generate_commission !== false;
@@ -2313,7 +2481,7 @@ app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async 
         }
 
         await recordInventoryMovement(client, barberId, inventoryId, 'sale', -parseInt(quantity), Number(inventoryResult.rows[0].cost_price) || 0, `Venda de ${inventoryResult.rows[0].item_name}`);
-        await upsertCashMovement({ db: client, barberId, sourceType: 'sale', sourceId: saleResult.rows[0].id, amount: parseFloat(totalPrice), paymentMethod, description: `Venda de ${inventoryResult.rows[0].item_name}`, movementDate: new Date().toISOString().slice(0, 10) });
+        await upsertCashMovement({ db: client, barberId, sourceType: 'sale', sourceId: saleResult.rows[0].id, amount: parseFloat(totalPrice), paymentMethod, description: `Venda de ${inventoryResult.rows[0].item_name}`, movementDate: getBookingDateValue() });
 
         await client.query('COMMIT');
         await logAudit(req, 'sale.created', 'sale', saleResult.rows[0].id, { totalPrice });

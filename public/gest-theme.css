@@ -567,11 +567,11 @@
 /* Use the Gest wordmark for visible branding; reserve the square icon for app chrome. */
 .admin-light .sidebar .logo-wordmark-expanded {
     display: block;
-    width: 140px;
-    height: 80px;
-    object-fit: cover;
+    width: 178px;
+    height: 92px;
+    object-fit: contain;
     object-position: center;
-    border-radius: 9px;
+    border-radius: 0;
 }
 
 .admin-light .sidebar .logo {
