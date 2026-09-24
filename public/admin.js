@@ -1521,6 +1521,10 @@ const admin = {
                                 <span class="appointment-action-menu-icon is-primary" aria-hidden="true">✓</span>
                                 <span><strong>Concluir agora</strong><small>Finalizar atendimento</small></span>
                             </button>
+                            <button type="button" class="appointment-action-menu-item is-danger" role="menuitem" onclick="admin.closeAppointmentMenus(); admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">
+                                <span class="appointment-action-menu-icon is-danger" aria-hidden="true">×</span>
+                                <span><strong>Cancelar</strong><small>Encerrar este horário</small></span>
+                            </button>
                         </div>
                     </div>
                     <button type="button" class="btn-queue-cancel" aria-label="Encerrar atendimento de ${this.escapeHtml(a.client_name)}" onclick="admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">×</button>

@@ -1278,6 +1278,11 @@ html.session-restore-pending #auth-view {
     background: rgba(255, 255, 255, 0.07);
 }
 
+.appointment-action-menu-item.is-danger:hover,
+.appointment-action-menu-item.is-danger:focus-visible {
+    background: rgba(237, 58, 64, 0.1);
+}
+
 .appointment-action-menu-item > span:last-child {
     display: grid;
     gap: 2px;
@@ -1317,6 +1322,12 @@ html.session-restore-pending #auth-view {
 .appointment-action-menu-icon.is-primary {
     color: #fff;
     background: rgba(237, 58, 64, 0.16);
+}
+
+.appointment-action-menu-icon.is-danger {
+    color: #ff8b8f;
+    background: rgba(237, 58, 64, 0.13);
+    font-size: 1.2rem;
 }
 
 @keyframes appointment-menu-in {
