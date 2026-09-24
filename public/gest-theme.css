@@ -557,11 +557,11 @@
 /* Use the Gest wordmark for visible branding; reserve the square icon for app chrome. */
 .admin-light .sidebar .logo-wordmark-expanded {
     display: block;
-    width: 100%;
-    height: 98px;
+    width: 140px;
+    height: 56px;
     object-fit: cover;
     object-position: center;
-    border-radius: 12px;
+    border-radius: 9px;
 }
 
 .admin-light .sidebar .logo {
@@ -584,6 +584,50 @@
 
 .admin-light .sidebar.collapsed .logo-icon-collapsed {
     display: block;
+}
+
+/* Keep category shortcuts available when the sidebar is collapsed. */
+@media (min-width: 1025px) {
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title {
+        display: flex;
+        justify-content: center;
+        width: 52px;
+        min-height: 48px;
+        margin: 0 auto;
+        padding: 12px;
+        border-color: transparent;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-label {
+        justify-content: center;
+    }
+
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-label .nav-text,
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-chevron {
+        display: none;
+    }
+
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-icon {
+        width: 20px;
+        height: 20px;
+        color: #6b8578;
+        stroke-width: 1.9;
+    }
+
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:hover,
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:focus-visible,
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] {
+        border-color: #b9e4c9;
+        background: #eaf8ef;
+    }
+
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-icon,
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:hover .nav-group-icon,
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:focus-visible .nav-group-icon {
+        color: var(--primary);
+    }
 }
 
 .admin-light .logo-wordmark-auth {
