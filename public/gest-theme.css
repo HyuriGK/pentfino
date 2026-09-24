@@ -558,7 +558,7 @@
 .admin-light .sidebar .logo-wordmark-expanded {
     display: block;
     width: 140px;
-    height: 56px;
+    height: 80px;
     object-fit: cover;
     object-position: center;
     border-radius: 9px;
@@ -634,7 +634,7 @@
 
 .admin-light .logo-wordmark-auth {
     width: 280px;
-    height: 98px;
+    height: 160px;
     object-fit: cover;
     object-position: center;
     border-radius: 14px;
@@ -649,7 +649,7 @@
 
 .landing-body .landing-wordmark {
     width: 184px;
-    height: 80px;
+    height: 106px;
     object-fit: cover;
     object-position: center;
     border-radius: 10px;
@@ -658,7 +658,7 @@
 
 .booking-body .booking-wordmark {
     width: 174px;
-    height: 68px;
+    height: 100px;
     object-fit: cover;
     object-position: center;
     border-radius: 10px;
@@ -666,7 +666,7 @@
 
 .booking-body .booking-mobile-wordmark {
     width: 136px;
-    height: 56px;
+    height: 80px;
     object-fit: cover;
     object-position: center;
     border-radius: 9px;
