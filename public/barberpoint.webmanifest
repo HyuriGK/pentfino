@@ -1,6 +1,6 @@
 {
-    "name": "BarberPoint",
-    "short_name": "BarberPoint",
+    "name": "Gest",
+    "short_name": "Gest",
     "description": "Gestão de barbearia e agendamentos",
     "start_url": "./admin.html",
     "scope": "./",

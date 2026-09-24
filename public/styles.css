@@ -4032,7 +4032,7 @@ aside nav {
     max-height: 450px !important;
 }
 
-/* BarberPoint Admin Light Theme */
+/* Gest Admin Light Theme */
 .admin-light {
     --bg-dark: #f4f6f8;
     --bg-card: #ffffff;
@@ -4527,7 +4527,7 @@ aside nav {
     transform: translateY(-2px) scale(1.015);
 }
 
-/* Unified BarberPoint product theme */
+/* Unified Gest product theme */
 .admin-light,
 .booking-body {
     --bg-dark: #0c141b;

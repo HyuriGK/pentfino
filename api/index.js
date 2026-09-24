@@ -652,7 +652,7 @@ pool.on('connect', () => {
     `, [
         ADMIN_EMAIL,
         '$2b$10$ZXI327CmozKhoq54XaBFYeROX3ZYM8cfk98Oo4dTDzLgmsR9V46lm',
-        'Painel BarberPoint'
+        'Painel Gest'
     ]).catch(e => console.error('Migration error (admin user):', e));
 
 });
@@ -2358,7 +2358,7 @@ app.delete('/api/sales/:id', authenticateToken, requireAnyPermission('vendas'), 
 
 if (require.main === module) {
     app.listen(port, () => {
-        console.log(`🚀 BarberPoint Server running on http://localhost:${port}`);
+        console.log(`🚀 Gest Server running on http://localhost:${port}`);
     });
 }
 

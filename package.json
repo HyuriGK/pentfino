@@ -1,7 +1,7 @@
 {
   "name": "barberpoint",
   "version": "1.0.0",
-  "description": "BarberPoint - sistema de gestao para barbearias",
+  "description": "Gest - sistema de gestao para barbearias",
   "main": "api/index.js",
   "scripts": {
     "start": "node api/index.js",
