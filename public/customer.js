@@ -528,6 +528,7 @@ const app = {
     },
 
     showStep(stepId) {
+        document.body.classList.toggle('booking-success-active', stepId === 'success');
         document.getElementById('booking-entry')?.classList.add('hidden');
         document.getElementById('my-appointments-panel')?.classList.add('hidden');
         document.getElementById('booking-flow')?.classList.remove('hidden');
