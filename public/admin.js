@@ -382,12 +382,21 @@ const admin = {
             : '-----';
     },
 
+    renderFinancialValue(value, isVisible = true) {
+        const text = String(value ?? '');
+        const match = text.match(/^(.*?)(R\$)\s*([-\d.,]+)(.*)$/);
+        if (!match) return this.escapeHtml(isVisible ? text : this.maskFinancialValue(text));
+
+        const amount = isVisible ? match[3] : '-----';
+        return `${this.escapeHtml(match[1])}<span class="financial-money"><span class="financial-currency">R$</span><span class="financial-amount">${amount}</span></span>${this.escapeHtml(match[4])}`;
+    },
+
     applyFinancialVisibility() {
         const isVisible = this.financialValuesVisible;
         document.querySelectorAll('[data-financial-value]').forEach(element => {
             const visibleValue = element.dataset.visibleValue ?? element.textContent;
             element.dataset.visibleValue = visibleValue;
-            element.textContent = isVisible ? visibleValue : this.maskFinancialValue(visibleValue);
+            element.innerHTML = this.renderFinancialValue(visibleValue, isVisible);
         });
         document.querySelectorAll('[data-financial-toggle]').forEach(card => {
             card.classList.toggle('is-values-hidden', !isVisible);
@@ -400,7 +409,7 @@ const admin = {
         const element = document.getElementById(id);
         if (!element) return;
         element.dataset.visibleValue = value;
-        element.textContent = this.financialValuesVisible ? value : this.maskFinancialValue(value);
+        element.innerHTML = this.renderFinancialValue(value, this.financialValuesVisible);
     },
 
     setupAppointmentAlertSound() {

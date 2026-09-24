@@ -1030,6 +1030,23 @@ html.session-restore-pending #auth-view {
     margin-bottom: 6px;
 }
 
+[data-financial-value] {
+    white-space: nowrap;
+}
+
+.financial-money {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.1em;
+    white-space: nowrap;
+    letter-spacing: normal;
+}
+
+.financial-money .financial-currency,
+.financial-money .financial-amount {
+    letter-spacing: -0.04em;
+}
+
 .stat-label {
     text-transform: uppercase;
     font-size: 0.64rem;
@@ -1070,9 +1087,8 @@ html.session-restore-pending #auth-view {
     outline-offset: 3px;
 }
 
-.dashboard-financial-toggle.is-values-hidden .stat-value {
-    /* Keep the currency prefix visually attached to the masked amount. */
-    letter-spacing: -2px;
+.dashboard-financial-toggle [data-financial-value] {
+    letter-spacing: normal;
 }
 
 .dashboard-expense-card {
