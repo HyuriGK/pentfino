@@ -396,6 +396,57 @@
     color: #168653 !important;
 }
 
+/* Sidebar controls must stay inside the Gest green-and-white palette. */
+.admin-light .sidebar-nav-scroll nav .nav-group-title {
+    color: #527063 !important;
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 4px 12px rgba(27, 98, 60, 0.04) !important;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title:hover,
+.admin-light .sidebar-nav-scroll nav .nav-group-title:focus-visible {
+    color: #13794c !important;
+    background: #effaf4 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] {
+    color: #13794c !important;
+    background: #eaf8ef !important;
+    border-color: #a9d8b9 !important;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-chevron,
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="false"] .nav-group-chevron {
+    color: #6c9b82 !important;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-chevron {
+    color: var(--primary) !important;
+}
+
+.admin-light .queue-search {
+    color: var(--text-muted) !important;
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 8px 20px rgba(27, 98, 60, 0.05) !important;
+}
+
+.admin-light .queue-search:focus-within {
+    background: #ffffff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(38, 184, 120, 0.13) !important;
+}
+
+.admin-light .queue-search input {
+    color: var(--text-main) !important;
+}
+
+.admin-light .queue-search input::placeholder {
+    color: #91a49a !important;
+}
+
 /* Public booking surface */
 .booking-body,
 .booking-body.booking-theme-classic,
