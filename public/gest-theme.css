@@ -1,0 +1,544 @@
+/* Gest visual refresh: light green and white product theme. */
+
+.admin-light {
+    --bg-dark: #f5fbf7;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --primary: #26b878;
+    --primary-hover: #169c60;
+    --accent: #20a96e;
+    --text-main: #173629;
+    --text-muted: #6b7f73;
+    --border: #dcebe1;
+    --border-bright: #b9d8c4;
+    --danger: #d94d5b;
+    --success: #1ca568;
+    --shadow: 0 18px 44px rgba(27, 98, 60, 0.09);
+    background-color: var(--bg-dark) !important;
+    background-image:
+        radial-gradient(circle at 92% 8%, rgba(38, 184, 120, 0.12), transparent 30%),
+        radial-gradient(rgba(38, 184, 120, 0.08) 1px, transparent 1px) !important;
+    background-size: 100% 100%, 28px 28px !important;
+    color: var(--text-main);
+}
+
+.admin-light .auth-visual-side {
+    background:
+        radial-gradient(circle at 80% 20%, rgba(38, 184, 120, 0.18), transparent 36%),
+        linear-gradient(135deg, #ffffff 0%, #ecfaf2 100%) !important;
+    border-right-color: var(--border) !important;
+}
+
+.admin-light .auth-visual-overlay {
+    background-image: radial-gradient(rgba(38, 184, 120, 0.1) 1px, transparent 1px) !important;
+}
+
+.admin-light .auth-form-side {
+    background: #f8fcfa !important;
+}
+
+.admin-light .auth-card-new {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 24px 60px rgba(27, 98, 60, 0.1) !important;
+}
+
+.admin-light .auth-hero-text,
+.admin-light .auth-title,
+.admin-light .modal-title,
+.admin-light .dashboard-title,
+.admin-light .list-header h2,
+.admin-light .queue-header h2,
+.admin-light .prof-card-info h3,
+.admin-light .inventory-card-title,
+.admin-light .client-info h4 {
+    color: var(--text-main) !important;
+}
+
+.admin-light .auth-eyebrow,
+.admin-light #current-date {
+    color: var(--primary) !important;
+}
+
+.admin-light .auth-subtext,
+.admin-light .auth-description {
+    color: var(--text-muted) !important;
+}
+
+.admin-light .badge {
+    color: #148754 !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.admin-light .sidebar {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-right-color: var(--border) !important;
+    box-shadow: 12px 0 36px rgba(27, 98, 60, 0.08) !important;
+}
+
+.admin-light .sidebar-header {
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light .logo-text {
+    color: var(--text-main) !important;
+}
+
+.admin-light .nav-item {
+    color: #698076 !important;
+}
+
+.admin-light .nav-item:hover {
+    color: var(--text-main) !important;
+    background: #f0fbf5 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .nav-item.active {
+    color: #13794c !important;
+    background: #e5f8ed !important;
+    border-color: #a9d8b9 !important;
+    box-shadow: 0 8px 20px rgba(38, 184, 120, 0.14) !important;
+}
+
+.admin-light .nav-item.active svg {
+    color: var(--primary) !important;
+}
+
+.admin-light .dashboard-header {
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light .glass,
+.admin-light .stat-card,
+.admin-light .professional-card,
+.admin-light .inventory-card,
+.admin-light .billing-chart-container,
+.admin-light .admin-user-form,
+.admin-light .dashboard-insight-card,
+.admin-light .waitlist-panel,
+.admin-light .cash-register-panel,
+.admin-light .report-card,
+.admin-light .loyalty-panel {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.admin-light .glass:hover,
+.admin-light .stat-card:hover,
+.admin-light .professional-card:hover,
+.admin-light .inventory-card:hover {
+    border-color: var(--border-bright) !important;
+    box-shadow: 0 20px 45px rgba(27, 98, 60, 0.13) !important;
+}
+
+.admin-light .stat-card::before {
+    background: var(--primary) !important;
+}
+
+.admin-light .stat-label,
+.admin-light .dashboard-stat-caption,
+.admin-light .dashboard-date-line {
+    color: var(--text-muted) !important;
+}
+
+.admin-light .stat-value,
+.admin-light #billing-goal,
+.admin-light #modal-sale-total,
+.admin-light .inventory-card-price,
+.admin-light .dashboard-mini-metrics strong {
+    color: var(--text-main) !important;
+}
+
+.admin-light #stat-revenue,
+.admin-light #billing-total-month,
+.admin-light #prof-details-prof-share,
+.admin-light .dashboard-professional-row strong {
+    color: var(--success) !important;
+}
+
+.admin-light #stat-expense {
+    color: var(--danger) !important;
+}
+
+.admin-light .appointment-item,
+.admin-light .waitlist-item,
+.admin-light .booking-block-item {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .appointment-item:hover,
+.admin-light .waitlist-item:hover,
+.admin-light .booking-block-item:hover {
+    background: #f4fcf7 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .input-group-new input,
+.admin-light .input-group-new select,
+.admin-light textarea,
+.admin-light .glass-select,
+.admin-light #agenda-professional-filter,
+.admin-light .waitlist-form input,
+.admin-light .waitlist-form select {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
+    color-scheme: light !important;
+}
+
+.admin-light .input-group-new input::placeholder,
+.admin-light .waitlist-form input::placeholder {
+    color: #91a49a !important;
+}
+
+.admin-light .input-group-new input:focus,
+.admin-light .input-group-new select:focus,
+.admin-light textarea:focus,
+.admin-light .glass-select:focus,
+.admin-light #agenda-professional-filter:focus,
+.admin-light .waitlist-form input:focus,
+.admin-light .waitlist-form select:focus {
+    background: #ffffff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(38, 184, 120, 0.13) !important;
+}
+
+.admin-light .btn-primary,
+.admin-light .waitlist-form .btn-primary {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 9px 20px rgba(38, 184, 120, 0.18) !important;
+}
+
+.admin-light .btn-primary:hover,
+.admin-light .waitlist-form .btn-primary:hover {
+    background: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 24px rgba(38, 184, 120, 0.24) !important;
+}
+
+.admin-light .btn-ghost,
+.admin-light .waitlist-panel > .section-toolbar > .btn-ghost {
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .btn-ghost:hover,
+.admin-light .waitlist-panel > .section-toolbar > .btn-ghost:hover {
+    background: #effaf4 !important;
+    border-color: var(--primary) !important;
+    color: #13794c !important;
+}
+
+.admin-light .btn-confirm-appointment {
+    background: #1eaa67 !important;
+    border-color: #1eaa67 !important;
+}
+
+.admin-light .btn-confirm-appointment:hover {
+    background: #168d55 !important;
+    border-color: #168d55 !important;
+}
+
+.admin-light .data-table {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .data-table th {
+    color: #527063 !important;
+    background: #f1faf4 !important;
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light .data-table td,
+.admin-light .services-table .service-row td {
+    color: var(--text-main) !important;
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light .data-table tr:hover td,
+.admin-light .services-table .service-row:hover td {
+    background: #f4fcf7 !important;
+}
+
+.admin-light .service-chip,
+.admin-light .professional-badge,
+.admin-light .svc-tag,
+.admin-light .role-pill,
+.admin-light .prof-commission-strip span,
+.admin-light .payment-method-pill,
+.admin-light .inventory-movement-badge,
+.admin-light .loyalty-points-pill,
+.admin-light .audit-action-chip {
+    color: #4e7060 !important;
+    background: #f0faf4 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .service-price,
+.admin-light .month-btn.active {
+    color: #ffffff !important;
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+.admin-light .empty-state,
+.admin-light .dashboard-mini-metrics div {
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .empty-state-icon,
+.admin-light .service-initial,
+.admin-light .prof-card-avatar,
+.admin-light .dashboard-insight-icon {
+    color: #168653 !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.admin-light .modal-overlay,
+.admin-light .modal-side-panel {
+    background: rgba(19, 67, 43, 0.24) !important;
+}
+
+.admin-light .modal-content,
+.admin-light .modal-side-panel .modal-content,
+.admin-light .billing-day-details-content {
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 30px 80px rgba(27, 98, 60, 0.18) !important;
+}
+
+.admin-light .btn-icon-close,
+.admin-light .qty-btn,
+.admin-light .card-action-btn {
+    background: #f6fbf8 !important;
+    border-color: var(--border) !important;
+    color: var(--text-muted) !important;
+}
+
+.admin-light .btn-icon-close:hover,
+.admin-light .qty-btn:hover,
+.admin-light .card-action-btn:hover {
+    background: #e7f8ee !important;
+    border-color: var(--primary) !important;
+    color: #168653 !important;
+}
+
+.admin-light .fc {
+    --fc-border-color: var(--border);
+    --fc-page-bg-color: #ffffff;
+    --fc-neutral-bg-color: #f4fbf7;
+    color: var(--text-main);
+}
+
+.admin-light .fc .fc-button-primary,
+.admin-light .fc .fc-button-primary:hover,
+.admin-light .fc .fc-button-active {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+.admin-light .fc-day-today {
+    background: #eaf8ef !important;
+}
+
+.admin-light .fc-daygrid-day-number {
+    color: #527063 !important;
+}
+
+.admin-light .fc-day-today .fc-daygrid-day-number,
+.admin-light .fc-day-kpi {
+    color: #ffffff !important;
+    background: var(--primary) !important;
+}
+
+.admin-light ::-webkit-scrollbar-track,
+.booking-body ::-webkit-scrollbar-track {
+    background: #edf8f1 !important;
+}
+
+.admin-light ::-webkit-scrollbar-thumb,
+.booking-body ::-webkit-scrollbar-thumb {
+    background: #a8d2b7 !important;
+}
+
+.admin-light .appointment-actions-menu {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 18px 38px rgba(27, 98, 60, 0.16) !important;
+}
+
+.admin-light .appointment-action-menu-item:hover,
+.admin-light .appointment-action-menu-item:focus-visible {
+    background: #effaf4 !important;
+}
+
+.admin-light .waitlist-form input:focus,
+.admin-light .waitlist-form select:focus {
+    border-color: var(--primary) !important;
+}
+
+.admin-light .cash-register-status,
+.admin-light .cash-register-status.is-closed {
+    background: #e6f8ed !important;
+    color: #168653 !important;
+}
+
+/* Public booking surface */
+.booking-body,
+.booking-body.booking-theme-classic,
+.booking-body.booking-theme-gold,
+.booking-body.booking-theme-minimal,
+.booking-body.booking-theme-red,
+.booking-body.booking-theme-graphite,
+.booking-body.booking-theme-ocean {
+    --primary: #26b878;
+    --primary-hover: #169c60;
+    --accent: #20a96e;
+    --bg-dark: #f5fbf7;
+    --bg-card: #ffffff;
+    --bg-sidebar: #edf9f1;
+    --text-main: #173629;
+    --text-muted: #6b7f73;
+    --border: #dcebe1;
+    --border-bright: #b9d8c4;
+    background: #f5fbf7 !important;
+    background-image: none !important;
+    color: var(--text-main);
+}
+
+.booking-body .booking-sidebar {
+    background:
+        radial-gradient(circle at 72% 20%, rgba(38, 184, 120, 0.17), transparent 34%),
+        linear-gradient(145deg, #ffffff 0%, #eaf8ef 100%) !important;
+    border-right-color: var(--border) !important;
+}
+
+.booking-body .booking-sidebar::after {
+    background-image: radial-gradient(rgba(38, 184, 120, 0.1) 1px, transparent 1px) !important;
+}
+
+.booking-body .sidebar-desc,
+.booking-body .booking-sidebar-steps span {
+    color: var(--text-muted) !important;
+}
+
+.booking-body .booking-sidebar-steps span {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border-color: var(--border) !important;
+}
+
+.booking-body .booking-sidebar-steps b,
+.booking-body .step-count,
+.booking-body .confirmation-service strong {
+    color: var(--primary) !important;
+}
+
+.booking-body .booking-summary-box #active-booking-summary,
+.booking-body .custom-time-picker,
+.booking-body .success-card,
+.booking-body .service-card,
+.booking-body .time-card {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 14px 34px rgba(27, 98, 60, 0.07) !important;
+}
+
+.booking-body .booking-main {
+    background: #ffffff !important;
+}
+
+.booking-body .step-count {
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.booking-body .service-card:hover,
+.booking-body .time-card:hover {
+    background: #f1fbf5 !important;
+    border-color: var(--primary) !important;
+}
+
+.booking-body .service-card.selected,
+.booking-body .time-card.selected,
+.booking-body .time-card-other.selected {
+    color: #ffffff !important;
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 10px 22px rgba(38, 184, 120, 0.18) !important;
+}
+
+.booking-body .service-card .price {
+    color: var(--primary) !important;
+}
+
+.booking-body .btn-primary {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+.booking-body .btn-primary:hover {
+    background: var(--primary-hover) !important;
+    box-shadow: 0 12px 28px rgba(38, 184, 120, 0.2) !important;
+}
+
+.booking-body .btn-ghost {
+    color: var(--text-main) !important;
+    border-color: var(--border-bright) !important;
+    background: #ffffff !important;
+}
+
+.booking-body .time-card.booked {
+    color: #9aaa9f !important;
+    background: #f1f5f3 !important;
+}
+
+.booking-body .custom-time-picker input,
+.booking-body .input-group-modern input,
+.booking-body #booking-date {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    color-scheme: light !important;
+}
+
+.booking-body .custom-time-picker input:focus,
+.booking-body .input-group-modern input:focus,
+.booking-body #booking-date:focus {
+    border-color: var(--primary) !important;
+}
+
+/* Landing page: align the public marketing surface with Gest. */
+.landing-body {
+    --landing-surface: #f5fbf7;
+    --landing-card: #ffffff;
+    --landing-ink: #173629;
+    --landing-muted: #6b7f73;
+    --landing-line: #dcebe1;
+    --landing-teal: #26b878;
+    --landing-teal-dark: #158b57;
+    background: var(--landing-surface) !important;
+    color: var(--landing-ink);
+}
+
+.landing-body .consultation-content .btn-premium {
+    background: var(--landing-teal) !important;
+    color: #ffffff !important;
+}
+
+.landing-body .consultation-content .btn-premium:hover {
+    background: var(--landing-teal-dark) !important;
+}
