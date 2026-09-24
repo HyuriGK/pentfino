@@ -1667,7 +1667,9 @@ const admin = {
         this.setFinancialValue('stat-expense-today', `- ${formatMoney(dailyExpenses)} hoje`);
         this.setFinancialValue('stat-profit', formatMoney(monthlyProfit));
         document.getElementById('stat-count').innerText = stats.count || 0;
-        document.getElementById('stat-scheduled-count').innerText = stats.activeToday ?? this.pending.length;
+        document.getElementById('stat-count-today').innerText = `${stats.completedToday ?? 0} hoje`;
+        document.getElementById('stat-scheduled-count').innerText = stats.activeMonth ?? this.pending.length;
+        document.getElementById('stat-scheduled-today').innerText = `${stats.activeToday ?? 0} hoje`;
         document.getElementById('stat-new-clients').innerText = stats.newClients ?? 0;
         document.getElementById('stat-average-ticket').innerText = `Ticket médio: ${formatMoney(stats.averageTicket || 0)}`;
         document.getElementById('dashboard-active-today').innerText = stats.activeToday ?? 0;

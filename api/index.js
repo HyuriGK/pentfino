@@ -1477,6 +1477,7 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
                 COUNT(*) FILTER (WHERE appointment_date = $2::date AND status = 'completed') AS completed_today,
                 COUNT(*) FILTER (WHERE appointment_date = $2::date AND status = 'no_show') AS no_show_today,
                 COUNT(*) FILTER (WHERE appointment_date = $2::date AND status = 'canceled') AS canceled_today,
+                COUNT(*) FILTER (WHERE appointment_date >= $3::date AND appointment_date < $4::date AND status NOT IN ('canceled', 'no_show')) AS active_month,
                 COUNT(*) FILTER (WHERE appointment_date >= $3::date AND appointment_date < $4::date AND status = 'no_show') AS no_show_month,
                 COUNT(*) FILTER (WHERE appointment_date >= $3::date AND appointment_date < $4::date AND status = 'canceled') AS canceled_month,
                 COUNT(*) FILTER (WHERE appointment_date >= $3::date AND appointment_date < $4::date AND status = 'completed') AS completed_month
@@ -1518,7 +1519,7 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
 
         res.json({
             revenue: serviceRev + salesRev,
-            count: parseInt(svcResult.rows[0].count),
+            count: completedMonth,
             serviceRevenue: serviceRev,
             salesRevenue: salesRev,
             monthlyRevenue,
@@ -1527,6 +1528,7 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
             dailyExpenses: parseFloat(expensesResult.rows[0].daily_expenses),
             monthlyProfit: monthlyRevenue - parseFloat(expensesResult.rows[0].monthly_expenses),
             activeToday: Number(appointmentMetrics.active_today || 0),
+            activeMonth: Number(appointmentMetrics.active_month || 0),
             completedToday: Number(appointmentMetrics.completed_today || 0),
             noShowToday: Number(appointmentMetrics.no_show_today || 0),
             canceledToday: Number(appointmentMetrics.canceled_today || 0),
