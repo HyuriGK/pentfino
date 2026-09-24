@@ -474,6 +474,86 @@
     }
 }
 
+/* Agenda surfaces: remove the remaining dark gray blocks from every view. */
+.admin-light .agenda-summary-card,
+.admin-light .agenda-calendar,
+.admin-light .agenda-calendar .fc-scrollgrid,
+.admin-light .agenda-calendar .fc-scrollgrid-section > *,
+.admin-light .agenda-calendar .fc-daygrid-day,
+.admin-light .agenda-calendar .fc-timegrid-col,
+.admin-light .agenda-calendar .fc-timegrid-slots table,
+.admin-light .agenda-calendar .fc-timegrid-cols table {
+    background: #ffffff !important;
+}
+
+.admin-light .agenda-summary-card {
+    border-color: var(--border) !important;
+    box-shadow: 0 10px 24px rgba(27, 98, 60, 0.06) !important;
+}
+
+.admin-light .agenda-summary-card span,
+.admin-light .agenda-summary-card small,
+.admin-light .agenda-calendar .fc-timegrid-axis-cushion,
+.admin-light .agenda-calendar .fc-timegrid-slot-label-cushion,
+.admin-light .agenda-calendar .fc-col-header-cell-cushion,
+.admin-light .agenda-calendar .fc-daygrid-day-number {
+    color: #527063 !important;
+}
+
+.admin-light .agenda-calendar {
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.admin-light .agenda-calendar .fc-scrollgrid,
+.admin-light .agenda-calendar .fc-scrollgrid td,
+.admin-light .agenda-calendar .fc-scrollgrid th {
+    border-color: var(--border) !important;
+}
+
+.admin-light .agenda-calendar .fc-timegrid-axis,
+.admin-light .agenda-calendar .fc-timegrid-slot-label {
+    background: #f1faf4 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .agenda-calendar .fc-timegrid-slot,
+.admin-light .agenda-calendar .fc-timegrid-divider {
+    border-color: var(--border) !important;
+}
+
+.admin-light .agenda-calendar .fc-col-header-cell,
+.admin-light .agenda-calendar .fc-daygrid-day-frame,
+.admin-light .agenda-calendar .fc-timegrid-col-bg {
+    background: #ffffff !important;
+}
+
+.admin-light .agenda-calendar .fc-day-today,
+.admin-light .agenda-calendar .fc-timegrid-col.fc-day-today {
+    background: #eaf8ef !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-pending {
+    background: #f0faf4 !important;
+    border-color: #8fcfb0 !important;
+    border-left-color: var(--primary) !important;
+    color: #24543e !important;
+    box-shadow: 0 5px 14px rgba(27, 98, 60, 0.08) !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-pending .fc-event-title,
+.admin-light .agenda-calendar .fc-event.event-pending .fc-event-time {
+    color: #24543e !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-completed {
+    color: #13794c !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-canceled {
+    color: #b83c48 !important;
+}
+
 /* Public booking surface */
 .booking-body,
 .booking-body.booking-theme-classic,
