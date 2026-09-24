@@ -1525,9 +1525,13 @@ const admin = {
                                 <span class="appointment-action-menu-icon is-danger" aria-hidden="true">×</span>
                                 <span><strong>Cancelar</strong><small>Encerrar este horário</small></span>
                             </button>
+                            <button type="button" class="appointment-action-menu-item is-danger" role="menuitem" onclick="admin.closeAppointmentMenus(); admin.deleteAppointment(${a.id}, null)">
+                                <span class="appointment-action-menu-icon is-delete" aria-hidden="true">⌫</span>
+                                <span><strong>Excluir</strong><small>Remover agendamento</small></span>
+                            </button>
                         </div>
                     </div>
-                    <button type="button" class="btn-queue-cancel" aria-label="Encerrar atendimento de ${this.escapeHtml(a.client_name)}" onclick="admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">×</button>
+                    <button type="button" class="btn-queue-cancel" aria-label="Cancelar atendimento de ${this.escapeHtml(a.client_name)}" onclick="admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">×</button>
                 </div>
             </div>
         `).join('');
@@ -1996,13 +2000,22 @@ const admin = {
     },
 
     async deleteAppointment(id, clientId) {
+        this.closeAppointmentMenus();
         this.openDeleteConfirm('Deseja excluir este registro de atendimento permanentemente?', async () => {
             try {
-                await auth.apiRequest(`/api/appointments/${id}`, { method: 'DELETE' });
-                this.showClientDetails(clientId);
-                this.loadData();
+                const response = await auth.apiRequest(`/api/appointments/${id}`, { method: 'DELETE' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || data.success === false) {
+                    throw new Error(data.message || 'Não foi possível excluir o agendamento.');
+                }
+                if (clientId) await this.showClientDetails(clientId);
+                await this.loadData();
                 this.closeModal('delete-confirm');
-            } catch (err) { alert('Erro ao excluir atendimento'); }
+                auth.notify('Agendamento excluído com sucesso.', 'success');
+            } catch (err) {
+                console.error('Erro ao excluir atendimento:', err);
+                auth.notify(err.message || 'Erro ao excluir atendimento.', 'error');
+            }
         }, { requiresTyping: true });
     },
 
