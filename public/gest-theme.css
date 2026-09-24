@@ -862,6 +862,58 @@
     transform: translateY(0);
 }
 
+/* Selected service: strong contrast, a calm lift and a clearer active surface. */
+.booking-body .service-card {
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.booking-body .service-card.selected {
+    position: relative;
+    overflow: hidden;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #2bc183 0%, #1caf70 100%) !important;
+    border: 2px solid #0f985c !important;
+    box-shadow: 0 16px 30px rgba(19, 143, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+    transform: translateY(-2px);
+}
+
+.booking-body .service-card.selected::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: #e8fff1;
+    opacity: 0.9;
+}
+
+.booking-body .service-card.selected .service-card-media {
+    border-color: rgba(255, 255, 255, 0.72) !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    box-shadow: 0 5px 14px rgba(6, 91, 52, 0.16);
+}
+
+.booking-body .service-card.selected .service-card-image {
+    border-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.booking-body .service-card.selected strong,
+.booking-body .service-card.selected p,
+.booking-body .service-card.selected .price {
+    color: #ffffff !important;
+}
+
+.booking-body .service-card.selected p {
+    opacity: 0.86;
+    font-weight: 500;
+}
+
+.booking-body .service-card.selected .price {
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-radius: 10px;
+}
+
 .booking-body .booking-entry-card-icon {
     width: 48px;
     height: 48px;
