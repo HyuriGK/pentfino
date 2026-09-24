@@ -4899,11 +4899,12 @@ const ui = {
     },
 
     initNavGroups() {
-        let saved = {};
-        try { saved = JSON.parse(authStorage.read(this.navGroupStorageKey()) || '{}'); } catch (_) { /* Use defaults. */ }
+        // A reload starts with a clean navigation context. The expanded state is
+        // intentionally not restored between page loads.
+        authStorage.remove(this.navGroupStorageKey());
         document.querySelectorAll('.nav-group-title[data-group]').forEach(heading => {
             const group = heading.dataset.group;
-            this.setNavGroupState(group, saved[group] === true, heading, false);
+            this.setNavGroupState(group, false, heading, false);
         });
     },
 
