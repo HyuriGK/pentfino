@@ -1381,6 +1381,7 @@ const admin = {
     },
 
     async setAppointmentStatus(id, status) {
+        this.closeAppointmentMenus();
         try {
             const response = await auth.apiRequest(`/api/appointments/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
             const data = await response.json().catch(() => ({}));
@@ -1503,12 +1504,54 @@ const admin = {
                 </div>
                 <div class="action-btns">
                     <button type="button" class="btn btn-confirm-appointment${this.confirmedAppointmentIds.has(String(a.id)) ? ' is-confirmed' : ''}"${this.confirmedAppointmentIds.has(String(a.id)) ? ' disabled aria-disabled="true"' : ` onclick="admin.confirmAppointmentWhatsApp(${a.id})"`}>${this.confirmedAppointmentIds.has(String(a.id)) ? 'Confirmado' : 'Confirmar'}</button>
-                    <button class="btn btn-ghost btn-sm" onclick="admin.setAppointmentStatus(${a.id}, 'arrived')">Chegou</button>
-                    <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">Finalizar</button>
-                    <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">×</button>
+                    <div class="appointment-actions">
+                        <button type="button" class="btn appointment-actions-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="appointment-actions-${a.id}" onclick="admin.toggleAppointmentActions(${a.id}, event)">
+                            Ações <span aria-hidden="true">⌄</span>
+                        </button>
+                        <div id="appointment-actions-${a.id}" class="appointment-actions-menu" role="menu" aria-hidden="true">
+                            <button type="button" class="appointment-action-menu-item" role="menuitem" onclick="admin.setAppointmentStatus(${a.id}, 'arrived')">
+                                <span class="appointment-action-menu-icon is-success" aria-hidden="true">✓</span>
+                                <span><strong>Chegou</strong><small>Cliente presente</small></span>
+                            </button>
+                            <button type="button" class="appointment-action-menu-item" role="menuitem" onclick="admin.setAppointmentStatus(${a.id}, 'no_show')">
+                                <span class="appointment-action-menu-icon is-warning" aria-hidden="true">!</span>
+                                <span><strong>Faltou</strong><small>Registrar ausência</small></span>
+                            </button>
+                            <button type="button" class="appointment-action-menu-item" role="menuitem" onclick="admin.closeAppointmentMenus(); admin.completeService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">
+                                <span class="appointment-action-menu-icon is-primary" aria-hidden="true">✓</span>
+                                <span><strong>Concluir agora</strong><small>Finalizar atendimento</small></span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-queue-cancel" aria-label="Encerrar atendimento de ${this.escapeHtml(a.client_name)}" onclick="admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">×</button>
                 </div>
             </div>
         `).join('');
+    },
+
+    toggleAppointmentActions(id, event) {
+        event?.stopPropagation();
+        const menu = document.getElementById(`appointment-actions-${id}`);
+        const trigger = event?.currentTarget || document.querySelector(`[aria-controls="appointment-actions-${id}"]`);
+        if (!menu) return;
+
+        const willOpen = !menu.classList.contains('is-open');
+        this.closeAppointmentMenus();
+        if (willOpen) {
+            menu.classList.add('is-open');
+            menu.setAttribute('aria-hidden', 'false');
+            trigger?.setAttribute('aria-expanded', 'true');
+        }
+    },
+
+    closeAppointmentMenus() {
+        document.querySelectorAll('.appointment-actions-menu.is-open').forEach(menu => {
+            menu.classList.remove('is-open');
+            menu.setAttribute('aria-hidden', 'true');
+        });
+        document.querySelectorAll('.appointment-actions-trigger[aria-expanded="true"]').forEach(trigger => {
+            trigger.setAttribute('aria-expanded', 'false');
+        });
     },
 
     async confirmAppointmentWhatsApp(appointmentId) {
@@ -1568,6 +1611,7 @@ const admin = {
     },
 
     async completeService(id, clientName = null) {
+        this.closeAppointmentMenus();
         if (clientName) {
             document.getElementById('confirm-service-text').innerHTML = `Confirmar conclusão do serviço para <strong>${clientName}</strong>?`;
             this.resetCompletionPaymentChoice();
@@ -1612,6 +1656,7 @@ const admin = {
     },
 
     async cancelService(id, clientName = null) {
+        this.closeAppointmentMenus();
         if (clientName) {
             document.getElementById('cancel-service-text').innerHTML = `Deseja cancelar o agendamento de <strong>${clientName}</strong>?`;
             const confirmation = document.getElementById('cancel-service-confirmation');
@@ -4956,6 +5001,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('mousedown', (e) => {
+    if (!e.target.closest('.appointment-actions')) {
+        admin.closeAppointmentMenus();
+    }
     if (e.target.classList.contains('modal-overlay')) {
         const type = e.target.id.replace('modal-', '');
         admin.closeModal(type);

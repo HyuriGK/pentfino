@@ -1205,6 +1205,125 @@ html.session-restore-pending #auth-view {
     align-items: center;
 }
 
+.appointment-actions {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.appointment-actions-trigger {
+    min-width: 106px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.025);
+    border-color: var(--border-bright);
+}
+
+.appointment-actions-trigger span {
+    color: var(--primary);
+    font-size: 1rem;
+    line-height: 1;
+    transform: translateY(-1px);
+}
+
+.appointment-actions-trigger:hover,
+.appointment-actions-trigger[aria-expanded="true"] {
+    color: var(--text-main);
+    background: rgba(255, 214, 0, 0.08);
+    border-color: rgba(255, 214, 0, 0.55);
+}
+
+.appointment-actions-menu {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 220px;
+    display: none;
+    padding: 7px;
+    border: 1px solid var(--border-bright);
+    border-radius: 14px;
+    background: #111a22;
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.38);
+}
+
+.appointment-actions-menu.is-open {
+    display: grid;
+    gap: 3px;
+    animation: appointment-menu-in 140ms ease-out;
+}
+
+.appointment-action-menu-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 9px;
+    color: var(--text-main);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.appointment-action-menu-item:hover,
+.appointment-action-menu-item:focus-visible {
+    outline: none;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.appointment-action-menu-item > span:last-child {
+    display: grid;
+    gap: 2px;
+}
+
+.appointment-action-menu-item strong {
+    font-size: 0.83rem;
+    font-weight: 700;
+}
+
+.appointment-action-menu-item small {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+}
+
+.appointment-action-menu-icon {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.appointment-action-menu-icon.is-success {
+    color: #8cf3b4;
+    background: rgba(33, 199, 120, 0.13);
+}
+
+.appointment-action-menu-icon.is-warning {
+    color: #ffe58a;
+    background: rgba(255, 214, 0, 0.13);
+}
+
+.appointment-action-menu-icon.is-primary {
+    color: #fff;
+    background: rgba(237, 58, 64, 0.16);
+}
+
+@keyframes appointment-menu-in {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .action-btns .btn {
     white-space: nowrap;
 }
@@ -1266,6 +1385,13 @@ html.session-restore-pending #auth-view {
     background: var(--danger);
     color: #fff;
     transform: scale(1.1);
+}
+
+@media (max-width: 760px) {
+    .appointment-actions-menu {
+        right: auto;
+        left: 0;
+    }
 }
 
 .client-info h4 { 
