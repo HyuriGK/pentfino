@@ -2661,7 +2661,7 @@ const admin = {
         const styles = getComputedStyle(document.body);
         const chartPrimary = styles.getPropertyValue('--accent').trim() || styles.getPropertyValue('--primary').trim() || '#111827';
         const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#6b7280';
-        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255,255,255,0.05)';
+        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(38, 184, 120, 0.12)' : 'rgba(255,255,255,0.05)';
 
         this.billingChart = new Chart(ctx, {
             type: 'bar',
@@ -2670,7 +2670,7 @@ const admin = {
                 datasets: [{
                     label: 'Faturamento Diário',
                     data: data,
-                    backgroundColor: document.body.classList.contains('admin-light') ? 'rgba(15, 118, 110, 0.18)' : 'rgba(0, 255, 136, 0.4)',
+                    backgroundColor: document.body.classList.contains('admin-light') ? 'rgba(38, 184, 120, 0.22)' : 'rgba(0, 255, 136, 0.4)',
                     borderColor: chartPrimary,
                     borderWidth: 2,
                     borderRadius: 5,
@@ -2884,7 +2884,7 @@ const admin = {
 
         const styles = getComputedStyle(document.body);
         const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#94a3b8';
-        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(148, 163, 184, 0.16)' : 'rgba(255,255,255,0.08)';
+        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(38, 184, 120, 0.12)' : 'rgba(255,255,255,0.08)';
         const labels = data.map((_, index) => String(index + 1).padStart(2, '0'));
         const typeLabels = { all: 'Todos', services: 'Serviços', sales: 'Vendas' };
         const formatCurrency = value => `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
@@ -2965,11 +2965,11 @@ const admin = {
                 datasets: [{
                     label: `${typeLabels[type] || 'Todos'} — ${monthName}`,
                     data,
-                    backgroundColor: 'rgba(34, 197, 94, 0.72)',
-                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(38, 184, 120, 0.72)',
+                    borderColor: '#1ca568',
                     borderWidth: 1,
                     borderRadius: 4,
-                    hoverBackgroundColor: '#4ade80',
+                    hoverBackgroundColor: '#26b878',
                     barPercentage: 0.82,
                     categoryPercentage: 0.82
                 }]

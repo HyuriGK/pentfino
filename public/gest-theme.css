@@ -1049,3 +1049,231 @@
         font-size: 0.94rem;
     }
 }
+
+/* Final Gest consistency pass: white surfaces, green interaction states and soft neutrals. */
+.admin-light {
+    color-scheme: light;
+}
+
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.admin-light select,
+.admin-light textarea {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    color-scheme: light !important;
+}
+
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):hover,
+.admin-light select:hover,
+.admin-light textarea:hover {
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+.admin-light select:focus,
+.admin-light textarea:focus {
+    outline: none !important;
+    background: #ffffff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(38, 184, 120, 0.14) !important;
+}
+
+.admin-light input::placeholder,
+.admin-light textarea::placeholder {
+    color: #8aa096 !important;
+    opacity: 1;
+}
+
+.admin-light option {
+    color: var(--text-main);
+    background: #ffffff;
+}
+
+.admin-light input[type="checkbox"],
+.admin-light input[type="radio"] {
+    accent-color: var(--primary);
+}
+
+.admin-light .modal-overlay,
+.admin-light .modal-side-panel {
+    background: rgba(23, 54, 41, 0.24) !important;
+    backdrop-filter: blur(10px);
+}
+
+.admin-light .modal-content,
+.admin-light .modal-side-panel .modal-content,
+.admin-light .billing-day-details-content,
+.admin-light .client-details-content,
+.admin-light .professional-details-content {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 18px;
+    box-shadow: 0 28px 70px rgba(27, 98, 60, 0.16) !important;
+}
+
+.admin-light .modal-header,
+.admin-light .modal-footer,
+.admin-light .monthly-goal-modal-footer,
+.admin-light .expense-modal-footer {
+    border-color: var(--border) !important;
+}
+
+.admin-light .modal-title,
+.admin-light .modal-content h2,
+.admin-light .modal-content h3 {
+    color: var(--text-main) !important;
+}
+
+.admin-light .modal-content p,
+.admin-light .modal-content label,
+.admin-light .modal-content small {
+    color: var(--text-muted);
+}
+
+.admin-light .monthly-goal-field input,
+.admin-light .permission-option,
+.admin-light .account-status-control,
+.admin-light .admin-user-count,
+.admin-light .permission-chip,
+.admin-light .prof-commission-strip span {
+    color: var(--text-main) !important;
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .permission-option:hover,
+.admin-light .account-status-control:hover {
+    background: #effaf4 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .permission-option:has(input:checked) {
+    background: #eaf8ef !important;
+    border-color: #9dd5b1 !important;
+    box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.admin-light .permission-option strong,
+.admin-light .account-status-control strong,
+.admin-light .admin-user-identity strong {
+    color: var(--text-main) !important;
+}
+
+.admin-light .permission-option small,
+.admin-light .account-status-control small,
+.admin-light .admin-user-identity small {
+    color: var(--text-muted) !important;
+}
+
+.admin-light .toggle-track {
+    background: #cfe5d7 !important;
+}
+
+.admin-light .account-status-control input:checked + .toggle-track {
+    background: var(--primary) !important;
+}
+
+.admin-light .permission-chip {
+    color: #527063 !important;
+}
+
+.admin-light .permission-chip.admin {
+    color: #ffffff !important;
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+.admin-light .inventory-card-img,
+.admin-light .stock-progress-container {
+    background: #effaf4 !important;
+}
+
+.admin-light .retention-card,
+.admin-light .dashboard-chart {
+    color: var(--text-main) !important;
+    background: linear-gradient(135deg, #ffffff, #effaf4) !important;
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.admin-light .dashboard-chart span {
+    background: linear-gradient(180deg, var(--primary), rgba(38, 184, 120, 0.2)) !important;
+}
+
+.admin-light .billing-chart-container {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.admin-light .billing-custom-tooltip {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 18px 40px rgba(27, 98, 60, 0.16) !important;
+}
+
+.admin-light .billing-tooltip-title,
+.admin-light .billing-tooltip-total,
+.admin-light .billing-tooltip-row strong {
+    color: var(--text-main) !important;
+}
+
+.admin-light .billing-tooltip-label {
+    color: var(--text-muted) !important;
+}
+
+.admin-light .billing-tooltip-percent {
+    color: #6c8a7b !important;
+    border-left-color: var(--border) !important;
+}
+
+.admin-light .billing-tooltip-divider {
+    background: var(--border) !important;
+}
+
+.admin-light .billing-tooltip-total strong {
+    color: var(--primary) !important;
+}
+
+.admin-light .billing-tooltip-swatch.services {
+    background: var(--primary) !important;
+}
+
+.admin-light .billing-tooltip-swatch.sales {
+    background: #8fd3ad !important;
+}
+
+.admin-light .booking-schedule-row,
+.admin-light .booking-style-option,
+.admin-light .schedule-time-fields {
+    color: var(--text-main) !important;
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .booking-schedule-row:hover,
+.admin-light .booking-style-option:hover {
+    background: #effaf4 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .btn-secondary,
+.admin-light .btn-outline,
+.admin-light .card-action-btn,
+.admin-light .qty-btn {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .btn-secondary:hover,
+.admin-light .btn-outline:hover,
+.admin-light .card-action-btn:hover,
+.admin-light .qty-btn:hover {
+    color: #13794c !important;
+    background: #eaf8ef !important;
+    border-color: var(--primary) !important;
+}
