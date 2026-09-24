@@ -842,6 +842,135 @@
     background: var(--landing-teal-dark) !important;
 }
 
+/* Detail modals: override the legacy dark profile surfaces with the same
+   white/green language used by the rest of the administrator panel. */
+.admin-light #modal-client-details .client-details-content,
+.admin-light #modal-prof-comm-details .professional-details-content {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 28px 70px rgba(27, 98, 60, 0.16) !important;
+}
+
+.admin-light #modal-client-details .client-details-header,
+.admin-light #modal-prof-comm-details .professional-details-header {
+    background: #ffffff !important;
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light #modal-client-details .client-detail-avatar,
+.admin-light #modal-prof-comm-details .professional-detail-avatar {
+    color: #13794c !important;
+    background: linear-gradient(145deg, #e6f8ed, #f7fcf9) !important;
+    border-color: #a9d8b9 !important;
+}
+
+.admin-light #modal-client-details .client-detail-name,
+.admin-light #modal-prof-comm-details .professional-detail-name,
+.admin-light #modal-client-details .client-history-heading h3,
+.admin-light #modal-prof-comm-details .professional-history-heading h3 {
+    color: var(--text-main) !important;
+}
+
+.admin-light #modal-client-details .client-detail-stat,
+.admin-light #modal-prof-comm-details .professional-detail-stat {
+    color: var(--text-main) !important;
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 10px 24px rgba(27, 98, 60, 0.06) !important;
+}
+
+.admin-light #modal-client-details .client-detail-stat:hover,
+.admin-light #modal-prof-comm-details .professional-detail-stat:hover {
+    border-color: var(--border-bright) !important;
+    box-shadow: 0 14px 28px rgba(27, 98, 60, 0.09) !important;
+}
+
+.admin-light #modal-client-details .client-detail-stat h3,
+.admin-light #modal-prof-comm-details .professional-detail-stat h3 {
+    color: var(--primary) !important;
+}
+
+.admin-light #modal-prof-comm-details .professional-detail-stat-shop h3 {
+    color: var(--danger) !important;
+}
+
+.admin-light #modal-prof-comm-details .professional-detail-stat-professional h3 {
+    color: var(--success) !important;
+}
+
+.admin-light #modal-client-details .client-history-table-shell,
+.admin-light #modal-prof-comm-details .professional-history-table-shell {
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light #modal-client-details .client-history-table th,
+.admin-light #modal-prof-comm-details .professional-history-table th {
+    background: #effaf4 !important;
+    color: #527063 !important;
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light #modal-client-details .client-history-table td,
+.admin-light #modal-prof-comm-details .professional-history-table td {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light #modal-client-details .client-history-table tbody tr:hover,
+.admin-light #modal-prof-comm-details .professional-history-table tbody tr:hover {
+    background: #effaf4 !important;
+}
+
+.admin-light #modal-client-details .client-history-table tbody tr:hover td,
+.admin-light #modal-prof-comm-details .professional-history-table tbody tr:hover td {
+    background: #effaf4 !important;
+}
+
+.admin-light .billing-day-details-content {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .billing-day-details-filter {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.admin-light .billing-day-details-stat {
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .billing-day-details-stat-total {
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .billing-day-details-table-shell {
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .billing-day-details-table th {
+    background: #effaf4 !important;
+    color: #527063 !important;
+}
+
+.admin-light .billing-day-details-table td {
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+}
+
+.admin-light .billing-day-record-type.service,
+.admin-light .billing-day-record-type.sale {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+}
+
 /* Public booking entry: replace the old dark cards with clear, touch-friendly actions. */
 .booking-body .booking-entry-card {
     position: relative;
