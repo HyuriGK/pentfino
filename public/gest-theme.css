@@ -558,17 +558,24 @@
 .admin-light .sidebar .logo-wordmark-expanded {
     display: block;
     width: 100%;
-    height: 86px;
+    height: 98px;
     object-fit: cover;
     object-position: center;
     border-radius: 12px;
 }
 
+.admin-light .sidebar .logo {
+    width: 100%;
+    justify-content: center;
+}
+
 .admin-light .sidebar .logo-icon-collapsed {
     display: none;
-    width: 48px;
-    height: 48px;
-    object-fit: contain;
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 10px;
 }
 
 .admin-light .sidebar.collapsed .logo-wordmark-expanded {
@@ -595,8 +602,8 @@
 }
 
 .landing-body .landing-wordmark {
-    width: 164px;
-    height: 72px;
+    width: 184px;
+    height: 80px;
     object-fit: cover;
     object-position: center;
     border-radius: 10px;
