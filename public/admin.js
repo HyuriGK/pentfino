@@ -1904,20 +1904,24 @@ const admin = {
             const statusLabels = {
                 completed: 'Concluído',
                 canceled: 'Cancelado',
-                pending: 'Pendente'
+                no_show: 'Faltou',
+                pending: 'Agendado',
+                confirmed: 'Confirmado',
+                arrived: 'Chegou',
+                in_progress: 'Em atendimento'
             };
             const paymentLabels = { paid: 'Pago', pending: 'Não pago' };
             historyContainer.innerHTML = history.length > 0 ? history.map(h => `
                 <tr style="background: rgba(255,255,255,0.02)">
-                    <td style="padding: 15px;">${new Date(h.created_at).toLocaleDateString('pt-BR')} ${h.appointment_time}</td>
+                    <td style="padding: 15px;">${this.formatAppointmentDate(h.appointment_date)} ${String(h.appointment_time || '').slice(0, 5)}</td>
                     <td style="padding: 15px;">${h.service_name}</td>
                     <td style="padding: 15px; color: var(--primary); font-weight: 600;">${h.professional_name || 'Geral'}</td>
                     <td style="padding: 15px;">R$ ${parseFloat(h.service_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td style="padding: 15px;"><span class="status-badge ${h.status === 'completed' ? 'status-ok' : (h.status === 'canceled' ? 'status-danger' : 'status-warn')}">${statusLabels[h.status] || h.status}</span></td>
-                    <td style="padding: 15px;"><span class="status-badge ${h.payment_status === 'pending' ? 'status-danger' : 'status-ok'}">${paymentLabels[h.payment_status] || 'Pago'}</span></td>
+                    <td style="padding: 15px;"><span class="status-badge ${{ completed: 'status-ok', confirmed: 'status-ok', arrived: 'status-ok', in_progress: 'status-ok', canceled: 'status-danger', no_show: 'status-danger', pending: 'status-warn' }[h.status] || 'status-warn'}">${statusLabels[h.status] || h.status}</span></td>
+                    <td style="padding: 15px;"><span class="status-badge ${h.status !== 'completed' ? 'status-warn' : (h.payment_status === 'pending' ? 'status-danger' : 'status-ok')}">${h.status !== 'completed' ? 'Não aplicável' : (paymentLabels[h.payment_status] || 'Pago')}</span></td>
                     <td style="padding: 15px; text-align: center;">
                         <div class="client-history-actions">
-                            ${h.payment_status === 'pending' ? `<button class="btn btn-ghost btn-sm pending-payment-action" onclick="admin.markAppointmentPaid(${h.id}, ${clientId})">PAGO</button>` : ''}
+                            ${h.status === 'completed' && h.payment_status === 'pending' ? `<button class="btn btn-ghost btn-sm pending-payment-action" onclick="admin.markAppointmentPaid(${h.id}, ${clientId})">PAGO</button>` : ''}
                             <button class="btn-queue-cancel" aria-label="Excluir atendimento" onclick="admin.deleteAppointment(${h.id}, ${clientId})">×</button>
                         </div>
                     </td>
