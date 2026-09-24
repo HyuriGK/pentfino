@@ -50,6 +50,8 @@ const app = {
             breakStart: '12:00',
             breakEnd: '14:00',
             allowCustomTime: true,
+            blockedDates: [],
+            blockedTimes: [],
             weeklySchedule: Object.fromEntries(Array.from({ length: 7 }, (_, day) => [String(day), {
                 enabled: true,
                 start: '09:00',
@@ -88,6 +90,8 @@ const app = {
     },
 
     getAvailableTimesForDate(dateValue) {
+        const dateKey = String(dateValue || '').slice(0, 10);
+        if ((this.bookingSettings?.blockedDates || []).includes(dateKey)) return [];
         const dateParts = String(dateValue || '').slice(0, 10).split('-').map(Number);
         if (dateParts.length !== 3 || dateParts.some(Number.isNaN)) return [];
 
@@ -106,6 +110,8 @@ const app = {
 
         for (let minutes = start; minutes <= end; minutes += interval) {
             if (this.bookingSettings.breakEnabled !== false && breakStart < breakEnd && minutes >= breakStart && minutes < breakEnd) continue;
+            const blocked = (this.bookingSettings?.blockedTimes || []).some(block => block.date === dateKey && block.start && block.end && minutes >= this.timeToMinutes(block.start) && minutes < this.timeToMinutes(block.end));
+            if (blocked) continue;
             times.push(`${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`);
         }
         return times;

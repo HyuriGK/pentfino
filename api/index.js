@@ -10,6 +10,8 @@ const ADMIN_EMAIL = 'brasil.hyuri@gmail.com';
 const DEFAULT_MONTHLY_GOAL = 0;
 const PERMISSION_KEYS = ['dashboard', 'agenda', 'billing', 'despesas', 'clientes', 'vendas', 'estoque', 'barbeiros', 'comissoes', 'servicos', 'configuracoes'];
 const DEFAULT_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map(key => [key, true]));
+const PAYMENT_METHODS = ['cash', 'pix', 'card'];
+const APPOINTMENT_STATUSES = ['pending', 'confirmed', 'arrived', 'in_progress', 'completed', 'no_show', 'canceled'];
 
 const BOOKING_TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 const BOOKING_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -21,6 +23,8 @@ const createDefaultBookingSettings = () => ({
     breakStart: '12:00',
     breakEnd: '14:00',
     allowCustomTime: true,
+    blockedDates: [],
+    blockedTimes: [],
     weeklySchedule: Object.fromEntries(BOOKING_DAYS.map(day => [String(day), {
         enabled: true,
         start: '09:00',
@@ -54,6 +58,18 @@ const normalizeBookingSettings = (source = {}) => {
         }];
     }));
 
+    const blockedDates = Array.isArray(source.blockedDates)
+        ? source.blockedDates.map(value => String(value).slice(0, 10)).filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value))
+        : [];
+    const blockedTimes = Array.isArray(source.blockedTimes)
+        ? source.blockedTimes.map(block => ({
+            date: String(block?.date || '').slice(0, 10),
+            start: BOOKING_TIME_PATTERN.test(String(block?.start || '')) ? String(block.start) : null,
+            end: BOOKING_TIME_PATTERN.test(String(block?.end || '')) ? String(block.end) : null,
+            reason: String(block?.reason || '').trim().slice(0, 160)
+        })).filter(block => /^\d{4}-\d{2}-\d{2}$/.test(block.date) && ((block.start && block.end && timeToMinutes(block.start) < timeToMinutes(block.end)) || (!block.start && !block.end)))
+        : [];
+
     return {
         bookingStyle: validStyles.includes(source.bookingStyle) ? source.bookingStyle : defaults.bookingStyle,
         intervalMinutes: [15, 30, 60].includes(interval) ? interval : defaults.intervalMinutes,
@@ -61,6 +77,8 @@ const normalizeBookingSettings = (source = {}) => {
         breakStart,
         breakEnd,
         allowCustomTime: source.allowCustomTime !== false,
+        blockedDates,
+        blockedTimes,
         weeklySchedule
     };
 };
@@ -96,6 +114,8 @@ const isBookingTimeInPast = (dateValue, timeValue) => {
 
 const getAvailableBookingTimes = (settings, dateValue) => {
     const normalized = normalizeBookingSettings(settings);
+    const dateKey = String(dateValue || '').slice(0, 10);
+    if (normalized.blockedDates.includes(dateKey)) return [];
     const parts = String(dateValue || '').slice(0, 10).split('-').map(Number);
     if (parts.length !== 3 || parts.some(Number.isNaN)) return [];
 
@@ -111,14 +131,24 @@ const getAvailableBookingTimes = (settings, dateValue) => {
 
     for (let minutes = start; minutes <= end; minutes += normalized.intervalMinutes) {
         if (normalized.breakEnabled && breakStart < breakEnd && minutes >= breakStart && minutes < breakEnd) continue;
+        const blocked = normalized.blockedTimes.some(block => block.date === dateKey && block.start && block.end && minutes >= timeToMinutes(block.start) && minutes < timeToMinutes(block.end));
+        if (blocked) continue;
         times.push(`${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`);
     }
 
     return times;
 };
 
-const readBookingSettingsRow = row => {
-    if (!row) return createDefaultBookingSettings();
+const isBookingTimeBlocked = (settings, dateValue, timeValue) => {
+    const normalized = normalizeBookingSettings(settings);
+    const dateKey = String(dateValue || '').slice(0, 10);
+    if (normalized.blockedDates.includes(dateKey)) return true;
+    const minutes = timeToMinutes(timeValue);
+    return normalized.blockedTimes.some(block => block.date === dateKey && block.start && block.end && minutes >= timeToMinutes(block.start) && minutes < timeToMinutes(block.end));
+};
+
+const readBookingSettingsRow = (row, overrides = {}) => {
+    if (!row) return normalizeBookingSettings(overrides);
     let schedule = row.schedule;
     if (typeof schedule === 'string') {
         try { schedule = JSON.parse(schedule); } catch (_) { schedule = {}; }
@@ -126,7 +156,8 @@ const readBookingSettingsRow = row => {
     return normalizeBookingSettings({
         ...(schedule || {}),
         bookingStyle: row.booking_style,
-        allowCustomTime: row.allow_custom_time
+        allowCustomTime: row.allow_custom_time,
+        ...overrides
     });
 };
 
@@ -135,7 +166,18 @@ const fetchBookingSettings = async barberId => {
         'SELECT booking_style, schedule, allow_custom_time FROM barber_settings WHERE barber_id = $1',
         [barberId]
     );
-    return readBookingSettingsRow(result.rows[0]);
+    const blocks = await pool.query(
+        'SELECT block_date, start_time, end_time, reason FROM booking_blocks WHERE barber_id = $1 ORDER BY block_date ASC, start_time ASC NULLS FIRST',
+        [barberId]
+    ).catch(() => ({ rows: [] }));
+    const blockedDates = blocks.rows.filter(block => !block.start_time && !block.end_time).map(block => String(block.block_date).slice(0, 10));
+    const blockedTimes = blocks.rows.filter(block => block.start_time && block.end_time).map(block => ({
+        date: String(block.block_date).slice(0, 10),
+        start: String(block.start_time).slice(0, 5),
+        end: String(block.end_time).slice(0, 5),
+        reason: block.reason || ''
+    }));
+    return readBookingSettingsRow(result.rows[0], { blockedDates, blockedTimes });
 };
 
 const getUserRole = user => user.is_admin === true ? 'administrador' : 'operador';
@@ -184,6 +226,246 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
+let operationalSchemaPromise;
+const ensureOperationalSchema = () => {
+    if (!operationalSchemaPromise) {
+        operationalSchemaPromise = pool.query(`
+            CREATE TABLE IF NOT EXISTS sales (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER REFERENCES barbers(id) ON DELETE CASCADE,
+                item_id INTEGER REFERENCES inventory(id) ON DELETE SET NULL,
+                client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+                professional_id INTEGER REFERENCES professionals(id) ON DELETE SET NULL,
+                quantity INTEGER NOT NULL DEFAULT 1,
+                price_at_sale DECIMAL(10,2) NOT NULL DEFAULT 0,
+                total_price DECIMAL(10,2) NOT NULL DEFAULT 0,
+                commission_rate DECIMAL(5,2) NOT NULL DEFAULT 0,
+                commission_value DECIMAL(10,2) NOT NULL DEFAULT 0,
+                payment_method VARCHAR(20) NOT NULL DEFAULT 'cash',
+                sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) NOT NULL DEFAULT 'cash';
+            ALTER TABLE expenses ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) NOT NULL DEFAULT 'cash';
+            ALTER TABLE clients ADD COLUMN IF NOT EXISTS birthday DATE;
+            ALTER TABLE clients ADD COLUMN IF NOT EXISTS loyalty_points INTEGER NOT NULL DEFAULT 0;
+            ALTER TABLE clients ADD COLUMN IF NOT EXISTS referral_code VARCHAR(40);
+            ALTER TABLE marketing_leads ADD COLUMN IF NOT EXISTS next_action_at TIMESTAMP;
+            ALTER TABLE marketing_leads ADD COLUMN IF NOT EXISTS notes TEXT;
+            ALTER TABLE marketing_leads ADD COLUMN IF NOT EXISTS converted_at TIMESTAMP;
+            ALTER TABLE inventory ADD COLUMN IF NOT EXISTS supplier VARCHAR(160);
+            ALTER TABLE inventory ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10,2) NOT NULL DEFAULT 0;
+            ALTER TABLE services ADD COLUMN IF NOT EXISTS is_package BOOLEAN NOT NULL DEFAULT FALSE;
+            ALTER TABLE services ADD COLUMN IF NOT EXISTS package_sessions INTEGER;
+
+            CREATE TABLE IF NOT EXISTS booking_blocks (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+                block_date DATE NOT NULL,
+                start_time TIME,
+                end_time TIME,
+                reason VARCHAR(160),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS waitlist_entries (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+                client_name VARCHAR(120) NOT NULL,
+                client_phone VARCHAR(30) NOT NULL,
+                service_id INTEGER REFERENCES services(id) ON DELETE SET NULL,
+                professional_id INTEGER REFERENCES professionals(id) ON DELETE SET NULL,
+                desired_date DATE,
+                notes TEXT,
+                status VARCHAR(20) NOT NULL DEFAULT 'waiting',
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS cash_registers (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+                register_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                opening_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
+                closing_balance DECIMAL(12,2),
+                status VARCHAR(20) NOT NULL DEFAULT 'open',
+                notes TEXT,
+                opened_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                closed_at TIMESTAMP,
+                UNIQUE (barber_id, register_date)
+            );
+            CREATE TABLE IF NOT EXISTS cash_movements (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+                cash_register_id INTEGER REFERENCES cash_registers(id) ON DELETE CASCADE,
+                source_type VARCHAR(30) NOT NULL,
+                source_id INTEGER,
+                payment_method VARCHAR(20) NOT NULL DEFAULT 'cash',
+                amount DECIMAL(12,2) NOT NULL,
+                description VARCHAR(200) NOT NULL,
+                movement_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (barber_id, source_type, source_id)
+            );
+            CREATE TABLE IF NOT EXISTS inventory_movements (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+                inventory_id INTEGER NOT NULL REFERENCES inventory(id) ON DELETE CASCADE,
+                movement_type VARCHAR(20) NOT NULL,
+                quantity INTEGER NOT NULL,
+                unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0,
+                reason VARCHAR(200),
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS loyalty_transactions (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+                client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+                points INTEGER NOT NULL,
+                reason VARCHAR(160) NOT NULL,
+                source_type VARCHAR(30),
+                source_id INTEGER,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+                actor_id INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+                action VARCHAR(80) NOT NULL,
+                entity_type VARCHAR(50),
+                entity_id INTEGER,
+                metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS referrals (
+                id SERIAL PRIMARY KEY,
+                barber_id INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+                referrer_client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+                referred_client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+                referrer_bonus INTEGER NOT NULL DEFAULT 50,
+                referred_bonus INTEGER NOT NULL DEFAULT 10,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (barber_id, referred_client_id)
+            );
+            CREATE INDEX IF NOT EXISTS appointments_barber_date_idx ON appointments (barber_id, appointment_date, appointment_time);
+            CREATE INDEX IF NOT EXISTS waitlist_entries_barber_status_idx ON waitlist_entries (barber_id, status, created_at DESC);
+            CREATE INDEX IF NOT EXISTS cash_movements_barber_date_idx ON cash_movements (barber_id, movement_date);
+            CREATE INDEX IF NOT EXISTS inventory_movements_item_idx ON inventory_movements (inventory_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS audit_logs_barber_date_idx ON audit_logs (barber_id, created_at DESC);
+            CREATE UNIQUE INDEX IF NOT EXISTS loyalty_transactions_source_idx ON loyalty_transactions (barber_id, source_type, source_id) WHERE source_type IS NOT NULL AND source_id IS NOT NULL;
+            CREATE INDEX IF NOT EXISTS referrals_barber_idx ON referrals (barber_id, created_at DESC);
+        `).catch(error => {
+            operationalSchemaPromise = null;
+            throw error;
+        });
+    }
+    return operationalSchemaPromise;
+};
+
+const normalizePaymentMethod = value => PAYMENT_METHODS.includes(String(value || '').toLowerCase())
+    ? String(value).toLowerCase()
+    : 'cash';
+
+const getPaymentLabel = value => ({ cash: 'Dinheiro', pix: 'Pix', card: 'Cartão' }[value] || 'Dinheiro');
+
+const logAudit = (req, action, entityType = null, entityId = null, metadata = {}) => {
+    return pool.query(
+        'INSERT INTO audit_logs (barber_id, actor_id, action, entity_type, entity_id, metadata) VALUES ($1, $2, $3, $4, $5, $6::jsonb)',
+        [req.user?.id || null, req.user?.id || null, action, entityType, entityId, JSON.stringify(metadata)]
+    ).catch(error => console.error('Audit log error:', error.message));
+};
+
+const ensureCashRegister = async (db, barberId, movementDate, openingBalance = 0) => {
+    const result = await db.query(`
+        INSERT INTO cash_registers (barber_id, register_date, opening_balance)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (barber_id, register_date) DO UPDATE SET barber_id = EXCLUDED.barber_id
+        RETURNING *
+    `, [barberId, movementDate, Number(openingBalance) || 0]);
+    return result.rows[0];
+};
+
+const upsertCashMovement = async ({ db = pool, barberId, sourceType, sourceId, amount, paymentMethod = 'cash', description, movementDate }) => {
+    const date = String(movementDate || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    const register = await ensureCashRegister(db, barberId, date);
+    const normalizedAmount = Number(amount);
+    const normalizedMethod = normalizePaymentMethod(paymentMethod);
+
+    if (sourceId !== null && sourceId !== undefined) {
+        await db.query(`
+            INSERT INTO cash_movements (barber_id, cash_register_id, source_type, source_id, payment_method, amount, description, movement_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (barber_id, source_type, source_id) DO UPDATE SET
+                cash_register_id = EXCLUDED.cash_register_id,
+                payment_method = EXCLUDED.payment_method,
+                amount = EXCLUDED.amount,
+                description = EXCLUDED.description,
+                movement_date = EXCLUDED.movement_date
+        `, [barberId, register.id, sourceType, sourceId, normalizedMethod, normalizedAmount, description, date]);
+    } else {
+        await db.query(`
+            INSERT INTO cash_movements (barber_id, cash_register_id, source_type, payment_method, amount, description, movement_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [barberId, register.id, sourceType, normalizedMethod, normalizedAmount, description, date]);
+    }
+};
+
+const removeCashMovement = async (db, barberId, sourceType, sourceId) => {
+    await db.query('DELETE FROM cash_movements WHERE barber_id = $1 AND source_type = $2 AND source_id = $3', [barberId, sourceType, sourceId]);
+};
+
+const syncAppointmentCashMovement = async (db, appointmentId, status, paymentStatus, paymentMethod) => {
+    const result = await db.query(`
+        SELECT a.barber_id, a.client_name, a.client_phone, a.appointment_date, a.payment_method,
+               COALESCE(s.price, 0) AS service_price, COALESCE(s.name, 'Atendimento') AS service_name
+        FROM appointments a
+        LEFT JOIN services s ON s.id = a.service_id
+        WHERE a.id = $1
+    `, [appointmentId]);
+    const appointment = result.rows[0];
+    if (!appointment) return;
+
+    if (status === 'completed' && paymentStatus !== 'pending') {
+        await upsertCashMovement({
+            db,
+            barberId: appointment.barber_id,
+            sourceType: 'appointment',
+            sourceId: appointmentId,
+            amount: Number(appointment.service_price || 0),
+            paymentMethod: paymentMethod || appointment.payment_method,
+            description: `${appointment.service_name} · ${appointment.client_name}`,
+            movementDate: appointment.appointment_date
+        });
+
+        const referralCode = `BP-${appointment.barber_id}-${Date.now().toString(36).toUpperCase()}`;
+        const clientResult = await db.query(`
+            INSERT INTO clients (barber_id, name, phone, referral_code)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (barber_id, name, phone) DO UPDATE SET phone = EXCLUDED.phone
+            RETURNING id
+        `, [appointment.barber_id, appointment.client_name, appointment.client_phone || '', referralCode]);
+        const clientId = clientResult.rows[0]?.id;
+        const points = Math.max(1, Math.floor(Number(appointment.service_price || 0)));
+        if (clientId && points > 0) {
+            const loyaltyResult = await db.query(`
+                INSERT INTO loyalty_transactions (barber_id, client_id, points, reason, source_type, source_id)
+                VALUES ($1, $2, $3, $4, 'appointment', $5)
+                ON CONFLICT (barber_id, source_type, source_id) DO NOTHING
+                RETURNING id
+            `, [appointment.barber_id, clientId, points, `Atendimento: ${appointment.service_name}`, appointmentId]);
+            if (loyaltyResult.rows.length) {
+                await db.query('UPDATE clients SET loyalty_points = loyalty_points + $1 WHERE id = $2 AND barber_id = $3', [points, clientId, appointment.barber_id]);
+            }
+        }
+    } else {
+        await removeCashMovement(db, appointment.barber_id, 'appointment', appointmentId);
+    }
+};
+
+const recordInventoryMovement = async (db, barberId, inventoryId, movementType, quantity, unitCost = 0, reason = null) => {
+    if (!quantity) return;
+    await db.query(`
+        INSERT INTO inventory_movements (barber_id, inventory_id, movement_type, quantity, unit_cost, reason)
+        VALUES ($1, $2, $3, $4, $5, $6)
+    `, [barberId, inventoryId, movementType, quantity, Number(unitCost) || 0, reason]);
+};
+
 let marketingLeadSchemaPromise;
 const ensureMarketingLeadSchema = () => {
     if (!marketingLeadSchemaPromise) {
@@ -195,9 +477,15 @@ const ensureMarketingLeadSchema = () => {
                 source VARCHAR(50) NOT NULL DEFAULT 'landing_demo',
                 status VARCHAR(20) NOT NULL DEFAULT 'new',
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                contacted_at TIMESTAMP
+                contacted_at TIMESTAMP,
+                next_action_at TIMESTAMP,
+                notes TEXT,
+                converted_at TIMESTAMP
             )
-        `).then(() => pool.query(
+        `).then(() => pool.query('ALTER TABLE marketing_leads ADD COLUMN IF NOT EXISTS next_action_at TIMESTAMP'))
+            .then(() => pool.query('ALTER TABLE marketing_leads ADD COLUMN IF NOT EXISTS notes TEXT'))
+            .then(() => pool.query('ALTER TABLE marketing_leads ADD COLUMN IF NOT EXISTS converted_at TIMESTAMP'))
+            .then(() => pool.query(
             'CREATE INDEX IF NOT EXISTS marketing_leads_created_at_idx ON marketing_leads (created_at DESC)'
         )).catch(error => {
             marketingLeadSchemaPromise = null;
@@ -213,6 +501,7 @@ const ensureAppointmentPaymentSchema = () => {
         appointmentPaymentSchemaPromise = pool.query("ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) NOT NULL DEFAULT 'paid'")
             .then(() => pool.query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_paid_at TIMESTAMP'))
             .then(() => pool.query('ALTER TABLE appointments ADD COLUMN IF NOT EXISTS confirmation_sent_at TIMESTAMP'))
+            .then(() => pool.query("ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) NOT NULL DEFAULT 'cash'"))
             .catch(error => {
             appointmentPaymentSchemaPromise = null;
             throw error;
@@ -220,6 +509,8 @@ const ensureAppointmentPaymentSchema = () => {
     }
     return appointmentPaymentSchemaPromise;
 };
+
+ensureOperationalSchema().catch(error => console.error('Operational schema migration error:', error.message));
 
 const requireAnyPermission = (...permissions) => async (req, res, next) => {
     if (req.user?.role === 'administrador') return next();
@@ -261,6 +552,8 @@ pool.on('connect', () => {
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
     pool.query('ALTER TABLE professionals ADD COLUMN IF NOT EXISTS product_commission DECIMAL(5,2) DEFAULT 0').catch(e => console.error('Migration error:', e));
     pool.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS photo_url TEXT').catch(e => console.error('Migration error:', e));
+    pool.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_package BOOLEAN NOT NULL DEFAULT FALSE').catch(e => console.error('Migration error:', e));
+    pool.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS package_sessions INTEGER').catch(e => console.error('Migration error:', e));
     pool.query(`
         CREATE TABLE IF NOT EXISTS monthly_goals (
             id SERIAL PRIMARY KEY,
@@ -327,6 +620,7 @@ pool.on('connect', () => {
             total_price DECIMAL(10,2) NOT NULL,
             commission_rate DECIMAL(5,2) DEFAULT 0,
             commission_value DECIMAL(10,2) DEFAULT 0,
+            payment_method VARCHAR(20) NOT NULL DEFAULT 'cash',
             sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (sales):', e));
@@ -339,6 +633,7 @@ pool.on('connect', () => {
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS price_at_sale DECIMAL(10,2) DEFAULT 0').catch(() => {});
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5,2) DEFAULT 0').catch(() => {});
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS commission_value DECIMAL(10,2) DEFAULT 0').catch(() => {});
+    pool.query("ALTER TABLE sales ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) NOT NULL DEFAULT 'cash'").catch(() => {});
     pool.query('ALTER TABLE sales ADD COLUMN IF NOT EXISTS sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP').catch(() => {});
     pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE').catch(() => {});
     pool.query("ALTER TABLE barbers ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '{}'::jsonb").catch(() => {});
@@ -445,6 +740,7 @@ app.post('/api/register', (req, res) => {
 app.post('/api/public/marketing-leads', async (req, res) => {
     const name = String(req.body?.name || '').trim().replace(/\s+/g, ' ');
     const phone = String(req.body?.phone || '').trim();
+    const source = String(req.body?.source || 'landing_demo').trim().slice(0, 50) || 'landing_demo';
 
     if (name.length < 2 || name.length > 120) {
         return res.status(400).json({ success: false, message: 'Informe um nome válido.' });
@@ -459,9 +755,9 @@ app.post('/api/public/marketing-leads', async (req, res) => {
         await ensureMarketingLeadSchema();
         const result = await pool.query(`
             INSERT INTO marketing_leads (name, phone, source)
-            VALUES ($1, $2, 'landing_demo')
+            VALUES ($1, $2, $3)
             RETURNING id, name, phone, source, status, created_at
-        `, [name, phone]);
+        `, [name, phone, source]);
 
         res.status(201).json({ success: true, lead: result.rows[0] });
     } catch (err) {
@@ -474,7 +770,7 @@ app.get('/api/admin/marketing-leads', authenticateToken, requireAdmin, async (re
     try {
         await ensureMarketingLeadSchema();
         const result = await pool.query(`
-            SELECT id, name, phone, source, status, created_at, contacted_at
+            SELECT id, name, phone, source, status, created_at, contacted_at, next_action_at, notes, converted_at
             FROM marketing_leads
             ORDER BY created_at DESC
         `);
@@ -487,7 +783,9 @@ app.get('/api/admin/marketing-leads', authenticateToken, requireAdmin, async (re
 
 app.patch('/api/admin/marketing-leads/:id', authenticateToken, requireAdmin, async (req, res) => {
     const status = String(req.body?.status || '').trim();
-    if (!['new', 'contacted', 'archived'].includes(status)) {
+    const nextActionAt = req.body?.nextActionAt ? new Date(req.body.nextActionAt) : null;
+    const notes = String(req.body?.notes || '').trim().slice(0, 1000) || null;
+    if (!['new', 'contacted', 'demo_scheduled', 'converted', 'lost', 'archived'].includes(status)) {
         return res.status(400).json({ success: false, message: 'Status inválido.' });
     }
 
@@ -496,10 +794,13 @@ app.patch('/api/admin/marketing-leads/:id', authenticateToken, requireAdmin, asy
         const result = await pool.query(`
             UPDATE marketing_leads
             SET status = $1,
-                contacted_at = CASE WHEN $1 = 'contacted' THEN COALESCE(contacted_at, CURRENT_TIMESTAMP) ELSE contacted_at END
-            WHERE id = $2
-            RETURNING id, name, phone, source, status, created_at, contacted_at
-        `, [status, req.params.id]);
+                contacted_at = CASE WHEN $1 IN ('contacted', 'demo_scheduled', 'converted') THEN COALESCE(contacted_at, CURRENT_TIMESTAMP) ELSE contacted_at END,
+                converted_at = CASE WHEN $1 = 'converted' THEN COALESCE(converted_at, CURRENT_TIMESTAMP) ELSE converted_at END,
+                next_action_at = $2,
+                notes = COALESCE($3, notes)
+            WHERE id = $4
+            RETURNING id, name, phone, source, status, created_at, contacted_at, next_action_at, notes, converted_at
+        `, [status, nextActionAt && !Number.isNaN(nextActionAt.getTime()) ? nextActionAt : null, notes, req.params.id]);
 
         if (!result.rowCount) {
             return res.status(404).json({ success: false, message: 'Triagem não encontrada.' });
@@ -509,6 +810,24 @@ app.patch('/api/admin/marketing-leads/:id', authenticateToken, requireAdmin, asy
     } catch (err) {
         console.error('Erro ao atualizar lead de marketing:', err);
         res.status(500).json({ success: false, message: 'Não foi possível atualizar a triagem.' });
+    }
+});
+
+app.get('/api/admin/audit-logs', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        await ensureOperationalSchema();
+        const result = await pool.query(`
+            SELECT l.id, l.action, l.entity_type, l.entity_id, l.metadata, l.created_at,
+                   b.shop_name AS actor_name, b.email AS actor_email
+            FROM audit_logs l
+            LEFT JOIN barbers b ON b.id = l.actor_id
+            ORDER BY l.created_at DESC
+            LIMIT 200
+        `);
+        res.json({ success: true, logs: result.rows });
+    } catch (err) {
+        console.error('Erro ao carregar logs:', err);
+        res.status(500).json({ success: false, message: 'Nao foi possivel carregar os logs.' });
     }
 });
 
@@ -661,6 +980,7 @@ app.delete('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, 
 
 app.get('/api/business-settings/:barberId', authenticateToken, requireAnyPermission('configuracoes'), requireOwnBarber, async (req, res) => {
     try {
+        await ensureOperationalSchema();
         const settings = await fetchBookingSettings(req.params.barberId);
         res.json({ success: true, settings });
     } catch (err) {
@@ -670,7 +990,7 @@ app.get('/api/business-settings/:barberId', authenticateToken, requireAnyPermiss
 });
 
 app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermission('configuracoes'), requireOwnBarber, async (req, res) => {
-    const { bookingStyle, intervalMinutes, breakEnabled, breakStart, breakEnd, allowCustomTime, weeklySchedule } = req.body || {};
+    const { bookingStyle, intervalMinutes, breakEnabled, breakStart, breakEnd, allowCustomTime, weeklySchedule, blockedDates, blockedTimes } = req.body || {};
     const settings = normalizeBookingSettings({
         bookingStyle,
         intervalMinutes,
@@ -678,7 +998,9 @@ app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermi
         breakStart,
         breakEnd,
         allowCustomTime,
-        weeklySchedule
+        weeklySchedule,
+        blockedDates,
+        blockedTimes
     });
 
     const invalidDay = Object.values(settings.weeklySchedule).some(day => (
@@ -690,6 +1012,7 @@ app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermi
     }
 
     try {
+        await ensureOperationalSchema();
         const schedule = JSON.stringify({
             intervalMinutes: settings.intervalMinutes,
             breakEnabled: settings.breakEnabled,
@@ -708,7 +1031,15 @@ app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermi
             RETURNING booking_style, schedule, allow_custom_time
         `, [req.params.barberId, settings.bookingStyle, schedule, settings.allowCustomTime]);
 
-        res.json({ success: true, settings: readBookingSettingsRow(result.rows[0]) });
+        await pool.query('DELETE FROM booking_blocks WHERE barber_id = $1', [req.params.barberId]);
+        for (const date of settings.blockedDates) {
+            await pool.query('INSERT INTO booking_blocks (barber_id, block_date, reason) VALUES ($1, $2, $3)', [req.params.barberId, date, 'Dia bloqueado']);
+        }
+        for (const block of settings.blockedTimes) {
+            await pool.query('INSERT INTO booking_blocks (barber_id, block_date, start_time, end_time, reason) VALUES ($1, $2, $3, $4, $5)', [req.params.barberId, block.date, block.start, block.end, block.reason || 'Horário bloqueado']);
+        }
+
+        res.json({ success: true, settings: await fetchBookingSettings(req.params.barberId) });
     } catch (err) {
         console.error('Erro ao salvar configurações da barbearia:', err);
         res.status(500).json({ success: false, message: 'Não foi possível salvar as configurações.' });
@@ -722,6 +1053,7 @@ app.get('/api/public/settings/:barberId', async (req, res) => {
     }
 
     try {
+        await ensureOperationalSchema();
         const settings = await fetchBookingSettings(barberId);
         res.json({ success: true, settings });
     } catch (err) {
@@ -731,7 +1063,7 @@ app.get('/api/public/settings/:barberId', async (req, res) => {
     }
 });
 
-app.get('/api/appointments/:barberId', authenticateToken, requireAnyPermission('dashboard', 'agenda', 'billing', 'comissoes'), async (req, res) => {
+app.get('/api/appointments/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('dashboard', 'agenda', 'billing', 'comissoes'), async (req, res) => {
     try {
         await ensureAppointmentPaymentSchema();
         const { barberId } = req.params;
@@ -807,7 +1139,9 @@ app.get('/api/public/appointments', async (req, res) => {
 
 app.post('/api/appointments', async (req, res) => {
     const { barberId, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
+    let db;
     try {
+        await ensureOperationalSchema();
         await ensureAppointmentPaymentSchema();
         // Use provided date or today if not provided
         const apptDate = date || getCurrentBookingClock().date;
@@ -827,67 +1161,89 @@ app.post('/api/appointments', async (req, res) => {
         const daySettings = dateDay === null ? null : bookingSettings.weeklySchedule[String(dateDay)];
         const configuredTimes = getAvailableBookingTimes(bookingSettings, apptDate);
 
-        if (!daySettings?.enabled || (!bookingSettings.allowCustomTime && !configuredTimes.includes(normalizedTime))) {
+        if (!daySettings?.enabled || isBookingTimeBlocked(bookingSettings, apptDate, normalizedTime) || (!bookingSettings.allowCustomTime && !configuredTimes.includes(normalizedTime))) {
             return res.status(400).json({ success: false, message: 'Este horário não está disponível para a barbearia.' });
         }
 
         // 0. Check for collision
-        const collision = await pool.query(`
+        db = await pool.connect();
+        await db.query('BEGIN');
+        await db.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${barberId}:${professionalId}:${apptDate}:${normalizedTime}`]);
+        const collision = await db.query(`
             SELECT id FROM appointments 
-            WHERE barber_id = $1 AND professional_id = $2 AND appointment_date = $3 AND appointment_time = $4 AND status != 'canceled'
+            WHERE barber_id = $1 AND professional_id = $2 AND appointment_date = $3 AND appointment_time = $4 AND status NOT IN ('canceled', 'no_show')
         `, [barberId, professionalId, apptDate, normalizedTime]);
 
         if (collision.rows.length > 0) {
+            await db.query('ROLLBACK');
             return res.status(409).json({ success: false, message: 'Este horário já foi reservado para este barbeiro.' });
         }
 
         // 1. Insert the appointment
-        const result = await pool.query(
+        const result = await db.query(
             'INSERT INTO appointments (barber_id, service_id, professional_id, client_name, client_phone, appointment_time, appointment_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
             [barberId, serviceId, professionalId, clientName, clientPhone, normalizedTime, apptDate]
         );
 
         // 2. Sync with CRM (clients table) - Always ensure client exists for this Name + Phone combo
-        await pool.query(`
+        await db.query(`
             INSERT INTO clients (barber_id, name, phone)
             VALUES ($1, $2, $3)
             ON CONFLICT (barber_id, name, phone) DO NOTHING
-        `, [barberId, clientName, clientPhone]).catch(async (err) => {
-            // Manual fallback if needed
-            const check = await pool.query('SELECT id FROM clients WHERE barber_id = $1 AND name = $2 AND phone = $3', [barberId, clientName, clientPhone]);
-            if (check.rows.length === 0) {
-                await pool.query('INSERT INTO clients (barber_id, name, phone) VALUES ($1, $2, $3)', [barberId, clientName, clientPhone]);
-            }
-        });
+        `, [barberId, clientName, clientPhone]);
+
+        await db.query('COMMIT');
 
         res.json(result.rows[0]);
     } catch (err) {
+        if (db) await db.query('ROLLBACK').catch(() => {});
         console.error(err);
+        if (err.code === '23505') return res.status(409).json({ success: false, message: 'Este horÃ¡rio jÃ¡ foi reservado.' });
         res.status(500).send('Server Error');
+    } finally {
+        if (db) db.release();
     }
 });
 
 app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
     const { id } = req.params;
-    const { status, paymentStatus, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
+    const { status, paymentStatus, paymentMethod, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
+        await ensureOperationalSchema();
         await ensureAppointmentPaymentSchema();
         const hasAppointmentChanges = [serviceId, professionalId, clientName, clientPhone, time, date]
             .some(value => value !== undefined);
         const normalizedPaymentStatus = paymentStatus === 'pending' ? 'pending' : (paymentStatus === 'paid' ? 'paid' : null);
+        const normalizedPaymentMethod = normalizePaymentMethod(paymentMethod);
+
+        if (status && !APPOINTMENT_STATUSES.includes(status)) {
+            return res.status(400).json({ success: false, message: 'Status de atendimento invalido.' });
+        }
 
         if (!hasAppointmentChanges) {
-            if (status === 'completed') {
-                await pool.query(`
-                    UPDATE appointments
-                    SET status = $1,
-                        payment_status = $2::varchar,
-                        payment_paid_at = CASE WHEN $2::varchar = 'paid' THEN CURRENT_TIMESTAMP ELSE NULL END
-                    WHERE id = $3
-                `, [status, normalizedPaymentStatus || 'paid', id]);
-            } else {
-                await pool.query('UPDATE appointments SET status = $1 WHERE id = $2', [status, id]);
+            const result = await pool.query(`
+                UPDATE appointments
+                SET status = COALESCE($1, status),
+                    payment_status = COALESCE($2::varchar, payment_status),
+                    payment_method = COALESCE($3, payment_method),
+                    payment_paid_at = CASE
+                        WHEN COALESCE($2::varchar, payment_status) = 'paid' THEN COALESCE(payment_paid_at, CURRENT_TIMESTAMP)
+                        WHEN COALESCE($2::varchar, payment_status) = 'pending' THEN NULL
+                        ELSE payment_paid_at
+                    END
+                WHERE id = $4 AND barber_id = $5
+                RETURNING status, payment_status, payment_method
+            `, [status || null, normalizedPaymentStatus, paymentMethod ? normalizedPaymentMethod : null, id, req.user.id]);
+            if (!result.rows.length) {
+                return res.status(404).json({ success: false, message: 'Agendamento não encontrado.' });
             }
+            const updated = result.rows[0];
+            await syncAppointmentCashMovement(pool, id, updated.status, updated.payment_status, updated.payment_method);
+            await logAudit(req, 'appointment.status_updated', 'appointment', Number(id), {
+                status: updated.status,
+                paymentStatus: updated.payment_status,
+                paymentMethod: updated.payment_method
+            });
             return res.json({ success: true });
         }
 
@@ -897,13 +1253,13 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
 
         const collision = await pool.query(`
             SELECT id FROM appointments
-            WHERE barber_id = (SELECT barber_id FROM appointments WHERE id = $1)
+            WHERE barber_id = $5
               AND professional_id = $2
               AND appointment_date = $3
               AND appointment_time = $4
-              AND status != 'canceled'
+              AND status NOT IN ('canceled', 'no_show')
               AND id <> $1
-        `, [id, professionalId, date, time]);
+        `, [id, professionalId, date, time, req.user.id]);
 
         if (collision.rows.length > 0) {
             return res.status(409).json({ success: false, message: 'Este horário já está reservado para este barbeiro.' });
@@ -913,9 +1269,9 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
             UPDATE appointments
             SET service_id = $1, professional_id = $2, client_name = $3,
                 client_phone = $4, appointment_time = $5, appointment_date = $6
-            WHERE id = $7
+            WHERE id = $7 AND barber_id = $8
             RETURNING *
-        `, [serviceId, professionalId, clientName, clientPhone, time, date, id]);
+        `, [serviceId, professionalId, clientName, clientPhone, time, date, id, req.user.id]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Agendamento não encontrado.' });
@@ -927,6 +1283,8 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
             ON CONFLICT (barber_id, name, phone) DO NOTHING
         `, [clientName, clientPhone, id]);
 
+        await syncAppointmentCashMovement(pool, id, result.rows[0].status, result.rows[0].payment_status, result.rows[0].payment_method);
+        await logAudit(req, 'appointment.updated', 'appointment', Number(id), { status: result.rows[0].status });
         res.json({ success: true, appointment: result.rows[0] });
     } catch (err) {
         console.error(err);
@@ -936,19 +1294,23 @@ app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agen
 
 app.patch('/api/appointments/:id/payment', authenticateToken, requireAnyPermission('agenda', 'clientes'), async (req, res) => {
     const { id } = req.params;
+    const paymentMethod = normalizePaymentMethod(req.body?.paymentMethod);
     try {
+        await ensureOperationalSchema();
         await ensureAppointmentPaymentSchema();
         const result = await pool.query(`
             UPDATE appointments
-            SET payment_status = 'paid', payment_paid_at = CURRENT_TIMESTAMP
-            WHERE id = $1 AND status = 'completed'
-            RETURNING id, payment_status, payment_paid_at
-        `, [id]);
+            SET payment_status = 'paid', payment_method = $1, payment_paid_at = CURRENT_TIMESTAMP
+            WHERE id = $2 AND barber_id = $3 AND status = 'completed'
+            RETURNING id, barber_id, payment_status, payment_method, payment_paid_at
+        `, [paymentMethod, id, req.user.id]);
 
         if (!result.rows.length) {
             return res.status(404).json({ success: false, message: 'Atendimento pendente não encontrado.' });
         }
 
+        await syncAppointmentCashMovement(pool, id, 'completed', 'paid', paymentMethod);
+        await logAudit(req, 'appointment.payment_received', 'appointment', Number(id), { paymentMethod });
         res.json({ success: true, appointment: result.rows[0] });
     } catch (err) {
         console.error('Erro ao confirmar pagamento do atendimento:', err);
@@ -962,9 +1324,10 @@ app.patch('/api/appointments/:id/confirmation', authenticateToken, requireAnyPer
         await ensureAppointmentPaymentSchema();
         const result = await pool.query(`
             UPDATE appointments
-            SET confirmation_sent_at = CURRENT_TIMESTAMP
+            SET confirmation_sent_at = CURRENT_TIMESTAMP,
+                status = CASE WHEN status = 'pending' THEN 'confirmed' ELSE status END
             WHERE id = $1 AND barber_id = $2
-            RETURNING id, confirmation_sent_at
+            RETURNING id, status, confirmation_sent_at
         `, [id, req.user.id]);
 
         if (!result.rows.length) {
@@ -981,7 +1344,10 @@ app.patch('/api/appointments/:id/confirmation', authenticateToken, requireAnyPer
 app.delete('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
     const { id } = req.params;
     try {
-        await pool.query('DELETE FROM appointments WHERE id = $1', [id]);
+        const result = await pool.query('DELETE FROM appointments WHERE id = $1 AND barber_id = $2 RETURNING id', [id, req.user.id]);
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Agendamento nao encontrado.' });
+        await removeCashMovement(pool, req.user.id, 'appointment', id);
+        await logAudit(req, 'appointment.deleted', 'appointment', Number(id));
         res.json({ success: true });
     } catch (err) {
         console.error(err);
@@ -989,8 +1355,73 @@ app.delete('/api/appointments/:id', authenticateToken, requireAnyPermission('age
     }
 });
 
+app.get('/api/waitlist/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('agenda', 'clientes'), async (req, res) => {
+    try {
+        await ensureOperationalSchema();
+        const result = await pool.query(`
+            SELECT w.*, s.name AS service_name, p.name AS professional_name
+            FROM waitlist_entries w
+            LEFT JOIN services s ON s.id = w.service_id
+            LEFT JOIN professionals p ON p.id = w.professional_id
+            WHERE w.barber_id = $1 AND w.status NOT IN ('booked', 'canceled')
+            ORDER BY w.desired_date NULLS LAST, w.created_at ASC
+        `, [req.params.barberId]);
+        res.json({ success: true, entries: result.rows });
+    } catch (err) {
+        console.error('Erro ao carregar fila de encaixe:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível carregar a fila de encaixe.' });
+    }
+});
+
+app.post('/api/waitlist', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
+    const clientName = String(req.body?.clientName || '').trim();
+    const clientPhone = String(req.body?.clientPhone || '').replace(/\D/g, '');
+    const serviceId = req.body?.serviceId ? Number(req.body.serviceId) : null;
+    const professionalId = req.body?.professionalId ? Number(req.body.professionalId) : null;
+    const desiredDate = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.desiredDate || '')) ? String(req.body.desiredDate) : null;
+    const notes = String(req.body?.notes || '').trim().slice(0, 500) || null;
+    if (clientName.length < 2 || !/^\d{8,15}$/.test(clientPhone)) return res.status(400).json({ success: false, message: 'Informe nome e WhatsApp válidos.' });
+    try {
+        await ensureOperationalSchema();
+        if (serviceId) {
+            const service = await pool.query('SELECT id FROM services WHERE id = $1 AND barber_id = $2', [serviceId, req.user.id]);
+            if (!service.rows.length) return res.status(400).json({ success: false, message: 'Serviço inválido.' });
+        }
+        if (professionalId) {
+            const professional = await pool.query('SELECT id FROM professionals WHERE id = $1 AND barber_id = $2', [professionalId, req.user.id]);
+            if (!professional.rows.length) return res.status(400).json({ success: false, message: 'Barbeiro inválido.' });
+        }
+        const result = await pool.query(`
+            INSERT INTO waitlist_entries (barber_id, client_name, client_phone, service_id, professional_id, desired_date, notes)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+        `, [req.user.id, clientName, clientPhone, serviceId, professionalId, desiredDate, notes]);
+        await logAudit(req, 'waitlist.created', 'waitlist_entry', result.rows[0].id, { clientName });
+        res.status(201).json({ success: true, entry: result.rows[0] });
+    } catch (err) {
+        console.error('Erro ao cadastrar encaixe:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível cadastrar o encaixe.' });
+    }
+});
+
+app.patch('/api/waitlist/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
+    const statuses = ['waiting', 'contacted', 'booked', 'canceled'];
+    const status = String(req.body?.status || 'waiting');
+    if (!statuses.includes(status)) return res.status(400).json({ success: false, message: 'Status inválido.' });
+    try {
+        await ensureOperationalSchema();
+        const result = await pool.query('UPDATE waitlist_entries SET status = $1 WHERE id = $2 AND barber_id = $3 RETURNING *', [status, req.params.id, req.user.id]);
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Encaixe não encontrado.' });
+        await logAudit(req, 'waitlist.updated', 'waitlist_entry', Number(req.params.id), { status });
+        res.json({ success: true, entry: result.rows[0] });
+    } catch (err) {
+        console.error('Erro ao atualizar encaixe:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível atualizar o encaixe.' });
+    }
+});
+
 app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('dashboard', 'billing'), async (req, res) => {
     try {
+        await ensureOperationalSchema();
         const barberId = Number(req.params.barberId);
         const currentDate = new Date();
         const year = Number(req.query.year) || currentDate.getFullYear();
@@ -1040,10 +1471,50 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
             WHERE barber_id = $1
         `, [barberId, monthStart, nextMonthStart, requestedDate]);
 
+        const appointmentMetricsResult = await pool.query(`
+            SELECT
+                COUNT(*) FILTER (WHERE appointment_date = $2::date AND status NOT IN ('canceled', 'no_show')) AS active_today,
+                COUNT(*) FILTER (WHERE appointment_date = $2::date AND status = 'completed') AS completed_today,
+                COUNT(*) FILTER (WHERE appointment_date = $2::date AND status = 'no_show') AS no_show_today,
+                COUNT(*) FILTER (WHERE appointment_date = $2::date AND status = 'canceled') AS canceled_today,
+                COUNT(*) FILTER (WHERE appointment_date >= $3::date AND appointment_date < $4::date AND status = 'no_show') AS no_show_month,
+                COUNT(*) FILTER (WHERE appointment_date >= $3::date AND appointment_date < $4::date AND status = 'canceled') AS canceled_month,
+                COUNT(*) FILTER (WHERE appointment_date >= $3::date AND appointment_date < $4::date AND status = 'completed') AS completed_month
+            FROM appointments
+            WHERE barber_id = $1
+        `, [barberId, requestedDate, monthStart, nextMonthStart]);
+
+        const clientMetricsResult = await pool.query(`
+            SELECT
+                COUNT(*) FILTER (WHERE c.created_at >= $2::date AND c.created_at < $3::date) AS new_clients,
+                COUNT(*) FILTER (WHERE EXISTS (
+                    SELECT 1 FROM appointments a2
+                    WHERE a2.barber_id = c.barber_id AND a2.client_phone = c.phone AND a2.status = 'completed'
+                    GROUP BY a2.client_phone HAVING COUNT(*) > 1
+                )) AS returning_clients
+            FROM clients c
+            WHERE c.barber_id = $1
+        `, [barberId, monthStart, nextMonthStart]);
+
+        const professionalRevenueResult = await pool.query(`
+            SELECT p.id, p.name, COALESCE(SUM(s.price), 0) AS revenue,
+                   COUNT(a.id) FILTER (WHERE a.status = 'completed') AS completed_count
+            FROM professionals p
+            LEFT JOIN appointments a ON a.professional_id = p.id AND a.barber_id = $1
+                AND a.appointment_date >= $2::date AND a.appointment_date < $3::date
+            LEFT JOIN services s ON s.id = a.service_id
+            WHERE p.barber_id = $1
+            GROUP BY p.id
+            ORDER BY revenue DESC, p.name ASC
+        `, [barberId, monthStart, nextMonthStart]);
+
         const serviceRev = parseFloat(svcResult.rows[0].revenue);
         const salesRev = parseFloat(salesResult.rows[0].revenue);
         const monthlyRevenue = parseFloat(svcResult.rows[0].monthly_revenue) + parseFloat(salesResult.rows[0].monthly_revenue);
         const dailyRevenue = parseFloat(svcResult.rows[0].daily_revenue) + parseFloat(salesResult.rows[0].daily_revenue);
+        const appointmentMetrics = appointmentMetricsResult.rows[0] || {};
+        const clientMetrics = clientMetricsResult.rows[0] || {};
+        const completedMonth = Number(appointmentMetrics.completed_month || 0);
 
         res.json({
             revenue: serviceRev + salesRev,
@@ -1053,12 +1524,164 @@ app.get('/api/stats/:barberId', authenticateToken, requireOwnBarber, requireAnyP
             monthlyRevenue,
             dailyRevenue,
             monthlyExpenses: parseFloat(expensesResult.rows[0].monthly_expenses),
-            dailyExpenses: parseFloat(expensesResult.rows[0].daily_expenses)
+            dailyExpenses: parseFloat(expensesResult.rows[0].daily_expenses),
+            monthlyProfit: monthlyRevenue - parseFloat(expensesResult.rows[0].monthly_expenses),
+            activeToday: Number(appointmentMetrics.active_today || 0),
+            completedToday: Number(appointmentMetrics.completed_today || 0),
+            noShowToday: Number(appointmentMetrics.no_show_today || 0),
+            canceledToday: Number(appointmentMetrics.canceled_today || 0),
+            noShowMonth: Number(appointmentMetrics.no_show_month || 0),
+            canceledMonth: Number(appointmentMetrics.canceled_month || 0),
+            averageTicket: completedMonth ? monthlyRevenue / completedMonth : 0,
+            newClients: Number(clientMetrics.new_clients || 0),
+            returningClients: Number(clientMetrics.returning_clients || 0),
+            professionalRevenue: professionalRevenueResult.rows.map(row => ({
+                id: row.id,
+                name: row.name,
+                revenue: Number(row.revenue || 0),
+                completedCount: Number(row.completed_count || 0)
+            }))
         });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
     }
+});
+
+// Cash register, reports and loyalty
+app.get('/api/cash/register/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing', 'vendas', 'despesas'), async (req, res) => {
+    const barberId = Number(req.params.barberId);
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.date || '')) ? String(req.query.date) : new Date().toISOString().slice(0, 10);
+    try {
+        await ensureOperationalSchema();
+        const register = await ensureCashRegister(pool, barberId, date);
+        const movements = await pool.query(`
+            SELECT id, source_type, source_id, payment_method, amount, description, movement_date, created_at
+            FROM cash_movements WHERE barber_id = $1 AND movement_date = $2 ORDER BY created_at ASC, id ASC
+        `, [barberId, date]);
+        const summary = await pool.query(`
+            SELECT COALESCE(SUM(amount), 0) AS total,
+                   COALESCE(SUM(amount) FILTER (WHERE amount > 0), 0) AS inflow,
+                   COALESCE(SUM(amount) FILTER (WHERE amount < 0), 0) AS outflow,
+                   COALESCE(SUM(amount) FILTER (WHERE payment_method = 'cash'), 0) AS cash_total,
+                   COALESCE(SUM(amount) FILTER (WHERE payment_method = 'pix'), 0) AS pix_total,
+                   COALESCE(SUM(amount) FILTER (WHERE payment_method = 'card'), 0) AS card_total
+            FROM cash_movements WHERE barber_id = $1 AND movement_date = $2
+        `, [barberId, date]);
+        const row = summary.rows[0];
+        res.json({ success: true, register, movements: movements.rows, summary: {
+            total: Number(row.total || 0), inflow: Number(row.inflow || 0), outflow: Number(row.outflow || 0),
+            cashTotal: Number(row.cash_total || 0), pixTotal: Number(row.pix_total || 0), cardTotal: Number(row.card_total || 0),
+            expectedCash: Number(register.opening_balance || 0) + Number(row.cash_total || 0)
+        }});
+    } catch (err) {
+        console.error('Erro ao carregar caixa:', err);
+        res.status(500).json({ success: false, message: 'Nao foi possivel carregar o caixa.' });
+    }
+});
+
+app.post('/api/cash/register/open', authenticateToken, requireAnyPermission('billing', 'vendas', 'despesas'), async (req, res) => {
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(req.body?.date || '')) ? String(req.body.date) : new Date().toISOString().slice(0, 10);
+    const openingBalance = Number(String(req.body?.openingBalance ?? 0).replace(',', '.'));
+    if (!Number.isFinite(openingBalance) || openingBalance < 0) return res.status(400).json({ success: false, message: 'Saldo inicial invalido.' });
+    try {
+        await ensureOperationalSchema();
+        const register = await ensureCashRegister(pool, req.user.id, date, openingBalance);
+        await logAudit(req, 'cash.opened', 'cash_register', register.id, { date, openingBalance });
+        res.json({ success: true, register });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Nao foi possivel abrir o caixa.' });
+    }
+});
+
+app.patch('/api/cash/register/:id/close', authenticateToken, requireAnyPermission('billing', 'vendas', 'despesas'), async (req, res) => {
+    const closingBalance = Number(String(req.body?.closingBalance ?? '').replace(',', '.'));
+    if (!Number.isFinite(closingBalance) || closingBalance < 0) return res.status(400).json({ success: false, message: 'Informe o saldo final contado.' });
+    try {
+        await ensureOperationalSchema();
+        const result = await pool.query(`
+            UPDATE cash_registers SET closing_balance = $1, status = 'closed', closed_at = CURRENT_TIMESTAMP, notes = $2
+            WHERE id = $3 AND barber_id = $4 RETURNING *
+        `, [closingBalance, String(req.body?.notes || '').trim() || null, req.params.id, req.user.id]);
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Caixa nao encontrado.' });
+        await logAudit(req, 'cash.closed', 'cash_register', Number(req.params.id), { closingBalance });
+        res.json({ success: true, register: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Nao foi possivel fechar o caixa.' });
+    }
+});
+
+app.post('/api/cash/movements', authenticateToken, requireAnyPermission('billing', 'vendas', 'despesas'), async (req, res) => {
+    const amount = Number(String(req.body?.amount ?? '').replace(',', '.'));
+    const description = String(req.body?.description || '').trim();
+    if (!Number.isFinite(amount) || amount === 0 || !description) return res.status(400).json({ success: false, message: 'Informe valor e descricao.' });
+    try {
+        await ensureOperationalSchema();
+        await upsertCashMovement({ barberId: req.user.id, sourceType: 'adjustment', sourceId: null, amount, paymentMethod: req.body?.paymentMethod, description, movementDate: req.body?.date });
+        res.status(201).json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Nao foi possivel registrar a movimentacao.' });
+    }
+});
+
+app.get('/api/reports/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing', 'comissoes', 'despesas', 'vendas'), async (req, res) => {
+    const barberId = Number(req.params.barberId);
+    const from = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.from || '')) ? String(req.query.from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+    const to = /^\d{4}-\d{2}-\d{2}$/.test(String(req.query.to || '')) ? String(req.query.to) : new Date().toISOString().slice(0, 10);
+    try {
+        await ensureOperationalSchema();
+        const [services, sales, expenses, commissions, topServices, topProducts] = await Promise.all([
+            pool.query(`SELECT COALESCE(SUM(s.price),0) AS total, COUNT(a.id) AS count FROM appointments a LEFT JOIN services s ON s.id = a.service_id WHERE a.barber_id = $1 AND a.status = 'completed' AND a.appointment_date BETWEEN $2::date AND $3::date`, [barberId, from, to]),
+            pool.query(`SELECT COALESCE(SUM(total_price),0) AS total, COUNT(id) AS count FROM sales WHERE barber_id = $1 AND sale_date::date BETWEEN $2::date AND $3::date`, [barberId, from, to]),
+            pool.query(`SELECT category, COALESCE(SUM(amount),0) AS total FROM expenses WHERE barber_id = $1 AND expense_date BETWEEN $2::date AND $3::date GROUP BY category ORDER BY total DESC`, [barberId, from, to]),
+            pool.query(`SELECT COALESCE(SUM(commission_value),0) AS total FROM sales WHERE barber_id = $1 AND sale_date::date BETWEEN $2::date AND $3::date`, [barberId, from, to]),
+            pool.query(`SELECT COALESCE(s.name, 'Serviço removido') AS name, COUNT(a.id) AS count, COALESCE(SUM(s.price), 0) AS total FROM appointments a LEFT JOIN services s ON s.id = a.service_id WHERE a.barber_id = $1 AND a.status = 'completed' AND a.appointment_date BETWEEN $2::date AND $3::date GROUP BY s.name ORDER BY count DESC, total DESC LIMIT 10`, [barberId, from, to]),
+            pool.query(`SELECT COALESCE(i.item_name, 'Produto removido') AS name, SUM(s.quantity) AS quantity, COALESCE(SUM(s.total_price), 0) AS total FROM sales s LEFT JOIN inventory i ON i.id = s.item_id WHERE s.barber_id = $1 AND s.sale_date::date BETWEEN $2::date AND $3::date GROUP BY i.item_name ORDER BY quantity DESC, total DESC LIMIT 10`, [barberId, from, to])
+        ]);
+        const serviceTotal = Number(services.rows[0].total || 0);
+        const salesTotal = Number(sales.rows[0].total || 0);
+        const expensesTotal = expenses.rows.reduce((sum, row) => sum + Number(row.total || 0), 0);
+        res.json({ success: true, period: { from, to }, summary: {
+            serviceRevenue: serviceTotal, productRevenue: salesTotal, revenue: serviceTotal + salesTotal,
+            expenses: expensesTotal, profit: serviceTotal + salesTotal - expensesTotal,
+            commission: Number(commissions.rows[0].total || 0), serviceCount: Number(services.rows[0].count || 0), saleCount: Number(sales.rows[0].count || 0)
+        }, expensesByCategory: expenses.rows, topServices: topServices.rows, topProducts: topProducts.rows });
+    } catch (err) {
+        console.error('Erro ao carregar relatorios:', err);
+        res.status(500).json({ success: false, message: 'Nao foi possivel carregar os relatorios.' });
+    }
+});
+
+app.get('/api/loyalty/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('clientes'), async (req, res) => {
+    try {
+        await ensureOperationalSchema();
+        const result = await pool.query('SELECT id, name, phone, loyalty_points, referral_code FROM clients WHERE barber_id = $1 ORDER BY loyalty_points DESC, name ASC', [req.params.barberId]);
+        res.json({ success: true, clients: result.rows });
+    } catch (err) { res.status(500).json({ success: false, message: 'Nao foi possivel carregar a fidelidade.' }); }
+});
+
+app.post('/api/loyalty/adjust', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
+    const clientId = Number(req.body?.clientId);
+    const points = Number(req.body?.points);
+    const reason = String(req.body?.reason || '').trim().slice(0, 160);
+    if (!Number.isInteger(clientId) || !Number.isInteger(points) || points === 0 || !reason) return res.status(400).json({ success: false, message: 'Informe cliente, pontos e motivo.' });
+    try {
+        await ensureOperationalSchema();
+        const db = await pool.connect();
+        try {
+            await db.query('BEGIN');
+            const clientResult = await db.query('SELECT id, loyalty_points FROM clients WHERE id = $1 AND barber_id = $2 FOR UPDATE', [clientId, req.user.id]);
+            if (!clientResult.rows.length) { await db.query('ROLLBACK'); return res.status(404).json({ success: false, message: 'Cliente nao encontrado.' }); }
+            const next = Math.max(0, Number(clientResult.rows[0].loyalty_points || 0) + points);
+            await db.query('UPDATE clients SET loyalty_points = $1 WHERE id = $2 AND barber_id = $3', [next, clientId, req.user.id]);
+            await db.query('INSERT INTO loyalty_transactions (barber_id, client_id, points, reason) VALUES ($1, $2, $3, $4)', [req.user.id, clientId, points, reason]);
+            await db.query('COMMIT');
+            res.json({ success: true, points: next });
+        } catch (error) { await db.query('ROLLBACK').catch(() => {}); throw error; } finally { db.release(); }
+    } catch (err) { console.error(err); res.status(500).json({ success: false, message: 'Nao foi possivel atualizar os pontos.' }); }
 });
 
 app.get('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('billing'), async (req, res) => {
@@ -1120,8 +1743,9 @@ app.put('/api/monthly-goals/:barberId', authenticateToken, requireOwnBarber, req
 app.get('/api/expenses/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('despesas'), async (req, res) => {
     const barberId = Number(req.params.barberId);
     try {
+        await ensureOperationalSchema();
         const result = await pool.query(`
-            SELECT id, description, category, amount, expense_date, notes, created_at
+            SELECT id, description, category, amount, expense_date, notes, payment_method, created_at
             FROM expenses
             WHERE barber_id = $1
             ORDER BY expense_date DESC, created_at DESC
@@ -1140,17 +1764,22 @@ app.post('/api/expenses', authenticateToken, requireAnyPermission('despesas'), a
     const amount = Number(String(req.body.amount ?? '').replace(',', '.'));
     const expenseDate = String(req.body.expenseDate || '').slice(0, 10);
     const notes = String(req.body.notes || '').trim() || null;
+    const paymentMethod = normalizePaymentMethod(req.body.paymentMethod);
 
     if (!description || description.length > 160 || !Number.isFinite(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(expenseDate)) {
         return res.status(400).json({ success: false, message: 'Informe descrição, valor e data válidos para a despesa.' });
     }
 
     try {
+        await ensureOperationalSchema();
         const result = await pool.query(`
-            INSERT INTO expenses (barber_id, description, category, amount, expense_date, notes)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, description, category, amount, expense_date, notes, created_at
-        `, [barberId, description, category.slice(0, 60), amount, expenseDate, notes]);
+            INSERT INTO expenses (barber_id, description, category, amount, expense_date, notes, payment_method)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id, description, category, amount, expense_date, notes, payment_method, created_at
+        `, [barberId, description, category.slice(0, 60), amount, expenseDate, notes, paymentMethod]);
+        await ensureOperationalSchema();
+        await upsertCashMovement({ barberId, sourceType: 'expense', sourceId: result.rows[0].id, amount: -amount, paymentMethod, description: `Despesa: ${description}`, movementDate: expenseDate });
+        await logAudit(req, 'expense.created', 'expense', result.rows[0].id, { amount, category });
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Erro ao lançar despesa:', err);
@@ -1167,6 +1796,9 @@ app.delete('/api/expenses/:id', authenticateToken, requireAnyPermission('despesa
         if (!result.rows.length) {
             return res.status(404).json({ success: false, message: 'Despesa nÃ£o encontrada.' });
         }
+        await ensureOperationalSchema();
+        await removeCashMovement(pool, req.user.id, 'expense', result.rows[0].id);
+        await logAudit(req, 'expense.deleted', 'expense', result.rows[0].id);
         res.json({ success: true });
     } catch (err) {
         console.error('Erro ao excluir despesa:', err);
@@ -1175,22 +1807,27 @@ app.delete('/api/expenses/:id', authenticateToken, requireAnyPermission('despesa
 });
 
 // Clients API - Fixed last_service_date to use appointment_date for business logic
-app.get('/api/clients/:barberId', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
+app.get('/api/clients/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('clientes'), async (req, res) => {
     try {
+        await ensureOperationalSchema();
         await ensureAppointmentPaymentSchema();
         const { barberId } = req.params;
         const result = await pool.query(`
             SELECT c.*, 
                    MAX(a.appointment_date) as last_service_date,
+                   (CURRENT_DATE - MAX(a.appointment_date)) as days_since_last_service,
+                   COALESCE(SUM(CASE WHEN a.status = 'completed' THEN COALESCE(s.price, 0) ELSE 0 END), 0) as total_spent,
+                   (SELECT s3.name FROM appointments a3 LEFT JOIN services s3 ON s3.id = a3.service_id WHERE a3.barber_id = c.barber_id AND a3.client_phone = c.phone AND a3.status = 'completed' GROUP BY s3.name ORDER BY COUNT(*) DESC, s3.name ASC LIMIT 1) as preferred_service,
+                   (SELECT p3.name FROM appointments a4 LEFT JOIN professionals p3 ON p3.id = a4.professional_id WHERE a4.barber_id = c.barber_id AND a4.client_phone = c.phone AND a4.status = 'completed' GROUP BY p3.name ORDER BY COUNT(*) DESC, p3.name ASC LIMIT 1) as preferred_professional,
                    (SELECT a2.appointment_time 
                     FROM appointments a2 
-                    WHERE a2.client_name = c.name AND a2.client_phone = c.phone 
+                    WHERE a2.barber_id = c.barber_id AND a2.client_name = c.name AND a2.client_phone = c.phone
                     ORDER BY a2.appointment_date DESC, a2.appointment_time DESC LIMIT 1) as scheduled_time,
                    COUNT(a.id) as total_appointments,
                    COUNT(a.id) FILTER (WHERE a.status = 'completed' AND a.payment_status = 'pending') as pending_payment_count,
                    COALESCE(SUM(CASE WHEN a.status = 'completed' AND a.payment_status = 'pending' THEN COALESCE(s.price, 0) ELSE 0 END), 0) as pending_payment_total
             FROM clients c
-            LEFT JOIN appointments a ON c.name = a.client_name AND c.phone = a.client_phone
+            LEFT JOIN appointments a ON c.barber_id = a.barber_id AND c.name = a.client_name AND c.phone = a.client_phone
             LEFT JOIN services s ON a.service_id = s.id
             WHERE c.barber_id = $1
             GROUP BY c.id
@@ -1207,7 +1844,7 @@ app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('cli
     try {
         await ensureAppointmentPaymentSchema();
         const { id } = req.params;
-        const clientResult = await pool.query('SELECT * FROM clients WHERE id = $1', [id]);
+        const clientResult = await pool.query('SELECT * FROM clients WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
         const client = clientResult.rows[0];
 
         if (!client) return res.status(404).send('Client not found');
@@ -1218,9 +1855,9 @@ app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('cli
             FROM appointments a
             LEFT JOIN services s ON a.service_id = s.id
             LEFT JOIN professionals p ON a.professional_id = p.id
-            WHERE a.client_name = $1 AND a.client_phone = $2
+            WHERE a.barber_id = $3 AND a.client_name = $1 AND a.client_phone = $2
             ORDER BY a.appointment_date DESC, a.appointment_time DESC
-        `, [client.name, client.phone]);
+        `, [client.name, client.phone, req.user.id]);
 
         const statsResult = await pool.query(`
             SELECT COALESCE(SUM(COALESCE(s.price, 0)), 0) as total_spent,
@@ -1229,8 +1866,8 @@ app.get('/api/clients/:id/history', authenticateToken, requireAnyPermission('cli
                    COALESCE(SUM(CASE WHEN a.status = 'completed' AND a.payment_status = 'pending' THEN COALESCE(s.price, 0) ELSE 0 END), 0) as pending_payment_total
             FROM appointments a
             LEFT JOIN services s ON a.service_id = s.id
-            WHERE a.client_name = $1 AND a.client_phone = $2 AND a.status = 'completed'
-        `, [client.name, client.phone]);
+            WHERE a.barber_id = $3 AND a.client_name = $1 AND a.client_phone = $2 AND a.status = 'completed'
+        `, [client.name, client.phone, req.user.id]);
 
         res.json({
             client,
@@ -1247,7 +1884,7 @@ app.delete('/api/clients/:id', authenticateToken, requireAnyPermission('clientes
     const { id } = req.params;
     let db;
     try {
-        const clientRes = await pool.query('SELECT name, phone FROM clients WHERE id = $1', [id]);
+        const clientRes = await pool.query('SELECT name, phone FROM clients WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
         if (clientRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Cliente não encontrado' });
         
         const { name, phone } = clientRes.rows[0];
@@ -1255,13 +1892,13 @@ app.delete('/api/clients/:id', authenticateToken, requireAnyPermission('clientes
         
         await db.query('BEGIN');
         // Delete associated appointments
-        await db.query('DELETE FROM appointments WHERE client_name = $1 AND client_phone = $2', [name, phone]);
+        await db.query('DELETE FROM appointments WHERE barber_id = $3 AND client_name = $1 AND client_phone = $2', [name, phone, req.user.id]);
 
         // Keep sales history, but remove the reference to the deleted client.
-        await db.query('UPDATE sales SET client_id = NULL WHERE client_id = $1', [id]);
+        await db.query('UPDATE sales SET client_id = NULL WHERE client_id = $1 AND barber_id = $2', [id, req.user.id]);
         
         // Delete the client
-        await db.query('DELETE FROM clients WHERE id = $1', [id]);
+        await db.query('DELETE FROM clients WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
         await db.query('COMMIT');
         
         res.json({ success: true });
@@ -1277,6 +1914,7 @@ app.delete('/api/clients/:id', authenticateToken, requireAnyPermission('clientes
 // Services API
 app.get('/api/services/:barberId', async (req, res) => {
     try {
+        await ensureOperationalSchema();
         const { barberId } = req.params;
         const result = await pool.query('SELECT * FROM services WHERE barber_id = $1 ORDER BY name ASC', [barberId]);
         res.json(result.rows);
@@ -1287,11 +1925,12 @@ app.get('/api/services/:barberId', async (req, res) => {
 });
 
 app.post('/api/services', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
-    const { barberId, name, price, duration, photoUrl } = req.body;
+    const { name, price, duration, photoUrl, isPackage, packageSessions } = req.body;
     try {
+        await ensureOperationalSchema();
         const result = await pool.query(
-            'INSERT INTO services (barber_id, name, price, duration, photo_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [barberId, name, price, duration, photoUrl]
+            'INSERT INTO services (barber_id, name, price, duration, photo_url, is_package, package_sessions) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [req.user.id, name, price, duration, photoUrl, Boolean(isPackage), isPackage ? (Number(packageSessions) || null) : null]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -1302,11 +1941,12 @@ app.post('/api/services', authenticateToken, requireAnyPermission('servicos'), a
 
 app.patch('/api/services/:id', authenticateToken, requireAnyPermission('servicos'), async (req, res) => {
     const { id } = req.params;
-    const { name, price, duration, photoUrl } = req.body;
+    const { name, price, duration, photoUrl, isPackage, packageSessions } = req.body;
     try {
+        await ensureOperationalSchema();
         await pool.query(
-            'UPDATE services SET name = $1, price = $2, duration = $3, photo_url = $4 WHERE id = $5',
-            [name, price, duration, photoUrl, id]
+            'UPDATE services SET name = $1, price = $2, duration = $3, photo_url = $4, is_package = $5, package_sessions = $6 WHERE id = $7 AND barber_id = $8',
+            [name, price, duration, photoUrl, Boolean(isPackage), isPackage ? (Number(packageSessions) || null) : null, id, req.user.id]
         );
         res.json({ success: true });
     } catch (err) {
@@ -1369,11 +2009,11 @@ app.get('/api/professionals/:barberId', async (req, res) => {
 });
 
 app.post('/api/professionals', authenticateToken, requireAnyPermission('barbeiros'), async (req, res) => {
-    const { barberId, name, phone, photoUrl, commission, productCommission } = req.body;
+    const { name, phone, photoUrl, commission, productCommission } = req.body;
     try {
         const result = await pool.query(
             'INSERT INTO professionals (barber_id, name, phone, photo_url, commission, product_commission) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [barberId, name, phone, photoUrl, commission || 0, productCommission || 0]
+            [req.user.id, name, phone, photoUrl, commission || 0, productCommission || 0]
         );
         res.json(result.rows[0]);
     } catch (err) {
@@ -1400,10 +2040,14 @@ app.get('/api/professional-services/:profId', async (req, res) => {
 app.post('/api/professional-services', authenticateToken, requireAnyPermission('barbeiros'), async (req, res) => {
     const { profId, serviceIds } = req.body;
     try {
+        const professional = await pool.query('SELECT id FROM professionals WHERE id = $1 AND barber_id = $2', [profId, req.user.id]);
+        if (!professional.rows.length) return res.status(404).json({ success: false, message: 'Barbeiro nao encontrado.' });
+        const ids = Array.isArray(serviceIds) ? serviceIds.map(Number).filter(Number.isInteger) : [];
+        const services = ids.length ? await pool.query('SELECT id FROM services WHERE barber_id = $1 AND id = ANY($2::int[])', [req.user.id, ids]) : { rows: [] };
         await pool.query('DELETE FROM professional_services WHERE professional_id = $1', [profId]);
-        if (serviceIds && serviceIds.length > 0) {
-            const values = serviceIds.map(sid => `(${profId}, ${sid})`).join(',');
-            await pool.query(`INSERT INTO professional_services (professional_id, service_id) VALUES ${values}`);
+        if (services.rows.length > 0) {
+            const placeholders = services.rows.map((_, index) => `($1, $${index + 2})`).join(',');
+            await pool.query(`INSERT INTO professional_services (professional_id, service_id) VALUES ${placeholders}`, [profId, ...services.rows.map(row => row.id)]);
         }
         res.send('Linked successfully');
     } catch (err) {
@@ -1417,8 +2061,8 @@ app.patch('/api/professionals/:id', authenticateToken, requireAnyPermission('bar
         const { id } = req.params;
         const { name, phone, photoUrl, commission, productCommission } = req.body;
         await pool.query(
-            'UPDATE professionals SET name = $1, phone = $2, photo_url = $3, commission = $4, product_commission = $5 WHERE id = $6',
-            [name, phone, photoUrl, commission || 0, productCommission || 0, id]
+            'UPDATE professionals SET name = $1, phone = $2, photo_url = $3, commission = $4, product_commission = $5 WHERE id = $6 AND barber_id = $7',
+            [name, phone, photoUrl, commission || 0, productCommission || 0, id, req.user.id]
         );
         res.json({ success: true });
     } catch (err) {
@@ -1430,8 +2074,8 @@ app.patch('/api/professionals/:id', authenticateToken, requireAnyPermission('bar
 app.delete('/api/professionals/:id', authenticateToken, requireAnyPermission('barbeiros'), async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query('DELETE FROM professional_services WHERE professional_id = $1', [id]);
-        await pool.query('DELETE FROM professionals WHERE id = $1', [id]);
+        await pool.query('DELETE FROM professional_services WHERE professional_id = $1 AND professional_id IN (SELECT id FROM professionals WHERE barber_id = $2)', [id, req.user.id]);
+        await pool.query('DELETE FROM professionals WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
         res.json({ success: true });
     } catch (err) {
         console.error(err);
@@ -1440,22 +2084,59 @@ app.delete('/api/professionals/:id', authenticateToken, requireAnyPermission('ba
 });
 
 app.post('/api/clients', authenticateToken, requireAnyPermission('clientes'), async (req, res) => {
-    const { barberId, name, phone, notes } = req.body;
+    const { name, phone, notes, birthday, referralCode } = req.body;
+    let db;
     try {
-        const result = await pool.query(
-            'INSERT INTO clients (barber_id, name, phone, notes) VALUES ($1, $2, $3, $4) RETURNING *',
-            [barberId, name, phone, notes]
+        await ensureOperationalSchema();
+        db = await pool.connect();
+        await db.query('BEGIN');
+        const ownReferralCode = `BP-${req.user.id}-${Date.now().toString(36).toUpperCase()}`;
+        const result = await db.query(
+            'INSERT INTO clients (barber_id, name, phone, notes, birthday, referral_code) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [req.user.id, name, phone, notes, birthday || null, ownReferralCode]
         );
-        res.json(result.rows[0]);
+        const client = result.rows[0];
+        if (referralCode) {
+            const referrer = await db.query(
+                'SELECT id FROM clients WHERE barber_id = $1 AND UPPER(referral_code) = UPPER($2) AND id <> $3 LIMIT 1',
+                [req.user.id, String(referralCode).trim(), client.id]
+            );
+            if (referrer.rows.length) {
+                const referral = await db.query(`
+                    INSERT INTO referrals (barber_id, referrer_client_id, referred_client_id)
+                    VALUES ($1, $2, $3)
+                    ON CONFLICT (barber_id, referred_client_id) DO NOTHING
+                    RETURNING id, referrer_bonus, referred_bonus
+                `, [req.user.id, referrer.rows[0].id, client.id]);
+                if (referral.rows.length) {
+                    const { id: referralId, referrer_bonus: referrerBonus, referred_bonus: referredBonus } = referral.rows[0];
+                    await db.query('UPDATE clients SET loyalty_points = loyalty_points + $1 WHERE id = $2 AND barber_id = $3', [referrerBonus, referrer.rows[0].id, req.user.id]);
+                    await db.query('UPDATE clients SET loyalty_points = loyalty_points + $1 WHERE id = $2 AND barber_id = $3', [referredBonus, client.id, req.user.id]);
+                    await db.query(`
+                        INSERT INTO loyalty_transactions (barber_id, client_id, points, reason, source_type, source_id)
+                        VALUES ($1, $2, $3, 'Bônus por indicação', 'referral', $4), ($1, $5, $6, 'Bônus de indicação recebido', 'referral', $7)
+                        ON CONFLICT (barber_id, source_type, source_id) DO NOTHING
+                    `, [req.user.id, referrer.rows[0].id, referrerBonus, referralId, client.id, referredBonus, -referralId]);
+                }
+            }
+        }
+        await db.query('COMMIT');
+        await logAudit(req, 'client.created', 'client', client.id, { referred: Boolean(referralCode) });
+        res.json(client);
     } catch (err) {
+        if (db) await db.query('ROLLBACK').catch(() => {});
         console.error(err);
-        res.status(500).send('Server Error');
+        if (err.code === '23505') return res.status(409).json({ success: false, message: 'Já existe um cliente com estes dados.' });
+        res.status(500).json({ success: false, message: 'Não foi possível cadastrar o cliente.' });
+    } finally {
+        if (db) db.release();
     }
 });
 
 // Inventory API (Revolutionary)
-app.get('/api/inventory/:barberId', authenticateToken, requireAnyPermission('estoque', 'vendas'), async (req, res) => {
+app.get('/api/inventory/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('estoque', 'vendas'), async (req, res) => {
     try {
+        await ensureOperationalSchema();
         const { barberId } = req.params;
         const result = await pool.query('SELECT * FROM inventory WHERE barber_id = $1 ORDER BY item_name ASC', [barberId]);
         res.json(result.rows);
@@ -1465,13 +2146,28 @@ app.get('/api/inventory/:barberId', authenticateToken, requireAnyPermission('est
     }
 });
 
-app.post('/api/inventory', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
-    const { barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, generateCommission } = req.body;
+app.get('/api/inventory/item/:id/movements', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     try {
+        await ensureOperationalSchema();
+        const result = await pool.query(`
+            SELECT m.id, m.movement_type, m.quantity, m.unit_cost, m.reason, m.created_at, i.item_name
+            FROM inventory_movements m JOIN inventory i ON i.id = m.inventory_id
+            WHERE m.inventory_id = $1 AND m.barber_id = $2 ORDER BY m.created_at DESC LIMIT 100
+        `, [req.params.id, req.user.id]);
+        res.json({ success: true, movements: result.rows });
+    } catch (err) { res.status(500).json({ success: false, message: 'Nao foi possivel carregar o historico do estoque.' }); }
+});
+
+app.post('/api/inventory', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
+    const { itemName, description, photoUrl, supplier, costPrice, quantity, unit, minQuantity, unitPrice, generateCommission } = req.body;
+    try {
+        await ensureOperationalSchema();
         const result = await pool.query(
-            'INSERT INTO inventory (barber_id, item_name, description, photo_url, quantity, unit, min_quantity, unit_price, generate_commission) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-            [barberId, itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice || 0, generateCommission !== false]
+            'INSERT INTO inventory (barber_id, item_name, description, photo_url, supplier, cost_price, quantity, unit, min_quantity, unit_price, generate_commission) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+            [req.user.id, itemName, description, photoUrl, supplier || null, Number(costPrice) || 0, quantity, unit, minQuantity, unitPrice || 0, generateCommission !== false]
         );
+        await recordInventoryMovement(pool, req.user.id, result.rows[0].id, 'entry', Number(quantity) || 0, Number(costPrice) || 0, 'Cadastro inicial');
+        await logAudit(req, 'inventory.created', 'inventory', result.rows[0].id, { quantity });
         res.json(result.rows[0]);
     } catch (err) {
         console.error(err);
@@ -1481,21 +2177,29 @@ app.post('/api/inventory', authenticateToken, requireAnyPermission('estoque'), a
 
 app.patch('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     const { id } = req.params;
-    const { itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, generateCommission } = req.body;
+    const { itemName, description, photoUrl, supplier, costPrice, quantity, unit, minQuantity, unitPrice, generateCommission } = req.body;
     try {
+        await ensureOperationalSchema();
+        const currentResult = await pool.query('SELECT * FROM inventory WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
+        const current = currentResult.rows[0];
+        if (!current) return res.status(404).json({ success: false, message: 'Produto nao encontrado.' });
         const result = await pool.query(
             `UPDATE inventory SET 
                 item_name = COALESCE($1, item_name), 
                 description = COALESCE($2, description),
                 photo_url = COALESCE($3, photo_url),
-                quantity = COALESCE($4, quantity), 
-                unit = COALESCE($5, unit), 
-                min_quantity = COALESCE($6, min_quantity), 
-                unit_price = COALESCE($7, unit_price),
-                generate_commission = COALESCE($8, generate_commission)
-            WHERE id = $9 RETURNING *`,
-            [itemName, description, photoUrl, quantity, unit, minQuantity, unitPrice, generateCommission, id]
+                supplier = COALESCE($4, supplier),
+                cost_price = COALESCE($5, cost_price),
+                quantity = COALESCE($6, quantity),
+                unit = COALESCE($7, unit),
+                min_quantity = COALESCE($8, min_quantity),
+                unit_price = COALESCE($9, unit_price),
+                generate_commission = COALESCE($10, generate_commission)
+            WHERE id = $11 AND barber_id = $12 RETURNING *`,
+            [itemName, description, photoUrl, supplier, costPrice, quantity, unit, minQuantity, unitPrice, generateCommission, id, req.user.id]
         );
+        const quantityDelta = Number(result.rows[0]?.quantity || 0) - Number(current.quantity || 0);
+        if (quantityDelta) await recordInventoryMovement(pool, req.user.id, id, quantityDelta > 0 ? 'entry' : 'adjustment', quantityDelta, Number(costPrice ?? current.cost_price) || 0, 'Ajuste manual');
         res.json(result.rows[0]);
     } catch (err) {
         console.error(err);
@@ -1506,7 +2210,7 @@ app.patch('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque
 app.delete('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
     const { id } = req.params;
     try {
-        await pool.query('DELETE FROM inventory WHERE id = $1', [id]);
+        await pool.query('DELETE FROM inventory WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
         res.json({ success: true });
     } catch (err) {
         console.error(err);
@@ -1515,9 +2219,10 @@ app.delete('/api/inventory/:id', authenticateToken, requireAnyPermission('estoqu
 });
 
 // Sales API Endpoints
-app.get('/api/sales/:barberId', authenticateToken, requireAnyPermission('vendas', 'comissoes', 'billing'), async (req, res) => {
+app.get('/api/sales/:barberId', authenticateToken, requireOwnBarber, requireAnyPermission('vendas', 'comissoes', 'billing'), async (req, res) => {
     const { barberId } = req.params;
     try {
+        await ensureOperationalSchema();
         const result = await pool.query(
             `SELECT s.*, i.item_name, c.name as client_name, p.name as professional_name
              FROM sales s 
@@ -1536,17 +2241,19 @@ app.get('/api/sales/:barberId', authenticateToken, requireAnyPermission('vendas'
 });
 
 app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async (req, res) => {
-    const { inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId, commissionRate: reqCommRate } = req.body;
-    const barberId = req.body.barberId || req.user.id;
+    const { inventoryId, quantity, totalPrice, unitPrice, clientId, professionalId, paymentMethod, commissionRate: reqCommRate } = req.body;
+    const barberId = req.user.id;
     
     if (!inventoryId || !quantity) return res.status(400).send('Dados incompletos');
 
-    const client = await pool.connect();
+    let client;
     try {
+        await ensureOperationalSchema();
+        client = await pool.connect();
         await client.query('BEGIN');
 
         const inventoryResult = await client.query(
-            'SELECT generate_commission FROM inventory WHERE id = $1 AND barber_id = $2 AND quantity >= $3 FOR UPDATE',
+            'SELECT generate_commission, cost_price, item_name FROM inventory WHERE id = $1 AND barber_id = $2 AND quantity >= $3 FOR UPDATE',
             [inventoryId, barberId, parseInt(quantity)]
         );
 
@@ -1555,6 +2262,15 @@ app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async 
         }
 
         const generatesCommission = inventoryResult.rows[0].generate_commission !== false;
+
+        if (clientId) {
+            const clientResult = await client.query('SELECT id FROM clients WHERE id = $1 AND barber_id = $2', [clientId, barberId]);
+            if (!clientResult.rows.length) throw new Error('Cliente invalido');
+        }
+        if (professionalId) {
+            const professionalResult = await client.query('SELECT id FROM professionals WHERE id = $1 AND barber_id = $2', [professionalId, barberId]);
+            if (!professionalResult.rows.length) throw new Error('Barbeiro invalido');
+        }
         
         let commissionRate = generatesCommission && reqCommRate !== undefined ? parseFloat(reqCommRate) : 0;
         let commissionValue = 0;
@@ -1572,8 +2288,8 @@ app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async 
 
         // 1. Record the sale (using item_id and price_at_sale)
         const saleResult = await client.query(
-            'INSERT INTO sales (barber_id, item_id, client_id, professional_id, quantity, price_at_sale, total_price, commission_rate, commission_value) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-            [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(unitPrice), parseFloat(totalPrice), commissionRate, commissionValue]
+            'INSERT INTO sales (barber_id, item_id, client_id, professional_id, quantity, price_at_sale, total_price, commission_rate, commission_value, payment_method) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+            [barberId, inventoryId, clientId || null, professionalId || null, parseInt(quantity), parseFloat(unitPrice), parseFloat(totalPrice), commissionRate, commissionValue, normalizePaymentMethod(paymentMethod)]
         );
 
         // 2. Decrement inventory
@@ -1586,58 +2302,57 @@ app.post('/api/sales', authenticateToken, requireAnyPermission('vendas'), async 
             throw new Error('Produto não encontrado ou estoque insuficiente');
         }
 
+        await recordInventoryMovement(client, barberId, inventoryId, 'sale', -parseInt(quantity), Number(inventoryResult.rows[0].cost_price) || 0, `Venda de ${inventoryResult.rows[0].item_name}`);
+        await upsertCashMovement({ db: client, barberId, sourceType: 'sale', sourceId: saleResult.rows[0].id, amount: parseFloat(totalPrice), paymentMethod, description: `Venda de ${inventoryResult.rows[0].item_name}`, movementDate: new Date().toISOString().slice(0, 10) });
+
         await client.query('COMMIT');
+        await logAudit(req, 'sale.created', 'sale', saleResult.rows[0].id, { totalPrice });
         res.json(saleResult.rows[0]);
     } catch (err) {
-        await client.query('ROLLBACK');
+        if (client) await client.query('ROLLBACK').catch(() => {});
         console.error(err);
         res.status(500).send(err.message || 'Server Error');
     } finally {
-        client.release();
+        if (client) client.release();
     }
 });
 
 app.delete('/api/sales/:id', authenticateToken, requireAnyPermission('vendas'), async (req, res) => {
     const { id } = req.params;
-    const client = await pool.connect();
+    let client;
     try {
+        await ensureOperationalSchema();
+        client = await pool.connect();
         await client.query('BEGIN');
         
         // 1. Get sale details to revert inventory
-        const sale = await client.query('SELECT item_id, quantity, barber_id FROM sales WHERE id = $1', [id]);
+        const sale = await client.query('SELECT item_id, quantity, barber_id, total_price FROM sales WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
         if (sale.rowCount > 0) {
             const { item_id, quantity, barber_id } = sale.rows[0];
             // 2. Revert inventory
             await client.query('UPDATE inventory SET quantity = quantity + $1 WHERE id = $2 AND barber_id = $3', [quantity, item_id, barber_id]);
+            if (item_id) await recordInventoryMovement(client, barber_id, item_id, 'return', Number(quantity), 0, 'Estorno de venda');
+            await removeCashMovement(client, barber_id, 'sale', id);
+        } else {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, message: 'Venda nao encontrada.' });
         }
         
         // 3. Delete sale
-        await client.query('DELETE FROM sales WHERE id = $1', [id]);
+        await client.query('DELETE FROM sales WHERE id = $1 AND barber_id = $2', [id, req.user.id]);
         
         await client.query('COMMIT');
+        await logAudit(req, 'sale.deleted', 'sale', Number(id));
         res.json({ success: true });
     } catch (err) {
-        await client.query('ROLLBACK');
+        if (client) await client.query('ROLLBACK').catch(() => {});
         console.error(err);
         res.status(500).send('Server Error');
     } finally {
-        client.release();
+        if (client) client.release();
     }
 });
 
-app.delete('/api/inventory/:id', authenticateToken, requireAnyPermission('estoque'), async (req, res) => {
-    const { id } = req.params;
-    try {
-        // Sales that reference this item will have item_id set to NULL due to ON DELETE SET NULL
-        // or I can just delete it if the constraint allows.
-        // For safety, I'll check if there are sales first or just try to delete.
-        await pool.query('DELETE FROM inventory WHERE id = $1', [id]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Não é possível excluir este item pois ele possui registros de venda associados.');
-    }
-});
 
 if (require.main === module) {
     app.listen(port, () => {

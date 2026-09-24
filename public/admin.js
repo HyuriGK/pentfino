@@ -264,6 +264,10 @@ const admin = {
     allClients: [], // For filtering
     users: [],
     marketingLeads: [],
+    loyaltyClients: [],
+    cashRegister: null,
+    reportData: null,
+    dashboardStats: null,
 
     professionals: [],
     services: [],
@@ -336,7 +340,7 @@ const admin = {
         if (auth.can('clientes')) initialLoads.push(this.loadClients());
         if (auth.can('estoque') || auth.can('vendas')) initialLoads.push(this.loadInventory());
         if (auth.can('barbeiros') || auth.can('agenda') || auth.can('comissoes')) initialLoads.push(this.loadProfessionals());
-        if (auth.can('servicos')) initialLoads.push(this.loadServices());
+        if (auth.can('servicos') || auth.can('agenda')) initialLoads.push(this.loadServices());
         if (auth.can('vendas') || auth.can('comissoes') || auth.can('billing')) initialLoads.push(this.loadSales());
         if (auth.can('despesas')) initialLoads.push(this.loadExpenses());
         await Promise.all(initialLoads);
@@ -345,7 +349,7 @@ const admin = {
             const firstAvailable = [
             ['agenda', 'agenda'], ['billing', 'billing'], ['clientes', 'clientes'],
             ['vendas', 'vendas'], ['estoque', 'estoque'], ['barbeiros', 'barbeiros'],
-                ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['despesas', 'despesas'], ['configuracoes', 'configuracoes']
+            ['comissoes', 'comissoes'], ['servicos', 'servicos'], ['despesas', 'despesas'], ['configuracoes', 'configuracoes']
             ].find(([permission]) => auth.can(permission));
             if (firstAvailable) this.showTab(firstAvailable[1], { skipLoading: true });
         }
@@ -480,7 +484,7 @@ const admin = {
 
             if (aptRes) {
                 const allApts = await aptRes.json();
-                const nextPending = this.sortAppointmentsDesc(allApts.filter(a => a.status === 'pending'));
+                const nextPending = this.sortAppointmentsDesc(allApts.filter(a => !['completed', 'canceled', 'no_show'].includes(a.status)));
                 const newPending = this.appointmentsInitialized
                     ? nextPending.filter(a => !this.knownPendingAppointmentIds.has(String(a.id)))
                     : [];
@@ -506,9 +510,109 @@ const admin = {
 
             if (statRes) {
                 const stats = await statRes.json();
+                this.dashboardStats = stats;
                 if (auth.can('dashboard')) this.updateStats(stats);
             }
         } catch (err) { console.error('Erro ao carregar dados'); }
+    },
+
+    money(value) {
+        return `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    },
+
+    currentDateValue() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    },
+
+    async loadCashRegister() {
+        const dateInput = document.getElementById('cash-date');
+        if (dateInput && !dateInput.value) dateInput.value = this.currentDateValue();
+        const date = dateInput?.value || this.currentDateValue();
+        try {
+            const response = await auth.apiRequest(`/api/cash/register/${auth.user.id}?date=${date}`);
+            const data = await response.json();
+            this.cashRegister = data;
+            const summary = data.summary || {};
+            document.getElementById('cash-opening')?.replaceChildren(this.money(data.register?.opening_balance));
+            document.getElementById('cash-inflow')?.replaceChildren(this.money(summary.inflow));
+            document.getElementById('cash-outflow')?.replaceChildren(this.money(Math.abs(summary.outflow || 0)));
+            document.getElementById('cash-expected')?.replaceChildren(this.money(summary.expectedCash));
+            document.getElementById('cash-method-cash')?.replaceChildren(this.money(summary.cashTotal));
+            document.getElementById('cash-method-pix')?.replaceChildren(this.money(summary.pixTotal));
+            document.getElementById('cash-method-card')?.replaceChildren(this.money(summary.cardTotal));
+            const status = document.getElementById('cash-register-status');
+            if (status) { status.textContent = data.register?.status === 'closed' ? 'Caixa fechado' : 'Caixa aberto'; status.className = `cash-register-status ${data.register?.status === 'closed' ? 'is-closed' : ''}`; }
+            const body = document.getElementById('cash-movements-body');
+            if (body) body.innerHTML = (data.movements || []).length
+                ? data.movements.map(movement => `<tr><td>${new Date(movement.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td><td>${this.escapeHtml(movement.description)}</td><td><span class="payment-method-pill payment-${movement.payment_method}">${({ cash: 'Dinheiro', pix: 'Pix', card: 'Cartão' }[movement.payment_method] || movement.payment_method)}</span></td><td class="cash-movement-value ${Number(movement.amount) >= 0 ? 'is-inflow' : 'is-outflow'}">${Number(movement.amount) >= 0 ? '+' : '-'} ${this.money(Math.abs(movement.amount))}</td></tr>`).join('')
+                : '<tr><td colspan="4" class="table-empty-result">Nenhuma movimentação registrada neste dia.</td></tr>';
+        } catch (error) { console.error('Erro ao carregar caixa:', error); }
+    },
+
+    async openCashRegisterModal() {
+        const date = document.getElementById('cash-date')?.value || this.currentDateValue();
+        const openingValue = window.prompt('Saldo inicial do caixa:', '0');
+        if (openingValue === null) return;
+        const openingBalance = Number(openingValue.replace(',', '.'));
+        if (!Number.isFinite(openingBalance) || openingBalance < 0) return;
+        try {
+            const response = await auth.apiRequest('/api/cash/register/open', { method: 'POST', body: JSON.stringify({ date, openingBalance }) });
+            const data = await response.json();
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível abrir o caixa.');
+            await this.loadCashRegister();
+            auth.notify('Caixa aberto com sucesso.', 'success');
+        } catch (error) { auth.notify(error.message || 'Não foi possível abrir o caixa.', 'error'); }
+    },
+
+    async closeCashRegister() {
+        const id = this.cashRegister?.register?.id;
+        if (!id) return auth.notify('Abra o caixa antes de fechá-lo.', 'error');
+        const closingValue = window.prompt('Informe o saldo final contado:', String(this.cashRegister.summary?.expectedCash || 0));
+        if (closingValue === null) return;
+        const closingBalance = Number(closingValue.replace(',', '.'));
+        if (!Number.isFinite(closingBalance) || closingBalance < 0) return;
+        try {
+            const response = await auth.apiRequest(`/api/cash/register/${id}/close`, { method: 'PATCH', body: JSON.stringify({ closingBalance }) });
+            const data = await response.json();
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível fechar o caixa.');
+            await this.loadCashRegister();
+            auth.notify('Caixa fechado e conferido.', 'success');
+        } catch (error) { auth.notify(error.message || 'Não foi possível fechar o caixa.', 'error'); }
+    },
+
+    async loadReports() {
+        const fromInput = document.getElementById('report-from');
+        const toInput = document.getElementById('report-to');
+        const now = new Date();
+        if (fromInput && !fromInput.value) fromInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        if (toInput && !toInput.value) toInput.value = this.currentDateValue();
+        try {
+            const response = await auth.apiRequest(`/api/reports/${auth.user.id}?from=${fromInput.value}&to=${toInput.value}`);
+            const data = await response.json();
+            this.reportData = data;
+            const summary = data.summary || {};
+            document.getElementById('report-revenue')?.replaceChildren(this.money(summary.revenue));
+            document.getElementById('report-expenses')?.replaceChildren(this.money(summary.expenses));
+            document.getElementById('report-profit')?.replaceChildren(this.money(summary.profit));
+            document.getElementById('report-commission')?.replaceChildren(this.money(summary.commission));
+            const serviceRows = (data.topServices || []).map(item => `<div class="report-breakdown-row"><span>${this.escapeHtml(item.name)} <small>${item.count} atend.</small></span><strong>${this.money(item.total)}</strong></div>`).join('');
+            const productRows = (data.topProducts || []).map(item => `<div class="report-breakdown-row"><span>${this.escapeHtml(item.name)} <small>${item.quantity} un.</small></span><strong>${this.money(item.total)}</strong></div>`).join('');
+            document.getElementById('report-revenue-breakdown').innerHTML = `<div class="report-breakdown-row"><span>Serviços</span><strong>${this.money(summary.serviceRevenue)}</strong></div><div class="report-breakdown-row"><span>Produtos</span><strong>${this.money(summary.productRevenue)}</strong></div><div class="report-breakdown-row"><span>Atendimentos</span><strong>${summary.serviceCount || 0}</strong></div><div class="report-breakdown-row"><span>Vendas</span><strong>${summary.saleCount || 0}</strong></div><div class="report-breakdown-subtitle">Serviços mais vendidos</div>${serviceRows || '<span class="dashboard-empty-note">Sem atendimentos no período.</span>'}<div class="report-breakdown-subtitle">Produtos mais vendidos</div>${productRows || '<span class="dashboard-empty-note">Sem vendas no período.</span>'}`;
+            document.getElementById('report-expenses-breakdown').innerHTML = (data.expensesByCategory || []).length ? data.expensesByCategory.map(item => `<div class="report-breakdown-row"><span>${this.escapeHtml(item.category)}</span><strong>${this.money(item.total)}</strong></div>`).join('') : '<span class="dashboard-empty-note">Nenhuma despesa no período.</span>';
+        } catch (error) { console.error('Erro ao carregar relatórios:', error); }
+    },
+
+    exportReportsCsv() {
+        if (!this.reportData?.summary) return auth.notify('Atualize o relatório antes de exportar.', 'error');
+        const summary = this.reportData.summary;
+        const rows = [['Indicador', 'Valor'], ['Receita de serviços', summary.serviceRevenue], ['Receita de produtos', summary.productRevenue], ['Receita total', summary.revenue], ['Despesas', summary.expenses], ['Lucro', summary.profit], ['Comissões', summary.commission]];
+        (this.reportData.expensesByCategory || []).forEach(item => rows.push([`Despesa - ${item.category}`, item.total]));
+        (this.reportData.topServices || []).forEach(item => rows.push([`Serviço - ${item.name}`, item.total, item.count]));
+        (this.reportData.topProducts || []).forEach(item => rows.push([`Produto - ${item.name}`, item.total, item.quantity]));
+        const csv = rows.map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `barberpoint-relatorio-${this.currentDateValue()}.csv`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(link.href);
     },
 
     openShareModal() {
@@ -556,7 +660,7 @@ const admin = {
     },
 
     showTab(tab, { skipLoading = false } = {}) {
-        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', despesas: 'despesas', clientes: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
+        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', caixa: 'billing', relatorios: 'billing', despesas: 'despesas', clientes: 'clientes', fidelidade: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
         if (tab === 'administracao' && auth.user?.role !== 'administrador') {
             auth.notify('Acesso exclusivo do administrador.', 'error');
             return;
@@ -607,7 +711,10 @@ const admin = {
             home: 'Dashboard',
             agenda: 'Agenda',
             billing: 'Faturamento',
+            caixa: 'Caixa',
+            relatorios: 'Relatórios',
             clientes: 'Clientes',
+            fidelidade: 'Fidelidade',
             vendas: 'Vendas',
             estoque: 'Estoque',
             barbeiros: 'Barbeiros',
@@ -633,7 +740,7 @@ const admin = {
 
     activateTab(tab) {
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'despesas', 'administracao'];
+        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'caixa', 'relatorios', 'despesas', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -650,6 +757,12 @@ const admin = {
         if (tab === 'billing') {
             this.loadBillingData();
         }
+        if (tab === 'caixa') {
+            this.loadCashRegister();
+        }
+        if (tab === 'relatorios') {
+            this.loadReports();
+        }
 
         // Toggle "Link Público" button - only show on home tab
         const linkBtn = document.getElementById('public-link-btn');
@@ -660,6 +773,7 @@ const admin = {
 
         if (tab === 'agenda') {
             agenda.init();
+            this.loadWaitlist();
             setTimeout(() => {
                 if (agenda.calendar) {
                     agenda.calendar.updateSize();
@@ -670,6 +784,9 @@ const admin = {
         
         if (tab === 'clientes') {
             this.loadClients();
+        }
+        if (tab === 'fidelidade') {
+            this.loadLoyalty();
         }
         if (tab === 'administracao') {
             this.openAdminPanel('overview');
@@ -730,6 +847,10 @@ const admin = {
 
         if (nextPanel === 'marketing') {
             this.loadMarketingLeads();
+        }
+
+        if (nextPanel === 'logs') {
+            this.loadAuditLogs();
         }
 
         if (nextPanel === 'create' && options.reset !== false) {
@@ -803,7 +924,7 @@ const admin = {
             if (!data.success) throw new Error(data.message || 'Erro ao carregar triagens.');
 
             this.marketingLeads = Array.isArray(data.leads) ? data.leads : [];
-            const pendingCount = this.marketingLeads.filter(lead => lead.status === 'new').length;
+            const pendingCount = this.marketingLeads.filter(lead => ['new', 'contacted', 'demo_scheduled'].includes(lead.status)).length;
             document.getElementById('marketing-leads-count').textContent = this.marketingLeads.length;
             document.getElementById('marketing-leads-new-count').textContent = pendingCount;
 
@@ -813,8 +934,9 @@ const admin = {
             }
 
             tbody.innerHTML = this.marketingLeads.map(lead => {
-                const statusLabel = lead.status === 'contacted' ? 'Contatado' : (lead.status === 'archived' ? 'Arquivado' : 'Novo');
-                const statusClass = lead.status === 'contacted' ? 'contacted' : (lead.status === 'archived' ? 'archived' : 'new');
+                const statusLabels = { new: 'Novo', contacted: 'Contatado', demo_scheduled: 'Demonstração', converted: 'Convertido', lost: 'Perdido', archived: 'Arquivado' };
+                const statusLabel = statusLabels[lead.status] || 'Novo';
+                const statusClass = lead.status || 'new';
                 const phone = this.escapeHtml(lead.phone || '--');
                 const receivedAt = lead.created_at ? new Date(lead.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '--';
                 const action = lead.status === 'contacted'
@@ -826,7 +948,7 @@ const admin = {
                         <td><strong>${this.escapeHtml(lead.name)}</strong><small class="marketing-lead-source">Demonstração pelo site</small></td>
                         <td>${phone}</td>
                         <td>${receivedAt}</td>
-                        <td><span class="marketing-lead-status ${statusClass}">${statusLabel}</span></td>
+                        <td><select class="marketing-lead-status-select" onchange="admin.updateMarketingLead(${lead.id}, this.value)">${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${lead.status === value ? 'selected' : ''}>${label}</option>`).join('')}</select>${lead.next_action_at ? `<small class="marketing-lead-next-action">Próxima ação: ${new Date(lead.next_action_at).toLocaleDateString('pt-BR')}</small>` : ''}</td>
                         <td>${action}</td>
                     </tr>
                 `;
@@ -835,6 +957,18 @@ const admin = {
             console.error('Load Marketing Leads Error:', err);
             tbody.innerHTML = '<tr><td colspan="5" class="marketing-leads-empty">Não foi possível carregar as triagens.</td></tr>';
         }
+    },
+
+    async loadAuditLogs() {
+        const body = document.getElementById('admin-logs-table-body');
+        if (!body || auth.user?.role !== 'administrador') return;
+        try {
+            const response = await auth.apiRequest('/api/admin/audit-logs');
+            const data = await response.json();
+            body.innerHTML = (data.logs || []).length
+                ? data.logs.map(log => `<tr><td>${new Date(log.created_at).toLocaleString('pt-BR')}</td><td>${this.escapeHtml(log.actor_name || log.actor_email || 'Sistema')}</td><td><span class="audit-action-chip">${this.escapeHtml(log.action)}</span></td><td>${this.escapeHtml(log.entity_type || '—')} ${log.entity_id ? `#${log.entity_id}` : ''}</td><td><code>${this.escapeHtml(JSON.stringify(log.metadata || {}))}</code></td></tr>`).join('')
+                : '<tr><td colspan="5" class="marketing-leads-empty">Nenhuma atividade registrada ainda.</td></tr>';
+        } catch (error) { body.innerHTML = '<tr><td colspan="5" class="marketing-leads-empty">Não foi possível carregar os logs.</td></tr>'; }
     },
 
     async openMarketingLeadWhatsapp(id) {
@@ -860,6 +994,17 @@ const admin = {
                 console.error('Erro ao atualizar status da triagem:', err);
             }
         }
+    },
+
+    async updateMarketingLead(id, status) {
+        const lead = this.marketingLeads.find(item => Number(item.id) === Number(id));
+        if (!lead) return;
+        try {
+            const response = await auth.apiRequest(`/api/admin/marketing-leads/${id}`, { method: 'PATCH', body: JSON.stringify({ status, notes: lead.notes || '' }) });
+            const data = await response.json();
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível atualizar a triagem.');
+            await this.loadMarketingLeads();
+        } catch (error) { auth.notify(error.message || 'Não foi possível atualizar a triagem.', 'error'); }
     },
 
     renderPermissionSummary(user) {
@@ -1292,6 +1437,93 @@ const admin = {
         return `+${digits}`;
     },
 
+    appointmentStatusLabel(status) {
+        return ({ pending: 'Agendado', confirmed: 'Confirmado', arrived: 'Chegou', in_progress: 'Em atendimento', completed: 'Concluído', no_show: 'Faltou', canceled: 'Cancelado' }[status] || status || 'Agendado');
+    },
+
+    async setAppointmentStatus(id, status) {
+        try {
+            const response = await auth.apiRequest(`/api/appointments/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível atualizar o status.');
+            await this.loadData();
+            if (agenda.calendar) agenda.renderEvents(this.allAppointments || []);
+            auth.notify(`Atendimento marcado como ${this.appointmentStatusLabel(status).toLowerCase()}.`, 'success');
+        } catch (error) {
+            auth.notify(error.message || 'Não foi possível atualizar o atendimento.', 'error');
+        }
+    },
+
+    async loadWaitlist() {
+        try {
+            const response = await auth.apiRequest(`/api/waitlist/${auth.user.id}`);
+            const data = await response.json();
+            const serviceSelect = document.getElementById('waitlist-service');
+            if (serviceSelect) {
+                const currentValue = serviceSelect.value;
+                serviceSelect.innerHTML = `<option value="">Qualquer serviço</option>${(this.services || []).map(service => `<option value="${service.id}">${this.escapeHtml(service.name)}</option>`).join('')}`;
+                serviceSelect.value = currentValue;
+            }
+            this.waitlistEntries = data.entries || [];
+            this.renderWaitlist();
+        } catch (error) {
+            console.error('Erro ao carregar fila de encaixe:', error);
+            auth.notify('Não foi possível carregar a fila de encaixe.', 'error');
+        }
+    },
+
+    renderWaitlist() {
+        const container = document.getElementById('waitlist-list');
+        if (!container) return;
+        const entries = this.waitlistEntries || [];
+        if (!entries.length) {
+            container.innerHTML = '<span class="dashboard-empty-note">Nenhum cliente aguardando encaixe.</span>';
+            return;
+        }
+        const statusLabels = { waiting: 'Aguardando', contacted: 'Contatado' };
+        container.innerHTML = entries.map(entry => `
+            <div class="waitlist-item">
+                <div><strong>${this.escapeHtml(entry.client_name)}</strong><span>${this.escapeHtml(this.formatWhatsApp(entry.client_phone))}</span><small>${this.escapeHtml(entry.service_name || 'Qualquer serviço')}${entry.desired_date ? ` · ${this.formatAppointmentDate(entry.desired_date)}` : ''}</small></div>
+                <div class="waitlist-actions"><span class="appointment-status-chip status-${entry.status}">${statusLabels[entry.status] || entry.status}</span><button type="button" class="btn btn-ghost btn-sm" onclick="admin.contactWaitlist(${entry.id})">WhatsApp</button><button type="button" class="btn-queue-cancel" aria-label="Remover da fila" onclick="admin.updateWaitlist(${entry.id}, 'canceled')">×</button></div>
+            </div>
+        `).join('');
+    },
+
+    async addWaitlistEntry() {
+        const name = document.getElementById('waitlist-name')?.value.trim();
+        const phone = document.getElementById('waitlist-phone')?.value.trim();
+        const serviceId = document.getElementById('waitlist-service')?.value || null;
+        const desiredDate = document.getElementById('waitlist-date')?.value || null;
+        if (!name || !phone) return auth.notify('Informe nome e WhatsApp para adicionar à fila.', 'error');
+        try {
+            const response = await auth.apiRequest('/api/waitlist', { method: 'POST', body: JSON.stringify({ clientName: name, clientPhone: phone, serviceId, desiredDate }) });
+            const data = await response.json();
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível cadastrar o encaixe.');
+            ['waitlist-name', 'waitlist-phone', 'waitlist-date'].forEach(id => { const input = document.getElementById(id); if (input) input.value = ''; });
+            await this.loadWaitlist();
+            auth.notify('Cliente adicionado à fila de encaixe.', 'success');
+        } catch (error) { auth.notify(error.message || 'Não foi possível cadastrar o encaixe.', 'error'); }
+    },
+
+    async updateWaitlist(id, status) {
+        try {
+            const response = await auth.apiRequest(`/api/waitlist/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+            if (!response.ok) throw new Error('Não foi possível atualizar o encaixe.');
+            await this.loadWaitlist();
+        } catch (error) { auth.notify(error.message || 'Não foi possível atualizar o encaixe.', 'error'); }
+    },
+
+    async contactWaitlist(id) {
+        const entry = (this.waitlistEntries || []).find(item => String(item.id) === String(id));
+        if (!entry) return;
+        const phone = String(entry.client_phone || '').replace(/\D/g, '');
+        if (!phone) return auth.notify('Este cliente não possui WhatsApp válido.', 'error');
+        const message = `Olá, ${entry.client_name}! Surgiu uma oportunidade de encaixe${entry.service_name ? ` para ${entry.service_name}` : ''} na BarberPoint. Quer aproveitar este horário?`;
+        const newWindow = window.open(`https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+        if (newWindow) newWindow.opener = null;
+        await this.updateWaitlist(id, 'contacted');
+    },
+
     renderAppointments() {
         const container = document.getElementById('appointments-list');
         const allPending = this.sortAppointmentsDesc(this.pending || []);
@@ -1316,8 +1548,9 @@ const admin = {
         container.innerHTML = queue.map(a => `
             <div class="appointment-item">
                 <div class="client-info">
-                    <h4>${a.client_name}</h4>
-                    <p>${a.service_name} • ${this.formatAppointmentDate(a.appointment_date)} • ${String(a.appointment_time || '').slice(0, 5)}</p>
+                    <h4>${this.escapeHtml(a.client_name)}</h4>
+                    <p>${this.escapeHtml(a.service_name)} • ${this.formatAppointmentDate(a.appointment_date)} • ${String(a.appointment_time || '').slice(0, 5)}</p>
+                    <span class="appointment-status-chip status-${a.status}">${this.appointmentStatusLabel(a.status)}</span>
                     <p class="appointment-contact">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92z"></path>
@@ -1326,13 +1559,14 @@ const admin = {
                     </p>
                     <div class="professional-badge" style="margin-top: 8px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        ${a.professional_name || 'Geral'}
+                        ${this.escapeHtml(a.professional_name || 'Geral')}
                     </div>
                 </div>
                 <div class="action-btns">
                     <button type="button" class="btn btn-confirm-appointment${this.confirmedAppointmentIds.has(String(a.id)) ? ' is-confirmed' : ''}"${this.confirmedAppointmentIds.has(String(a.id)) ? ' disabled aria-disabled="true"' : ` onclick="admin.confirmAppointmentWhatsApp(${a.id})"`}>${this.confirmedAppointmentIds.has(String(a.id)) ? 'Confirmado' : 'Confirmar'}</button>
-                    <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${a.client_name}')">Finalizar</button>
-                    <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${a.client_name}')">×</button>
+                    <button class="btn btn-ghost btn-sm" onclick="admin.setAppointmentStatus(${a.id}, 'arrived')">Chegou</button>
+                    <button class="btn btn-primary" onclick="admin.completeService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">Finalizar</button>
+                    <button class="btn-queue-cancel" onclick="admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">×</button>
                 </div>
             </div>
         `).join('');
@@ -1379,7 +1613,7 @@ const admin = {
             }
 
             this.confirmedAppointmentIds.add(String(appointmentId));
-            this.renderAppointments();
+            await this.loadData();
         } catch (err) {
             console.error('Erro ao salvar confirmação do agendamento:', err);
             auth.notify(err.message || 'A mensagem foi aberta, mas a confirmação não foi salva.', 'error');
@@ -1416,10 +1650,11 @@ const admin = {
 
     async executeCompletion(id) {
         const paymentStatus = document.querySelector('input[name="completion-payment"]:checked')?.value || 'paid';
+        const paymentMethod = document.getElementById('completion-payment-method')?.value || 'cash';
         try {
             const res = await auth.apiRequest(`/api/appointments/${id}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ status: 'completed', paymentStatus })
+                body: JSON.stringify({ status: 'completed', paymentStatus, paymentMethod })
             });
             if (res.ok) {
                 this.closeModal('confirm-service');
@@ -1484,14 +1719,28 @@ const admin = {
         const monthlyRevenue = parseFloat(stats.monthlyRevenue ?? stats.revenue ?? 0);
         const dailyRevenue = parseFloat(stats.dailyRevenue || 0);
         const monthlyExpenses = parseFloat(stats.monthlyExpenses || 0);
+        const monthlyProfit = parseFloat(stats.monthlyProfit || (monthlyRevenue - monthlyExpenses));
         const dailyExpenses = parseFloat(stats.dailyExpenses || 0);
 
         this.setFinancialValue('stat-revenue', formatMoney(monthlyRevenue));
         this.setFinancialValue('stat-revenue-today', `+ ${formatMoney(dailyRevenue)} hoje`);
         this.setFinancialValue('stat-expense', formatMoney(monthlyExpenses));
         this.setFinancialValue('stat-expense-today', `- ${formatMoney(dailyExpenses)} hoje`);
+        this.setFinancialValue('stat-profit', formatMoney(monthlyProfit));
         document.getElementById('stat-count').innerText = stats.count || 0;
-        document.getElementById('stat-scheduled-count').innerText = this.pending.length;
+        document.getElementById('stat-scheduled-count').innerText = stats.activeToday ?? this.pending.length;
+        document.getElementById('stat-new-clients').innerText = stats.newClients ?? 0;
+        document.getElementById('stat-average-ticket').innerText = `Ticket médio: ${formatMoney(stats.averageTicket || 0)}`;
+        document.getElementById('dashboard-active-today').innerText = stats.activeToday ?? 0;
+        document.getElementById('dashboard-completed-today').innerText = stats.completedToday ?? 0;
+        document.getElementById('dashboard-no-show-today').innerText = stats.noShowToday ?? 0;
+        document.getElementById('dashboard-canceled-today').innerText = stats.canceledToday ?? 0;
+        const professionalContainer = document.getElementById('dashboard-professional-revenue');
+        if (professionalContainer) {
+            professionalContainer.innerHTML = (stats.professionalRevenue || []).length
+                ? stats.professionalRevenue.map(prof => `<div class="dashboard-professional-row"><span>${this.escapeHtml(prof.name)}</span><strong>${formatMoney(prof.revenue)}</strong></div>`).join('')
+                : '<span class="dashboard-empty-note">Sem dados no período.</span>';
+        }
     },
 
     // CRM / Clients Logic
@@ -1503,6 +1752,37 @@ const admin = {
         } catch (err) { console.error('Erro ao carregar clientes'); }
     },
 
+    async loadLoyalty() {
+        try {
+            const response = await auth.apiRequest(`/api/loyalty/${auth.user.id}`);
+            const data = await response.json();
+            this.loyaltyClients = data.clients || [];
+            const totalPoints = this.loyaltyClients.reduce((sum, client) => sum + Number(client.loyalty_points || 0), 0);
+            document.getElementById('loyalty-client-count')?.replaceChildren(String(this.loyaltyClients.length));
+            document.getElementById('loyalty-points-total')?.replaceChildren(String(totalPoints));
+            const body = document.getElementById('loyalty-table-body');
+            if (!body) return;
+            body.innerHTML = this.loyaltyClients.length
+                ? this.loyaltyClients.map(client => `<tr><td><strong>${this.escapeHtml(client.name)}</strong></td><td>${this.escapeHtml(client.phone || '--')}</td><td><span class="loyalty-points-pill">${Number(client.loyalty_points || 0)} pts</span></td><td>${this.escapeHtml(client.referral_code || '—')}</td><td><button class="btn btn-ghost btn-sm" onclick="admin.adjustLoyalty(${client.id}, '${String(client.name).replace(/'/g, "\\'")}')">Ajustar pontos</button></td></tr>`).join('')
+                : '<tr><td colspan="5" class="table-empty-result">Cadastre clientes para iniciar o programa.</td></tr>';
+        } catch (err) { console.error('Erro ao carregar fidelidade:', err); }
+    },
+
+    async adjustLoyalty(clientId, clientName) {
+        const points = Number(window.prompt(`Pontos para ${clientName} (use negativo para resgatar):`, '10'));
+        if (!Number.isInteger(points) || points === 0) return;
+        const reason = window.prompt('Motivo do ajuste:', 'Bônus de fidelidade');
+        if (!reason) return;
+        try {
+            const response = await auth.apiRequest('/api/loyalty/adjust', { method: 'POST', body: JSON.stringify({ clientId, points, reason }) });
+            const data = await response.json();
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível ajustar os pontos.');
+            await this.loadLoyalty();
+            await this.loadClients();
+            auth.notify('Pontos atualizados.', 'success');
+        } catch (err) { auth.notify(err.message || 'Não foi possível atualizar os pontos.', 'error'); }
+    },
+
     renderClients(clientsList) {
         const container = document.getElementById('clients-table-body');
         if (!container) return;
@@ -1511,7 +1791,7 @@ const admin = {
         if (!hasClients) {
             container.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="6">
+                    <td colspan="8">
                         <div class="empty-state entity-empty-state">
                             <div>
                                 <strong>Nenhum cliente cadastrado</strong>
@@ -1550,16 +1830,18 @@ const admin = {
         };
 
         if (sorted.length === 0) {
-            container.innerHTML = '<tr><td colspan="6" class="table-empty-result">Nenhum cliente encontrado para esta busca.</td></tr>';
+            container.innerHTML = '<tr><td colspan="8" class="table-empty-result">Nenhum cliente encontrado para esta busca.</td></tr>';
             return;
         }
 
         container.innerHTML = sorted.map(c => `
             <tr>
-                <td><strong style="color:var(--primary); cursor:pointer; text-decoration: underline;" onclick="admin.showClientDetails(${c.id})">${c.name}</strong></td>
-                <td>${c.phone}</td>
+                <td><strong style="color:var(--primary); cursor:pointer; text-decoration: underline;" onclick="admin.showClientDetails(${c.id})">${this.escapeHtml(c.name)}</strong></td>
+                <td>${this.escapeHtml(c.phone || '--')}</td>
                 <td><span style="color:var(--primary)">${formatDate(c.last_service_date, c.scheduled_time)}</span></td>
                 <td style="text-align:center">${c.total_appointments || 0}</td>
+                <td>${c.days_since_last_service === null || c.days_since_last_service === undefined ? '<span class="client-paid-badge">Novo</span>' : (Number(c.days_since_last_service) >= 90 ? '<span class="client-pending-badge">90+ dias</span>' : (Number(c.days_since_last_service) >= 60 ? '<span class="client-return-badge">60 dias</span>' : (Number(c.days_since_last_service) >= 30 ? '<span class="client-return-badge">30 dias</span>' : '<span class="client-paid-badge">Em dia</span>')))}</td>
+                <td><span class="loyalty-points-pill">${Number(c.loyalty_points || 0)} pts</span></td>
                 <td style="text-align:center">
                     ${Number(c.pending_payment_count || 0) > 0
                         ? `<span class="client-pending-badge">R$ ${parseFloat(c.pending_payment_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`
@@ -1786,7 +2068,11 @@ const admin = {
 
         const button = document.getElementById('btn-do-whatsapp');
         button.onclick = () => {
-            const newWindow = window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer');
+            const preferredService = client.preferred_service ? ` de ${client.preferred_service}` : '';
+            const message = Number(client.days_since_last_service) >= 30
+                ? `Olá, ${client.name}! Sentimos sua falta na BarberPoint. Que tal agendar novamente seu${preferredService}?`
+                : `Olá, ${client.name}! Tudo bem? Estamos à disposição para cuidar do seu próximo atendimento.`;
+            const newWindow = window.open(`https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
             if (newWindow) newWindow.opener = null;
             this.closeModal('whatsapp-confirm');
         };
@@ -1806,6 +2092,8 @@ const admin = {
         const name = document.getElementById('modal-client-name').value;
         const phone = document.getElementById('modal-client-phone').value;
         const notes = document.getElementById('modal-client-notes').value;
+        const birthday = document.getElementById('modal-client-birthday')?.value || null;
+        const referralCode = document.getElementById('modal-client-referral')?.value.trim() || null;
 
         if (!name) return alert('O nome do cliente é obrigatório');
 
@@ -1813,10 +2101,11 @@ const admin = {
             await auth.apiRequest('/api/clients', {
                 method: 'POST',
                 body: JSON.stringify({ 
-                    barberId: auth.user.id, 
                     name, 
                     phone, 
-                    notes 
+                    notes,
+                    birthday,
+                    referralCode
                 })
             });
 
@@ -1839,6 +2128,19 @@ const admin = {
             this.inventory = data;
             this.renderInventory();
         } catch (err) { console.error('Erro ao carregar estoque'); }
+    },
+
+    async openInventoryHistory(id, name) {
+        try {
+            const response = await auth.apiRequest(`/api/inventory/item/${id}/movements`);
+            const data = await response.json();
+            document.getElementById('inventory-history-title').innerText = `Histórico · ${name}`;
+            const body = document.getElementById('inventory-history-body');
+            body.innerHTML = (data.movements || []).length
+                ? data.movements.map(movement => `<tr><td>${new Date(movement.created_at).toLocaleDateString('pt-BR')}</td><td><span class="inventory-movement-badge movement-${movement.movement_type}">${({ entry: 'Entrada', sale: 'Venda', return: 'Estorno', adjustment: 'Ajuste' }[movement.movement_type] || movement.movement_type)}</span></td><td>${movement.quantity}</td><td>${this.escapeHtml(movement.reason || '—')}</td></tr>`).join('')
+                : '<tr><td colspan="4" class="table-empty-result">Nenhuma movimentação encontrada.</td></tr>';
+            this.openModal('inventory-history');
+        } catch (error) { auth.notify(error.message || 'Não foi possível carregar o histórico.', 'error'); }
     },
 
     renderInventory() {
@@ -1915,6 +2217,8 @@ const admin = {
         document.getElementById('modal-inv-edit-id').value = id;
         document.getElementById('modal-inv-name').value = item.item_name;
         document.getElementById('modal-inv-desc').value = item.description || '';
+        document.getElementById('modal-inv-supplier').value = item.supplier || '';
+        document.getElementById('modal-inv-cost').value = item.cost_price || 0;
         document.getElementById('modal-inv-photo').value = item.photo_url || '';
         document.getElementById('modal-inv-photo-file').value = '';
         this.updateInventoryPhotoPreview(item.photo_url || '');
@@ -1967,6 +2271,8 @@ const admin = {
         const unit = document.getElementById('modal-inv-unit').value || 'un';
         const minQuantity = parseInt(document.getElementById('modal-inv-min').value);
         const unitPrice = parseFloat(document.getElementById('modal-inv-price').value);
+        const supplier = document.getElementById('modal-inv-supplier')?.value.trim() || '';
+        const costPrice = parseFloat(document.getElementById('modal-inv-cost')?.value) || 0;
         const generateCommission = document.getElementById('modal-inv-generate-commission')?.checked !== false;
 
         if(!itemName || isNaN(quantity)) return alert('Nome e Quantidade são obrigatórios');
@@ -1978,10 +2284,11 @@ const admin = {
             await auth.apiRequest(url, {
                 method,
                 body: JSON.stringify({ 
-                    barberId: auth.user.id, 
                     itemName, 
                     description,
                     photoUrl,
+                    supplier,
+                    costPrice,
                     quantity, 
                     unit, 
                     minQuantity: minQuantity || 0,
@@ -2141,6 +2448,7 @@ const admin = {
         document.getElementById('modal-expense-category').value = 'Outros';
         document.getElementById('modal-expense-amount').value = '';
         document.getElementById('modal-expense-notes').value = '';
+        document.getElementById('modal-expense-payment-method').value = 'cash';
         this.openModal('expense');
         setTimeout(() => document.getElementById('modal-expense-description')?.focus(), 0);
     },
@@ -2151,6 +2459,7 @@ const admin = {
         const amount = Number(String(document.getElementById('modal-expense-amount')?.value || '').replace(',', '.'));
         const expenseDate = document.getElementById('modal-expense-date')?.value;
         const notes = document.getElementById('modal-expense-notes')?.value.trim() || '';
+        const paymentMethod = document.getElementById('modal-expense-payment-method')?.value || 'cash';
 
         if (!description || !Number.isFinite(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(expenseDate || '')) {
             return auth.notify('Informe descrição, valor e data válidos para lançar a despesa.', 'error');
@@ -2159,7 +2468,7 @@ const admin = {
         try {
             const response = await auth.apiRequest('/api/expenses', {
                 method: 'POST',
-                body: JSON.stringify({ description, category, amount, expenseDate, notes })
+                body: JSON.stringify({ description, category, amount, expenseDate, notes, paymentMethod })
             });
             const data = await response.json().catch(() => ({}));
             if (!response.ok || data.success === false) {
@@ -2777,6 +3086,7 @@ const admin = {
                                 ? `<img src="${photoUrl}" alt="${photoAlt}">`
                                 : '<span>Sem foto</span>'}
                         </div>
+                        <button class="btn btn-ghost btn-sm inventory-history-button" onclick="admin.openInventoryHistory(${i.id}, '${String(i.item_name).replace(/'/g, "\\'")}')">Ver histórico</button>
                     </td>
                     <td><strong>${itemName}</strong></td>
                     <td><span class="category-badge">${category}</span></td>
@@ -2930,6 +3240,7 @@ const admin = {
         const quantity = parseInt(document.getElementById('modal-sale-qty').value) || 0;
         const unitPrice = parseFloat(document.getElementById('modal-sale-price-unit').value) || 0;
         const commissionRate = parseFloat(document.getElementById('modal-sale-commission').value) || 0;
+        const paymentMethod = document.getElementById('modal-sale-payment-method')?.value || 'cash';
         
         if (!inventoryId || quantity <= 0) return alert('Selecione um produto e a quantidade.');
 
@@ -2946,7 +3257,8 @@ const admin = {
                     quantity,
                     unitPrice,
                     totalPrice,
-                    commissionRate
+                    commissionRate,
+                    paymentMethod
                 })
             });
             await this.loadSales();
@@ -3828,6 +4140,8 @@ const admin = {
             breakStart: '12:00',
             breakEnd: '14:00',
             allowCustomTime: true,
+            blockedDates: [],
+            blockedTimes: [],
             weeklySchedule: Object.fromEntries(Array.from({ length: 7 }, (_, day) => [String(day), {
                 enabled: true,
                 start: '09:00',
@@ -3871,6 +4185,11 @@ const admin = {
         if (breakStart) breakStart.value = settings.breakStart || '12:00';
         if (breakEnd) breakEnd.value = settings.breakEnd || '14:00';
         if (allowCustom) allowCustom.checked = settings.allowCustomTime !== false;
+        this.bookingBlocks = [
+            ...(settings.blockedDates || []).map(date => ({ date, start: '', end: '', reason: 'Dia bloqueado' })),
+            ...(settings.blockedTimes || [])
+        ];
+        this.renderBookingBlocks();
 
         document.querySelectorAll('.booking-schedule-row').forEach(row => {
             const daySettings = settings.weeklySchedule?.[row.dataset.day] || { enabled: true, start: '09:00', end: '18:00' };
@@ -3909,8 +4228,37 @@ const admin = {
             breakStart: document.getElementById('booking-break-start')?.value || '12:00',
             breakEnd: document.getElementById('booking-break-end')?.value || '14:00',
             allowCustomTime: Boolean(document.getElementById('booking-allow-custom-time')?.checked),
+            blockedDates: (this.bookingBlocks || []).filter(block => !block.start && !block.end).map(block => block.date),
+            blockedTimes: (this.bookingBlocks || []).filter(block => block.start && block.end),
             weeklySchedule
         };
+    },
+
+    renderBookingBlocks() {
+        const container = document.getElementById('booking-blocks-list');
+        if (!container) return;
+        const blocks = this.bookingBlocks || [];
+        container.innerHTML = blocks.length
+            ? blocks.map((block, index) => `<div class="booking-block-item"><span><strong>${this.escapeHtml(block.date)}</strong>${block.start ? ` · ${block.start}–${block.end}` : ' · Dia inteiro'}<small>${this.escapeHtml(block.reason || 'Bloqueio')}</small></span><button type="button" class="btn-queue-cancel" onclick="admin.removeBookingBlock(${index})" aria-label="Remover bloqueio">×</button></div>`).join('')
+            : '<span class="dashboard-empty-note">Nenhum bloqueio cadastrado.</span>';
+    },
+
+    addBookingBlock() {
+        const date = document.getElementById('booking-block-date')?.value;
+        const start = document.getElementById('booking-block-start')?.value || '';
+        const end = document.getElementById('booking-block-end')?.value || '';
+        const reason = document.getElementById('booking-block-reason')?.value.trim() || 'Bloqueio';
+        if (!date) return auth.notify('Informe a data do bloqueio.', 'error');
+        if ((start && !end) || (!start && end) || (start && end && start >= end)) return auth.notify('Confira o intervalo do bloqueio.', 'error');
+        this.bookingBlocks = this.bookingBlocks || [];
+        this.bookingBlocks.push({ date, start, end, reason });
+        ['booking-block-date', 'booking-block-start', 'booking-block-end', 'booking-block-reason'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        this.renderBookingBlocks();
+    },
+
+    removeBookingBlock(index) {
+        this.bookingBlocks = (this.bookingBlocks || []).filter((_, blockIndex) => blockIndex !== index);
+        this.renderBookingBlocks();
     },
 
     async saveBookingSettings() {
@@ -4024,7 +4372,7 @@ const admin = {
                 <td>
                     <div class="service-name-text">
                         <strong>${serviceName}</strong>
-                        <small>Servi&ccedil;o ativo</small>
+                        <small>${s.is_package ? `Pacote · ${Number(s.package_sessions || 0)} atendimentos` : 'Serviço ativo'}</small>
                     </div>
                 </td>
                 <td><span class="service-chip">${s.duration || '-'}</span></td>
@@ -4050,6 +4398,13 @@ const admin = {
         document.getElementById('modal-svc-photo-file').value = '';
         this.updateServicePhotoPreview(svc.photo_url || '');
         document.getElementById('modal-svc-price').value = svc.price;
+        const packageCheckbox = document.getElementById('modal-svc-is-package');
+        const packageSessions = document.getElementById('modal-svc-package-sessions');
+        if (packageCheckbox) packageCheckbox.checked = Boolean(svc.is_package);
+        if (packageSessions) {
+            packageSessions.value = svc.package_sessions || '';
+            packageSessions.disabled = !svc.is_package;
+        }
         const durationMatch = String(svc.duration || '').match(/(\d+(?:[.,]\d+)?)\s*(hora|horas|h|minuto|minutos|min|m)?/i);
         document.getElementById('modal-svc-duration-value').value = durationMatch ? durationMatch[1].replace(',', '.') : '';
         document.getElementById('modal-svc-duration-unit').value = durationMatch?.[2]?.toLowerCase().startsWith('h') ? 'horas' : 'minutos';
@@ -4084,11 +4439,14 @@ const admin = {
         const name = document.getElementById('modal-svc-name').value;
         const photoUrl = document.getElementById('modal-svc-photo').value;
         const price = document.getElementById('modal-svc-price').value;
+        const isPackage = Boolean(document.getElementById('modal-svc-is-package')?.checked);
+        const packageSessions = Number(document.getElementById('modal-svc-package-sessions')?.value || 0);
         const durationValue = document.getElementById('modal-svc-duration-value').value;
         const durationUnit = document.getElementById('modal-svc-duration-unit').value;
         const durationNumber = Number(durationValue);
 
         if(!name || !price || !durationNumber || durationNumber <= 0) return alert('Nome, preço e duração são obrigatórios');
+        if (isPackage && packageSessions < 2) return alert('Informe pelo menos 2 atendimentos para o pacote');
         const duration = `${durationNumber} ${durationUnit}`;
 
         try {
@@ -4098,7 +4456,7 @@ const admin = {
             
             const response = await auth.apiRequest(url, {
                 method,
-                body: JSON.stringify({ barberId: auth.user.id, name, price, duration, photoUrl })
+                body: JSON.stringify({ barberId: auth.user.id, name, price, duration, photoUrl, isPackage, packageSessions })
             });
             const result = await response.json().catch(() => ({}));
             if (!response.ok || result.success === false) {
@@ -4170,6 +4528,8 @@ const admin = {
                 cName.value = '';
                 document.getElementById('modal-client-phone').value = '';
                 document.getElementById('modal-client-notes').value = '';
+                document.getElementById('modal-client-birthday').value = '';
+                document.getElementById('modal-client-referral').value = '';
             }
         }
         if (type === 'service') {
@@ -4184,6 +4544,18 @@ const admin = {
                 document.getElementById('modal-svc-photo-file').value = '';
                 this.updateServicePhotoPreview('');
                 document.getElementById('modal-svc-price').value = '';
+                const packageCheckbox = document.getElementById('modal-svc-is-package');
+                const packageSessions = document.getElementById('modal-svc-package-sessions');
+                if (packageCheckbox) {
+                    packageCheckbox.checked = false;
+                    packageCheckbox.onchange = () => {
+                        if (packageSessions) packageSessions.disabled = !packageCheckbox.checked;
+                    };
+                }
+                if (packageSessions) {
+                    packageSessions.value = '';
+                    packageSessions.disabled = true;
+                }
                 document.getElementById('modal-svc-duration-value').value = '';
                 document.getElementById('modal-svc-duration-unit').value = 'minutos';
             }
@@ -4196,6 +4568,8 @@ const admin = {
             document.getElementById('modal-inv-edit-id').value = '';
             document.getElementById('modal-inv-name').value = '';
             document.getElementById('modal-inv-desc').value = '';
+            document.getElementById('modal-inv-supplier').value = '';
+            document.getElementById('modal-inv-cost').value = '';
             document.getElementById('modal-inv-photo').value = '';
             document.getElementById('modal-inv-photo-file').value = '';
             this.updateInventoryPhotoPreview('');
@@ -4336,16 +4710,25 @@ const agenda = {
         document.getElementById('view-app-end-time').innerText = endTime;
         
         const statusEl = document.getElementById('view-app-status');
-        const statusLabels = { pending: 'Pendente', completed: 'Concluído', canceled: 'Cancelado' };
+        const statusLabels = { pending: 'Agendado', confirmed: 'Confirmado', arrived: 'Cliente chegou', in_progress: 'Em atendimento', completed: 'Concluído', no_show: 'Faltou', canceled: 'Cancelado' };
         statusEl.innerText = statusLabels[status] || status;
-        statusEl.className = `status-badge ${status === 'completed' ? 'status-ok' : (status === 'pending' ? 'status-warn' : 'status-danger')}`;
+        statusEl.className = `status-badge ${['completed', 'confirmed', 'arrived', 'in_progress'].includes(status) ? 'status-ok' : (['pending'].includes(status) ? 'status-warn' : 'status-danger')}`;
 
         const actions = document.getElementById('appointment-modal-actions');
-        actions?.classList.toggle('hidden', status !== 'pending');
-        if (status === 'pending') {
+        const activeStatus = ['pending', 'confirmed', 'arrived', 'in_progress'].includes(status);
+        actions?.classList.toggle('hidden', !activeStatus);
+        if (activeStatus) {
             document.getElementById('btn-view-edit').onclick = () => this.openEditAppointment(event);
+            document.getElementById('btn-view-confirm').onclick = () => admin.setAppointmentStatus(event.id, 'confirmed');
+            document.getElementById('btn-view-arrived').onclick = () => admin.setAppointmentStatus(event.id, 'arrived');
+            document.getElementById('btn-view-start').onclick = () => admin.setAppointmentStatus(event.id, 'in_progress');
+            document.getElementById('btn-view-no-show').onclick = () => admin.setAppointmentStatus(event.id, 'no_show');
             document.getElementById('btn-view-complete').onclick = () => admin.completeService(event.id, name);
             document.getElementById('btn-view-cancel').onclick = () => admin.cancelService(event.id, name);
+            document.getElementById('btn-view-confirm').classList.toggle('hidden', status !== 'pending');
+            document.getElementById('btn-view-arrived').classList.toggle('hidden', !['pending', 'confirmed'].includes(status));
+            document.getElementById('btn-view-start').classList.toggle('hidden', !['arrived'].includes(status));
+            document.getElementById('btn-view-no-show').classList.toggle('hidden', !['pending', 'confirmed', 'arrived'].includes(status));
         }
 
         admin.openModal('view-appointment');
@@ -4437,7 +4820,7 @@ const agenda = {
 
         const today = new Date().toISOString().slice(0, 10);
         const countToday = appointments.filter(a => String(a.appointment_date).slice(0, 10) === today && a.status !== 'canceled').length;
-        const countPending = appointments.filter(a => a.status === 'pending').length;
+        const countPending = appointments.filter(a => ['pending', 'confirmed', 'arrived', 'in_progress'].includes(a.status)).length;
         const countCompleted = appointments.filter(a => a.status === 'completed').length;
         document.getElementById('agenda-today-count')?.replaceChildren(String(countToday));
         document.getElementById('agenda-pending-count')?.replaceChildren(String(countPending));
@@ -4460,8 +4843,8 @@ const agenda = {
                 title: a.client_name,
                 start: this.toCalendarDateTime(startDate),
                 end: this.toCalendarDateTime(endDate),
-                backgroundColor: a.status === 'completed' ? '#1a1a1a' : (a.status === 'canceled' ? '#330000' : 'var(--primary)'),
-                borderColor: a.status === 'completed' ? '#333' : 'var(--primary)',
+                backgroundColor: a.status === 'completed' ? '#1a1a1a' : (a.status === 'canceled' || a.status === 'no_show' ? '#330000' : (a.status === 'in_progress' ? '#0e9f6e' : 'var(--primary)')),
+                borderColor: a.status === 'completed' ? '#333' : (a.status === 'canceled' || a.status === 'no_show' ? '#7f1d1d' : 'var(--primary)'),
                 textColor: a.status === 'completed' ? '#555' : '#000',
                 classNames: [`event-${a.status}`],
                 extendedProps: {

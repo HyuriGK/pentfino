@@ -126,6 +126,14 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
                     <span class="nav-text">Faturamento</span>
                 </div>
+                <div class="nav-item" data-sidebar-group="finance" data-permission="billing" onclick="admin.showTab('caixa')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18M7 15h3"></path></svg>
+                    <span class="nav-text">Caixa</span>
+                </div>
+                <div class="nav-item" data-sidebar-group="finance" data-permission="billing" onclick="admin.showTab('relatorios')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-4M12 16V8M16 16v-6"></path></svg>
+                    <span class="nav-text">Relatórios</span>
+                </div>
                 <div class="nav-item" data-sidebar-group="finance" data-permission="despesas" onclick="admin.showTab('despesas')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6 2h9l3 3v17H6z"></path>
@@ -144,6 +152,10 @@
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     <span class="nav-text">Clientes</span>
+                </div>
+                <div class="nav-item" data-sidebar-group="management" data-permission="clientes" onclick="admin.showTab('fidelidade')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"></path></svg>
+                    <span class="nav-text">Fidelidade</span>
                 </div>
 
                 <div class="nav-item" data-sidebar-group="finance" data-permission="vendas" onclick="admin.showTab('vendas')">
@@ -275,7 +287,12 @@
                     </div>
                     <div class="stat-card glass">
                         <div class="stat-label">Novos Clientes</div>
-                        <div class="stat-value">--</div>
+                        <div class="stat-value" id="stat-new-clients">0</div>
+                    </div>
+                    <div class="stat-card glass dashboard-financial-toggle" data-financial-toggle role="button" tabindex="0" onclick="admin.toggleFinancialVisibility()">
+                        <div class="stat-label">Lucro do Mês</div>
+                        <div class="stat-value" id="stat-profit" data-financial-value style="color: var(--primary);">R$ 0,00</div>
+                        <div class="dashboard-stat-caption" id="stat-average-ticket">Ticket médio: R$ 0,00</div>
                     </div>
                 </div>
 
@@ -297,6 +314,57 @@
                     <!-- Dynamic List -->
                 </div>
 
+                <div class="dashboard-analytics-grid">
+                    <section class="glass dashboard-insight-card">
+                        <div class="dashboard-insight-heading">
+                            <div><span class="dashboard-insight-kicker">Performance</span><h3>Indicadores de hoje</h3></div>
+                            <span class="dashboard-insight-icon">◎</span>
+                        </div>
+                        <div class="dashboard-mini-metrics">
+                            <div><strong id="dashboard-active-today">0</strong><span>na agenda</span></div>
+                            <div><strong id="dashboard-completed-today">0</strong><span>concluídos</span></div>
+                            <div><strong id="dashboard-no-show-today">0</strong><span>faltas</span></div>
+                            <div><strong id="dashboard-canceled-today">0</strong><span>cancelados</span></div>
+                        </div>
+                    </section>
+                    <section class="glass dashboard-insight-card">
+                        <div class="dashboard-insight-heading">
+                            <div><span class="dashboard-insight-kicker">Equipe</span><h3>Faturamento por barbeiro</h3></div>
+                            <span class="dashboard-insight-icon">↗</span>
+                        </div>
+                        <div id="dashboard-professional-revenue" class="dashboard-professional-list"><span class="dashboard-empty-note">Sem dados no período.</span></div>
+                    </section>
+                </div>
+
+            </div>
+
+            <div id="tab-caixa" class="hidden">
+                <div class="list-header cash-page-header">
+                    <div><span class="page-eyebrow">Financeiro</span><h2>Caixa diário</h2><p>Confira entradas, saídas e o saldo esperado por forma de pagamento.</p></div>
+                    <div class="page-header-actions"><input type="date" id="cash-date" onchange="admin.loadCashRegister()"><button class="btn btn-primary" onclick="admin.openCashRegisterModal()">Abrir caixa</button></div>
+                </div>
+                <div class="cash-summary-grid">
+                    <div class="stat-card glass"><span class="stat-label">Saldo inicial</span><strong id="cash-opening" class="stat-value">R$ 0,00</strong></div>
+                    <div class="stat-card glass"><span class="stat-label">Entradas</span><strong id="cash-inflow" class="stat-value" style="color:var(--success);">R$ 0,00</strong></div>
+                    <div class="stat-card glass"><span class="stat-label">Saídas</span><strong id="cash-outflow" class="stat-value" style="color:var(--danger);">R$ 0,00</strong></div>
+                    <div class="stat-card glass"><span class="stat-label">Saldo esperado</span><strong id="cash-expected" class="stat-value" style="color:var(--primary);">R$ 0,00</strong></div>
+                </div>
+                <div class="cash-method-grid">
+                    <div class="glass cash-method-card"><span>Dinheiro</span><strong id="cash-method-cash">R$ 0,00</strong></div>
+                    <div class="glass cash-method-card"><span>Pix</span><strong id="cash-method-pix">R$ 0,00</strong></div>
+                    <div class="glass cash-method-card"><span>Cartão</span><strong id="cash-method-card">R$ 0,00</strong></div>
+                </div>
+                <div class="cash-register-panel glass">
+                    <div class="section-toolbar"><div><span class="page-eyebrow">Conferência</span><h3>Movimentações do dia</h3></div><div class="cash-register-status" id="cash-register-status">Caixa aberto</div></div>
+                    <div class="table-responsive"><table class="data-table"><thead><tr><th>Horário</th><th>Descrição</th><th>Forma</th><th>Valor</th></tr></thead><tbody id="cash-movements-body"></tbody></table></div>
+                    <div class="cash-close-row"><input type="number" id="cash-closing-balance" min="0" step="0.01" placeholder="Saldo contado"><button class="btn btn-ghost" onclick="admin.closeCashRegister()">Fechar caixa</button></div>
+                </div>
+            </div>
+
+            <div id="tab-relatorios" class="hidden">
+                <div class="list-header reports-page-header"><div><span class="page-eyebrow">Visão gerencial</span><h2>Relatórios</h2><p>Compare receita, custos, lucro e desempenho da equipe.</p></div><div class="page-header-actions"><input type="date" id="report-from"><input type="date" id="report-to"><button class="btn btn-primary" onclick="admin.loadReports()">Atualizar</button><button class="btn btn-ghost" onclick="admin.exportReportsCsv()">Exportar Excel</button><button class="btn btn-ghost" onclick="window.print()">Salvar PDF</button></div></div>
+                <div class="reports-summary-grid"><div class="stat-card glass"><span class="stat-label">Receita total</span><strong id="report-revenue" class="stat-value">R$ 0,00</strong></div><div class="stat-card glass"><span class="stat-label">Despesas</span><strong id="report-expenses" class="stat-value">R$ 0,00</strong></div><div class="stat-card glass"><span class="stat-label">Lucro</span><strong id="report-profit" class="stat-value" style="color:var(--success);">R$ 0,00</strong></div><div class="stat-card glass"><span class="stat-label">Comissões</span><strong id="report-commission" class="stat-value">R$ 0,00</strong></div></div>
+                <div class="reports-columns"><section class="glass report-card"><div class="section-toolbar"><div><span class="page-eyebrow">Receita</span><h3>Composição do faturamento</h3></div></div><div id="report-revenue-breakdown" class="report-breakdown"></div></section><section class="glass report-card"><div class="section-toolbar"><div><span class="page-eyebrow">Custos</span><h3>Despesas por categoria</h3></div></div><div id="report-expenses-breakdown" class="report-breakdown"></div></section></div>
             </div>
 
             <div id="tab-billing" class="hidden">
@@ -446,6 +514,20 @@
                     <div class="agenda-summary-card"><span>Concluídos</span><strong id="agenda-completed-count">0</strong><small>no período exibido</small></div>
                 </div>
                 <div id="calendar" class="glass agenda-calendar"></div>
+                <section class="glass waitlist-panel">
+                    <div class="section-toolbar">
+                        <div><span class="page-eyebrow">Oportunidades</span><h3>Fila de encaixe</h3><p>Cadastre clientes interessados e chame-os assim que surgir um horário.</p></div>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="admin.loadWaitlist()">Atualizar</button>
+                    </div>
+                    <div class="waitlist-form">
+                        <input id="waitlist-name" type="text" placeholder="Nome do cliente" aria-label="Nome do cliente da fila de encaixe">
+                        <input id="waitlist-phone" type="tel" placeholder="WhatsApp" aria-label="WhatsApp do cliente da fila de encaixe">
+                        <select id="waitlist-service" aria-label="Serviço desejado"><option value="">Qualquer serviço</option></select>
+                        <input id="waitlist-date" type="date" aria-label="Data desejada">
+                        <button type="button" class="btn btn-primary" onclick="admin.addWaitlistEntry()">Adicionar à fila</button>
+                    </div>
+                    <div id="waitlist-list" class="waitlist-list"><span class="dashboard-empty-note">Carregando encaixes...</span></div>
+                </section>
             </div>
 
             <!-- TAB CLIENTES -->
@@ -467,6 +549,8 @@
                                 <th>WhatsApp</th>
                                 <th>Último Atendimento</th>
                                 <th>Atendimentos</th>
+                                <th>Retorno</th>
+                                <th>Pontos</th>
                                 <th>Pend&ecirc;ncias</th>
                                 <th>Ações</th>
                             </tr>
@@ -481,6 +565,12 @@
 
 
 
+
+            <div id="tab-fidelidade" class="hidden">
+                <div class="list-header"><div><span class="page-eyebrow">Relacionamento</span><h2>Programa de fidelidade</h2><p>Recompense frequência, indicações e clientes que fazem a sua agenda girar.</p></div></div>
+                <div class="loyalty-summary-grid"><div class="stat-card glass"><span class="stat-label">Clientes participantes</span><strong id="loyalty-client-count" class="stat-value">0</strong></div><div class="stat-card glass"><span class="stat-label">Pontos distribuídos</span><strong id="loyalty-points-total" class="stat-value" style="color:var(--primary);">0</strong></div><div class="stat-card glass"><span class="stat-label">Regra sugerida</span><strong class="loyalty-rule-value">1 ponto por R$ 1</strong></div></div>
+                <div class="glass loyalty-panel"><div class="section-toolbar"><div><span class="page-eyebrow">Carteira de pontos</span><h3>Clientes e recompensas</h3></div><span class="loyalty-helper">Use os pontos para criar benefícios personalizados.</span></div><div class="table-responsive"><table class="data-table"><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Pontos</th><th>Indicação</th><th>Ação</th></tr></thead><tbody id="loyalty-table-body"></tbody></table></div></div>
+            </div>
 
             <!-- Tab Vendas -->
             <div id="tab-vendas" class="hidden">
@@ -750,6 +840,12 @@
                         <div class="booking-schedule-row" data-day="5"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>Sexta-feira</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
                         <div class="booking-schedule-row" data-day="6"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>S&aacute;bado</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
                     </div>
+                    <div class="booking-blocks-panel">
+                        <div class="settings-card-heading"><div><span class="settings-eyebrow">Exce&ccedil;&otilde;es</span><h3>Folgas e bloqueios</h3></div><span class="settings-card-icon">04</span></div>
+                        <p class="settings-card-description">Bloqueie um dia inteiro ou apenas uma faixa de hor&aacute;rio para feriados, reuni&otilde;es e folgas.</p>
+                        <div class="settings-inline-fields booking-block-form"><div class="input-group-new"><label for="booking-block-date">Data</label><input type="date" id="booking-block-date"></div><div class="input-group-new"><label for="booking-block-start">In&iacute;cio (opcional)</label><input type="time" id="booking-block-start"></div><div class="input-group-new"><label for="booking-block-end">Fim (opcional)</label><input type="time" id="booking-block-end"></div><div class="input-group-new"><label for="booking-block-reason">Motivo</label><input type="text" id="booking-block-reason" maxlength="160" placeholder="Feriado / folga"></div><button type="button" class="btn btn-ghost" onclick="admin.addBookingBlock()">Adicionar bloqueio</button></div>
+                        <div id="booking-blocks-list" class="booking-blocks-list"></div>
+                    </div>
                     <p class="settings-feedback" id="booking-settings-feedback" aria-live="polite"></p>
                 </section>
             </div>
@@ -989,11 +1085,8 @@
                         </div>
                         <button type="button" class="btn btn-ghost btn-sm" onclick="admin.openAdminPanel('overview')">&larr; Voltar</button>
                     </div>
-                    <div class="admin-coming-soon glass">
-                        <span class="admin-coming-soon-icon" aria-hidden="true">&middot;&middot;&middot;</span>
-                        <strong>Painel em desenvolvimento</strong>
-                        <p>Este espa&ccedil;o j&aacute; est&aacute; preparado para receber os registros de acesso, altera&ccedil;&otilde;es e opera&ccedil;&otilde;es realizadas pelos usu&aacute;rios.</p>
-                    </div>
+                    <div class="admin-subpanel-actions"><button type="button" class="btn btn-ghost btn-sm" onclick="admin.loadAuditLogs()">Atualizar logs</button></div>
+                    <div class="data-table-container admin-logs-table-shell"><table class="data-table"><thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Registro</th><th>Detalhes</th></tr></thead><tbody id="admin-logs-table-body"><tr><td colspan="5" class="marketing-leads-empty">Carregando logs...</td></tr></tbody></table></div>
                 </div>
             </div>
         </main>
@@ -1012,6 +1105,14 @@
             <div class="input-group-new">
                 <label>WhatsApp</label>
                 <input autocomplete="off" type="tel" id="modal-client-phone" placeholder="Ex: (11) 99999-9999">
+            </div>
+            <div class="input-group-new">
+                <label>Data de nascimento</label>
+                <input autocomplete="off" type="date" id="modal-client-birthday">
+            </div>
+            <div class="input-group-new">
+                <label>C&oacute;digo de indica&ccedil;&atilde;o <span class="field-hint">(opcional)</span></label>
+                <input autocomplete="off" type="text" id="modal-client-referral" placeholder="Ex: BP-12-ABC123">
             </div>
             <div class="input-group-new">
                 <label>Notas/Observações</label>
@@ -1143,6 +1244,10 @@
                 <label>Preço (R$)</label>
                 <input autocomplete="off" type="number" id="modal-svc-price" placeholder="R$ 0,00">
             </div>
+            <div class="input-group-new service-package-toggle">
+                <label class="checkbox-label"><input type="checkbox" id="modal-svc-is-package"> Este serviço é um pacote</label>
+                <input autocomplete="off" type="number" id="modal-svc-package-sessions" min="2" step="1" placeholder="Quantidade de atendimentos" disabled>
+            </div>
             <div class="input-group-new">
                 <label>Duração Estimada</label>
                 <div class="service-duration-fields">
@@ -1239,6 +1344,10 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="input-group-new" style="max-width: 280px; margin-top: 24px;">
+                    <label for="modal-sale-payment-method">Forma de pagamento</label>
+                    <select id="modal-sale-payment-method"><option value="cash">Dinheiro</option><option value="pix">Pix</option><option value="card">Cartão</option></select>
                 </div>
             </div>
 
@@ -1461,6 +1570,13 @@
         </div>
     </div>
 
+    <div id="modal-inventory-history" class="modal-overlay hidden">
+        <div class="modal-content inventory-history-modal">
+            <header class="modal-header"><div><span class="professional-modal-kicker">Estoque</span><h2 class="modal-title" id="inventory-history-title">Histórico do produto</h2><p>Entradas, vendas e ajustes registrados.</p></div><button class="btn-icon-close" onclick="admin.closeModal('inventory-history')" aria-label="Fechar">×</button></header>
+            <div class="table-responsive"><table class="data-table"><thead><tr><th>Data</th><th>Movimento</th><th>Quantidade</th><th>Motivo</th></tr></thead><tbody id="inventory-history-body"></tbody></table></div>
+        </div>
+    </div>
+
     <!-- MONTHLY GOAL MODAL -->
     <div id="modal-monthly-goal" class="modal-overlay hidden">
         <div class="modal-content monthly-goal-modal">
@@ -1522,9 +1638,24 @@
                     <label for="modal-expense-date">Data</label>
                     <input autocomplete="off" type="date" id="modal-expense-date">
                 </div>
+                <div class="input-group-new">
+                    <label for="modal-expense-payment-method">Forma de pagamento</label>
+                    <select id="modal-expense-payment-method"><option value="cash">Dinheiro</option><option value="pix">Pix</option><option value="card">Cartão</option></select>
+                </div>
                 <div class="input-group-new expense-form-wide">
                     <label for="modal-expense-notes">Observação <span>(opcional)</span></label>
                     <textarea autocomplete="off" id="modal-expense-notes" rows="3" maxlength="500" placeholder="Inclua um detalhe importante sobre este lançamento"></textarea>
+                </div>
+            </div>
+
+            <div class="inventory-form-row">
+                <div class="input-group-new">
+                    <label>Fornecedor</label>
+                    <input autocomplete="off" type="text" id="modal-inv-supplier" placeholder="Ex: Distribuidora Barber">
+                </div>
+                <div class="input-group-new">
+                    <label>Custo de aquisi&ccedil;&atilde;o (R$)</label>
+                    <input autocomplete="off" type="number" id="modal-inv-cost" min="0" step="0.01" placeholder="0,00">
                 </div>
             </div>
 
@@ -1558,6 +1689,10 @@
                     <input type="radio" name="completion-payment" value="pending">
                     <span><strong>N&atilde;o pagou</strong><small>Gerar pend&ecirc;ncia no cadastro.</small></span>
                 </label>
+            </div>
+            <div class="input-group-new completion-payment-method-field">
+                <label for="completion-payment-method">Forma de pagamento</label>
+                <select id="completion-payment-method"><option value="cash">Dinheiro</option><option value="pix">Pix</option><option value="card">Cartão</option></select>
             </div>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-ghost btn-full" onclick="admin.closeModal('confirm-service')">Cancelar</button>
@@ -1699,6 +1834,10 @@
             </div>
             <div id="appointment-modal-actions" class="appointment-modal-actions hidden">
                 <button id="btn-view-edit" class="btn btn-ghost">Editar</button>
+                <button id="btn-view-confirm" class="btn btn-ghost">Confirmar</button>
+                <button id="btn-view-arrived" class="btn btn-ghost">Chegou</button>
+                <button id="btn-view-start" class="btn btn-ghost">Iniciar</button>
+                <button id="btn-view-no-show" class="btn btn-ghost">Marcar falta</button>
                 <button id="btn-view-complete" class="btn btn-primary">Finalizar atendimento</button>
                 <button id="btn-view-cancel" class="btn btn-danger">Cancelar horário</button>
             </div>
