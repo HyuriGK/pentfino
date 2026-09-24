@@ -191,13 +191,61 @@ const auth = {
         document.documentElement.classList.remove('session-restore-pending');
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('admin-view').classList.remove('hidden');
-        this.applyDashboardAccess();
+        this.applyDashboardAccess({ animateWelcome: true });
         if (typeof ui !== 'undefined') ui.initNavGroups();
         admin.init();
     },
 
-    applyDashboardAccess() {
-        document.getElementById('shop-name-title').innerText = `Bem-vindo, ${this.user.shop_name || this.user.shop}`;
+    getWelcomeMessage() {
+        const shopName = this.user?.shop_name || this.user?.shop || 'Gest';
+        const hour = new Date().getHours();
+        const greeting = hour < 12 ? 'Bom dia' : (hour < 18 ? 'Boa tarde' : 'Boa noite');
+        return `${greeting}, ${shopName}`;
+    },
+
+    animateWelcomeMessage() {
+        const title = document.getElementById('shop-name-title');
+        if (!title) return;
+
+        const message = this.getWelcomeMessage();
+
+        if (this.welcomeTypingTimer) window.clearInterval(this.welcomeTypingTimer);
+        if (this.welcomeTypingEndTimer) window.clearTimeout(this.welcomeTypingEndTimer);
+
+        title.setAttribute('aria-label', message);
+        title.classList.add('is-typing');
+        title.textContent = '';
+
+        let index = 0;
+        const typeNextCharacter = () => {
+            index += 1;
+            title.textContent = message.slice(0, index);
+
+            if (index >= message.length) {
+                window.clearInterval(this.welcomeTypingTimer);
+                this.welcomeTypingTimer = null;
+                this.welcomeTypingEndTimer = window.setTimeout(() => {
+                    title.classList.remove('is-typing');
+                }, 1400);
+            }
+        };
+
+        this.welcomeTypingTimer = window.setInterval(typeNextCharacter, 46);
+        typeNextCharacter();
+    },
+
+    applyDashboardAccess({ animateWelcome = false } = {}) {
+        const title = document.getElementById('shop-name-title');
+        const message = this.getWelcomeMessage();
+        if (title) {
+            if (animateWelcome) {
+                this.animateWelcomeMessage();
+            } else if (!title.classList.contains('is-typing')) {
+                title.classList.remove('is-typing');
+                title.textContent = message;
+                title.setAttribute('aria-label', title.textContent);
+            }
+        }
         document.querySelectorAll('.admin-only').forEach(el => {
             el.classList.toggle('hidden', this.user.role !== 'administrador');
         });

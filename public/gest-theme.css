@@ -447,6 +447,33 @@
     color: #91a49a !important;
 }
 
+/* Digital assistant welcome effect on each dashboard entry/reload. */
+.admin-light .dashboard-title {
+    min-height: 1.15em;
+}
+
+.admin-light .dashboard-title.is-typing::after {
+    content: "▋";
+    display: inline-block;
+    margin-left: 0.12em;
+    color: var(--primary);
+    font-size: 0.72em;
+    font-weight: 700;
+    vertical-align: 0.08em;
+    animation: gest-welcome-cursor 820ms steps(1, end) infinite;
+}
+
+@keyframes gest-welcome-cursor {
+    0%, 48% { opacity: 1; }
+    49%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-light .dashboard-title.is-typing::after {
+        animation: none;
+    }
+}
+
 /* Public booking surface */
 .booking-body,
 .booking-body.booking-theme-classic,
