@@ -539,6 +539,14 @@ const requireAnyPermission = (...permissions) => async (req, res, next) => {
     }
 };
 
+// Status changes are intentionally available from the Dashboard queue. Editing
+// the appointment details remains restricted to the Agenda permission.
+const requireAppointmentMutationPermission = (req, res, next) => {
+    const detailFields = ['serviceId', 'professionalId', 'clientName', 'clientPhone', 'time', 'date'];
+    const isEditingDetails = detailFields.some(field => req.body?.[field] !== undefined);
+    return requireAnyPermission(...(isEditingDetails ? ['agenda'] : ['agenda', 'dashboard']))(req, res, next);
+};
+
 const requireOwnBarber = (req, res, next) => {
     if (Number(req.user?.id) !== Number(req.params.barberId)) {
         return res.status(403).json({ success: false, message: 'Acesso restrito à sua barbearia.' });
@@ -1205,7 +1213,7 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
-app.patch('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
+app.patch('/api/appointments/:id', authenticateToken, requireAppointmentMutationPermission, async (req, res) => {
     const { id } = req.params;
     const { status, paymentStatus, paymentMethod, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;
     try {
@@ -1341,7 +1349,7 @@ app.patch('/api/appointments/:id/confirmation', authenticateToken, requireAnyPer
     }
 });
 
-app.delete('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
+app.delete('/api/appointments/:id', authenticateToken, requireAnyPermission('agenda', 'clientes'), async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query('DELETE FROM appointments WHERE id = $1 AND barber_id = $2 RETURNING id', [id, req.user.id]);
@@ -1816,14 +1824,14 @@ app.get('/api/clients/:barberId', authenticateToken, requireOwnBarber, requireAn
         const { barberId } = req.params;
         const result = await pool.query(`
             SELECT c.*, 
-                   MAX(a.appointment_date) as last_service_date,
-                   (CURRENT_DATE - MAX(a.appointment_date)) as days_since_last_service,
+                   MAX(a.appointment_date) FILTER (WHERE a.status = 'completed') as last_service_date,
+                   (CURRENT_DATE - MAX(a.appointment_date) FILTER (WHERE a.status = 'completed')) as days_since_last_service,
                    COALESCE(SUM(CASE WHEN a.status = 'completed' THEN COALESCE(s.price, 0) ELSE 0 END), 0) as total_spent,
                    (SELECT s3.name FROM appointments a3 LEFT JOIN services s3 ON s3.id = a3.service_id WHERE a3.barber_id = c.barber_id AND a3.client_phone = c.phone AND a3.status = 'completed' GROUP BY s3.name ORDER BY COUNT(*) DESC, s3.name ASC LIMIT 1) as preferred_service,
                    (SELECT p3.name FROM appointments a4 LEFT JOIN professionals p3 ON p3.id = a4.professional_id WHERE a4.barber_id = c.barber_id AND a4.client_phone = c.phone AND a4.status = 'completed' GROUP BY p3.name ORDER BY COUNT(*) DESC, p3.name ASC LIMIT 1) as preferred_professional,
                    (SELECT a2.appointment_time 
                     FROM appointments a2 
-                    WHERE a2.barber_id = c.barber_id AND a2.client_name = c.name AND a2.client_phone = c.phone
+                     WHERE a2.barber_id = c.barber_id AND a2.client_name = c.name AND a2.client_phone = c.phone AND a2.status = 'completed'
                     ORDER BY a2.appointment_date DESC, a2.appointment_time DESC LIMIT 1) as scheduled_time,
                    COUNT(a.id) as total_appointments,
                    COUNT(a.id) FILTER (WHERE a.status = 'completed' AND a.payment_status = 'pending') as pending_payment_count,

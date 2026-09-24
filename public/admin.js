@@ -262,7 +262,11 @@ const auth = {
 
     can(permission) {
         if (this.user?.role === 'administrador') return true;
-        return this.user?.permissions?.[permission] !== false;
+        const requiredPermissions = String(permission || '')
+            .split(',')
+            .map(value => value.trim())
+            .filter(Boolean);
+        return requiredPermissions.length > 0 && requiredPermissions.some(key => this.user?.permissions?.[key] !== false);
     },
 
     logout() {
@@ -660,7 +664,7 @@ const admin = {
     },
 
     showTab(tab, { skipLoading = false } = {}) {
-        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', relatorios: 'billing', despesas: 'despesas', clientes: 'clientes', fidelidade: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
+        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', relatorios: 'billing,comissoes,despesas,vendas', despesas: 'despesas', clientes: 'clientes', fidelidade: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
         if (tab === 'administracao' && auth.user?.role !== 'administrador') {
             auth.notify('Acesso exclusivo do administrador.', 'error');
             return;
@@ -1264,7 +1268,7 @@ const admin = {
                     </div>
                 </td>
                 <td><strong style="color:var(--primary); text-decoration: underline;">${this.escapeHtml(c.name)}</strong></td>
-                <td><span class="svc-tag" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">${c.rate}%</span></td>
+                <td><span class="svc-tag" style="background: #f1faf4; border: 1px solid var(--border-bright);">${c.rate}%</span></td>
                 <td style="font-weight: 600;">R$ ${c.generated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--danger); font-weight: 600;">R$ ${c.shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--success); font-weight: 700;">R$ ${c.toProfessional.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -1542,6 +1546,7 @@ const admin = {
             return;
         }
 
+        const canDeleteAppointments = auth.can('agenda') || auth.can('clientes');
         container.innerHTML = queue.map(a => `
             <div class="appointment-item">
                 <div class="client-info">
@@ -1582,10 +1587,10 @@ const admin = {
                                 <span class="appointment-action-menu-icon is-danger" aria-hidden="true">×</span>
                                 <span><strong>Cancelar</strong><small>Encerrar este horário</small></span>
                             </button>
-                            <button type="button" class="appointment-action-menu-item is-danger" role="menuitem" onclick="admin.closeAppointmentMenus(); admin.deleteAppointment(${a.id}, null)">
+                            ${canDeleteAppointments ? `<button type="button" class="appointment-action-menu-item is-danger" role="menuitem" onclick="admin.closeAppointmentMenus(); admin.deleteAppointment(${a.id}, null)">
                                 <span class="appointment-action-menu-icon is-delete" aria-hidden="true">⌫</span>
                                 <span><strong>Excluir</strong><small>Remover agendamento</small></span>
-                            </button>
+                            </button>` : ''}
                         </div>
                     </div>
                     <button type="button" class="btn-queue-cancel" aria-label="Cancelar atendimento de ${this.escapeHtml(a.client_name)}" onclick="admin.cancelService(${a.id}, '${String(a.client_name).replace(/'/g, "\\'")}')">×</button>
@@ -1969,7 +1974,7 @@ const admin = {
             };
             const paymentLabels = { paid: 'Pago', pending: 'Não pago' };
             historyContainer.innerHTML = history.length > 0 ? history.map(h => `
-                <tr style="background: rgba(255,255,255,0.02)">
+                <tr style="background: #f7fcf9">
                     <td style="padding: 15px;">${this.formatAppointmentDate(h.appointment_date)} ${String(h.appointment_time || '').slice(0, 5)}</td>
                     <td style="padding: 15px;">${h.service_name}</td>
                     <td style="padding: 15px; color: var(--primary); font-weight: 600;">${h.professional_name || 'Geral'}</td>
@@ -2266,7 +2271,7 @@ const admin = {
                         </div>
                         
                         <div class="stock-progress-container">
-                            <div class="stock-progress-bar" style="width: ${progress}%; background: ${isLow ? '#ff4444' : '#00ff88'}"></div>
+                            <div class="stock-progress-bar" style="width: ${progress}%; background: ${isLow ? 'var(--danger)' : 'var(--success)'}"></div>
                         </div>
                     </div>
                 </div>
@@ -2403,10 +2408,10 @@ const admin = {
                 </td>
                 <td style="font-weight: 500;">${s.client_name || '<span style="color: var(--text-muted); font-style: italic;">Consumidor</span>'}</td>
                 <td><strong style="color: var(--text-main);">${s.item_name}</strong></td>
-                <td><span class="qty-badge" style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);">${s.quantity}</span></td>
+                <td><span class="qty-badge" style="background: #f1faf4; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);">${s.quantity}</span></td>
                 <td>
                     ${s.professional_name 
-                        ? `<span class="svc-tag" style="background: rgba(0, 255, 136, 0.1); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2);">${s.professional_name}</span>`
+                        ? `<span class="svc-tag" style="background: #e6f8ed; color: var(--success); border: 1px solid #bce5ca;">${s.professional_name}</span>`
                         : '<span style="color: var(--text-muted)">-</span>'
                     }
                 </td>
@@ -2567,143 +2572,6 @@ const admin = {
                 auth.notify(err.message || 'Não foi possível excluir a despesa.', 'error');
             }
         }, { requiresTyping: true });
-    },
-
-    async loadBillingData() {
-        const today = new Date();
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-        const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-        
-        const monthHeader = document.getElementById('billing-chart-month');
-        if (monthHeader) {
-            monthHeader.innerText = `${monthNames[currentMonth]} ${currentYear}`;
-        }
-
-        await this.loadSales(); // Ensure sales are up to date
-
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-        const dailyData = Array(daysInMonth).fill(0);
-
-        let totalMonth = 0;
-
-        // Sum Appointments (Services)
-        (this.allAppointments || []).forEach(a => {
-            const d = new Date(a.appointment_date);
-            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear && a.status === 'completed') {
-                const day = d.getDate();
-                const val = parseFloat(a.service_price || 0);
-                dailyData[day - 1] += val;
-                totalMonth += val;
-            }
-        });
-
-        // Sum Sales (Products)
-        (this.sales || []).forEach(s => {
-            const d = new Date(s.sale_date || s.created_at);
-            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-                const day = d.getDate();
-                const val = parseFloat(s.total_price || 0);
-                dailyData[day - 1] += val;
-                totalMonth += val;
-            }
-        });
-
-        // Update KPIs
-        const goal = Number(this.monthlyGoal) || 0;
-        const remaining = Math.max(0, goal - totalMonth);
-        const percent = goal > 0 ? Math.min(100, (totalMonth / goal) * 100) : 0;
-
-        const totalMonthEl = document.getElementById('billing-total-month');
-        if (totalMonthEl) totalMonthEl.innerText = `R$ ${totalMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-        
-        const remainingEl = document.getElementById('billing-remaining');
-        if (remainingEl) {
-            if (goal <= 0) {
-                remainingEl.style.color = '';
-                remainingEl.innerText = 'R$ 0,00';
-            } else {
-                remainingEl.innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-                if (totalMonth >= goal) {
-                    remainingEl.style.color = 'var(--success)';
-                    remainingEl.innerText = 'Meta Atingida!';
-                }
-            }
-        }
-        
-        const statusEl = document.getElementById('billing-goal-status');
-        if (statusEl) statusEl.innerText = `${percent.toFixed(1)}% da meta atingida`;
-
-        // Render Chart
-        this.renderBillingChart(dailyData);
-    },
-
-    renderBillingChart(data) {
-        const canvas = document.getElementById('billingDailyChart');
-        if (!canvas) return;
-        if (this.billingChart) {
-            this.billingChart.destroy();
-            this.billingChart = null;
-        }
-
-        const hasRevenue = data.some(value => Number(value) > 0);
-        const emptyState = document.getElementById('billing-chart-empty');
-        emptyState?.classList.toggle('hidden', hasRevenue);
-        canvas.classList.toggle('hidden', !hasRevenue);
-        if (!hasRevenue) return;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            return;
-        }
-
-        const labels = data.map((_, i) => i + 1);
-        const styles = getComputedStyle(document.body);
-        const chartPrimary = styles.getPropertyValue('--accent').trim() || styles.getPropertyValue('--primary').trim() || '#111827';
-        const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#6b7280';
-        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(38, 184, 120, 0.12)' : 'rgba(255,255,255,0.05)';
-
-        this.billingChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Faturamento Diário',
-                    data: data,
-                    backgroundColor: document.body.classList.contains('admin-light') ? 'rgba(38, 184, 120, 0.22)' : 'rgba(0, 255, 136, 0.4)',
-                    borderColor: chartPrimary,
-                    borderWidth: 2,
-                    borderRadius: 5,
-                    hoverBackgroundColor: chartPrimary
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => `R$ ${context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: chartGrid },
-                        ticks: {
-                            color: chartMuted,
-                            callback: (val) => `R$ ${val}`
-                        }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: chartMuted }
-                    }
-                }
-            }
-        });
     },
 
     setBillingMonth(month) {
@@ -2883,8 +2751,8 @@ const admin = {
         if (!ctx) return;
 
         const styles = getComputedStyle(document.body);
-        const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#94a3b8';
-        const chartGrid = document.body.classList.contains('admin-light') ? 'rgba(38, 184, 120, 0.12)' : 'rgba(255,255,255,0.08)';
+        const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#6b7f73';
+        const chartGrid = styles.getPropertyValue('--border').trim() || 'rgba(38, 184, 120, 0.12)';
         const labels = data.map((_, index) => String(index + 1).padStart(2, '0'));
         const typeLabels = { all: 'Todos', services: 'Serviços', sales: 'Vendas' };
         const formatCurrency = value => `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
@@ -3335,36 +3203,6 @@ const admin = {
             auth.notify('Venda registrada com sucesso!', 'success');
         } catch (err) { alert('Erro ao registrar venda: ' + err.message); }
     },
-
-    // Modal Logic
-    async openModal(type) {
-        console.log(`[DEBUG] Abrindo modal do tipo: ${type}`);
-        try {
-
-
-            const genericModal = document.getElementById(`modal-${type}`);
-            if (genericModal) {
-                genericModal.classList.remove('hidden');
-                document.body.classList.add('modal-open');
-            } else {
-                console.error(`Modal id="modal-${type}" não encontrado`);
-            }
-        } catch (err) {
-            console.error(`Erro fatal em openModal(${type}):`, err);
-            alert(`Erro ao abrir modal: ${err.message}`);
-        }
-    },
-
-    closeModal(type) {
-
-        document.getElementById(`modal-${type}`).classList.add('hidden');
-        const isOpen = document.querySelector('.modal-overlay:not(.hidden)');
-        if (!isOpen) {
-            document.body.classList.remove('modal-open');
-        }
-    },
-
-
 
     // Professionals Management
     async loadProfessionals() {
@@ -4543,7 +4381,7 @@ const admin = {
     openModal(type) {
         if (type === 'professional') {
             const list = document.getElementById('modal-prof-services-list');
-            list.innerHTML = this.services.map(s => `
+            if (list) list.innerHTML = this.services.map(s => `
                 <label class="checkbox-item">
                     <input type="checkbox" value="${s.id}">
                     <span>${s.name}</span>
@@ -4555,6 +4393,11 @@ const admin = {
             this.modalStack.push(modalId);
         }
         const modalElement = document.getElementById(modalId);
+        if (!modalElement) {
+            this.modalStack = this.modalStack.filter(id => id !== modalId);
+            console.error(`Modal id="${modalId}" não encontrado.`);
+            return;
+        }
         modalElement.style.zIndex = String(2000 + (this.modalStack.length - 1) * 20);
         modalElement.classList.remove('hidden');
         const modalContent = modalElement.querySelector('.modal-content');
@@ -4647,6 +4490,10 @@ const admin = {
 
         this.modalStack = this.modalStack.filter(id => id !== modalId);
         const modalElement = document.getElementById(modalId);
+        if (!modalElement) {
+            if (this.modalStack.length === 0) document.body.classList.remove('modal-open');
+            return;
+        }
         modalElement.classList.add('hidden');
         modalElement.style.zIndex = '';
         
@@ -4907,9 +4754,11 @@ const agenda = {
                 title: a.client_name,
                 start: this.toCalendarDateTime(startDate),
                 end: this.toCalendarDateTime(endDate),
-                backgroundColor: a.status === 'completed' ? '#1a1a1a' : (a.status === 'canceled' || a.status === 'no_show' ? '#330000' : (a.status === 'in_progress' ? '#0e9f6e' : 'var(--primary)')),
-                borderColor: a.status === 'completed' ? '#333' : (a.status === 'canceled' || a.status === 'no_show' ? '#7f1d1d' : 'var(--primary)'),
-                textColor: a.status === 'completed' ? '#555' : '#000',
+                backgroundColor: a.status === 'completed'
+                    ? 'rgba(28, 165, 104, 0.14)'
+                    : (a.status === 'canceled' || a.status === 'no_show' ? 'rgba(217, 77, 91, 0.14)' : 'rgba(38, 184, 120, 0.14)'),
+                borderColor: a.status === 'completed' ? 'var(--success)' : (a.status === 'canceled' || a.status === 'no_show' ? 'var(--danger)' : 'var(--primary)'),
+                textColor: a.status === 'completed' ? '#13794c' : (a.status === 'canceled' || a.status === 'no_show' ? '#b83c48' : 'var(--text-main)'),
                 classNames: [`event-${a.status}`],
                 extendedProps: {
                     service: a.service_name,

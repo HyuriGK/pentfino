@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gest | Gestão de Barbearia</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="gest-theme.css?v=20260924-surface-pass">
+    <link rel="stylesheet" href="gest-theme.css?v=20260924-final-pass">
     <link rel="icon" type="image/png" sizes="192x192" href="gest-icon-192.png?v=20260924-gest">
     <link rel="icon" type="image/png" sizes="512x512" href="gest-icon-512.png?v=20260924-gest">
     <link rel="apple-touch-icon" sizes="192x192" href="gest-icon-192.png?v=20260924-gest">
-    <link rel="manifest" href="barberpoint.webmanifest">
+    <link rel="manifest" href="gest.webmanifest?v=20260924-gest">
     <meta name="theme-color" content="#26b878">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -317,7 +317,7 @@
 
                 const consent = document.createElement('p');
                 consent.className = 'demo-privacy-note';
-                consent.innerHTML = 'Clicando acima você aceita nossa <a href="#" aria-label="Políticas de privacidade">Políticas de privacidade</a>';
+                consent.textContent = 'Clicando acima você aceita nossa política de privacidade. Seus dados são usados apenas para retornar o contato solicitado.';
 
                 bubble.appendChild(action);
                 bubble.appendChild(consent);

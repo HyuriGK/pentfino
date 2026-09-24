@@ -550,7 +550,17 @@
     color: #13794c !important;
 }
 
-.admin-light .agenda-calendar .fc-event.event-canceled {
+.admin-light .agenda-calendar .fc-event.event-canceled,
+.admin-light .agenda-calendar .fc-event.event-no_show {
+    background: rgba(217, 77, 91, 0.14) !important;
+    border-color: var(--danger) !important;
+    color: #b83c48 !important;
+}
+
+.admin-light .agenda-calendar .fc-event.event-canceled .fc-event-title,
+.admin-light .agenda-calendar .fc-event.event-canceled .fc-event-time,
+.admin-light .agenda-calendar .fc-event.event-no_show .fc-event-title,
+.admin-light .agenda-calendar .fc-event.event-no_show .fc-event-time {
     color: #b83c48 !important;
 }
 
@@ -1276,4 +1286,243 @@
     color: #13794c !important;
     background: #eaf8ef !important;
     border-color: var(--primary) !important;
+}
+
+/* Final consistency pass: neutralize legacy dark/gold rules that are still
+   more specific in secondary modals and operational utility components. */
+.admin-light .navigation-loader {
+    background: rgba(245, 251, 247, 0.96) !important;
+}
+
+.admin-light .navigation-loader-mark::before {
+    border-top-color: var(--primary) !important;
+    border-right-color: rgba(38, 184, 120, 0.68) !important;
+}
+
+.admin-light .navigation-loader-mark::after {
+    border-bottom-color: rgba(107, 127, 115, 0.68) !important;
+    border-left-color: rgba(107, 127, 115, 0.28) !important;
+}
+
+.admin-light .appointment-contact {
+    color: var(--text-muted) !important;
+}
+
+.admin-light .appointment-contact svg {
+    color: #7d9a8b !important;
+}
+
+.admin-light .financial-money {
+    gap: 0.02em !important;
+    letter-spacing: normal !important;
+}
+
+.admin-light .financial-money .financial-currency,
+.admin-light .financial-money .financial-amount {
+    letter-spacing: -0.04em !important;
+}
+
+.admin-light .dashboard-financial-toggle:hover,
+.admin-light .dashboard-financial-toggle:focus-visible {
+    border-color: var(--border-bright) !important;
+    box-shadow: 0 16px 32px rgba(27, 98, 60, 0.1) !important;
+}
+
+.admin-light .status-pending {
+    color: #6b7f73 !important;
+}
+
+.admin-light .status-confirmed,
+.admin-light .status-arrived,
+.admin-light .status-in_progress {
+    color: var(--success) !important;
+}
+
+.admin-light .client-return-badge {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+    border: 1px solid #bce5ca;
+}
+
+.admin-light .badge-low {
+    color: var(--danger) !important;
+    background: rgba(217, 77, 91, 0.1) !important;
+    border-color: rgba(217, 77, 91, 0.24) !important;
+}
+
+.admin-light .badge-ok {
+    color: var(--success) !important;
+    background: rgba(28, 165, 104, 0.1) !important;
+    border-color: rgba(28, 165, 104, 0.22) !important;
+}
+
+.admin-light .status-ok {
+    color: var(--success) !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.admin-light .status-warn {
+    color: #527063 !important;
+    background: #f1faf4 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .status-danger {
+    color: var(--danger) !important;
+    background: rgba(217, 77, 91, 0.1) !important;
+    border-color: rgba(217, 77, 91, 0.24) !important;
+}
+
+.admin-light .payment-cash,
+.admin-light .payment-pix,
+.admin-light .payment-card {
+    color: #13794c !important;
+}
+
+.admin-light .admin-module-icon-marketing {
+    color: var(--primary) !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.admin-light .marketing-lead-status {
+    color: var(--text-muted) !important;
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .marketing-lead-status.new,
+.admin-light .marketing-lead-status.contacted {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.admin-light .waitlist-panel,
+.admin-light .dashboard-insight-card {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.admin-light .waitlist-form input,
+.admin-light .waitlist-form select {
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    border-color: var(--border) !important;
+    color-scheme: light !important;
+}
+
+.admin-light .waitlist-form input:focus,
+.admin-light .waitlist-form select:focus {
+    background: #ffffff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(38, 184, 120, 0.13) !important;
+}
+
+.admin-light .waitlist-form select option {
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+}
+
+.admin-light #modal-inventory {
+    background: rgba(23, 54, 41, 0.24) !important;
+}
+
+.admin-light #modal-inventory .inventory-modal-content {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 28px 70px rgba(27, 98, 60, 0.16) !important;
+}
+
+.admin-light #modal-inventory .inventory-modal-header,
+.admin-light #modal-inventory .inventory-modal-content > .input-group-new > label,
+.admin-light #modal-inventory .inventory-form-row .input-group-new > label {
+    color: var(--text-muted) !important;
+    border-bottom-color: var(--border) !important;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > .input-group-new input,
+.admin-light #modal-inventory .inventory-modal-content > .input-group-new textarea {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    color-scheme: light !important;
+}
+
+.admin-light #modal-inventory .inventory-photo-picker,
+.admin-light #modal-inventory .inventory-commission-toggle {
+    color: var(--text-main) !important;
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light #modal-inventory .inventory-photo-picker:hover,
+.admin-light #modal-inventory .inventory-commission-toggle:hover {
+    background: #effaf4 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > .btn-full {
+    box-shadow: 0 12px 24px rgba(38, 184, 120, 0.18) !important;
+}
+
+.admin-light #modal-select-item .select-item-table th,
+.admin-light #modal-select-item .select-item-table td,
+.admin-light #tab-vendas .data-table th,
+.admin-light #tab-vendas .data-table td {
+    border-right-color: var(--border) !important;
+}
+
+.admin-light #modal-select-item .product-select-photo {
+    background: #f1faf4 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light #modal-select-item .product-select-photo.no-photo {
+    background: linear-gradient(145deg, #eaf8ef, #f7fcf9) !important;
+}
+
+/* Public marketing surface: green and white throughout, with no old gold CTA. */
+.landing-body .mesh-gradient {
+    background:
+        radial-gradient(circle at 50% 0%, rgba(38, 184, 120, 0.1), transparent 28%),
+        radial-gradient(circle at 12% 74%, rgba(38, 184, 120, 0.08), transparent 24%) !important;
+}
+
+.landing-body .landing-nav .nav-lang {
+    color: var(--landing-ink) !important;
+    background: var(--landing-card) !important;
+    border-color: var(--landing-line) !important;
+}
+
+.landing-body .consultation-section {
+    background: linear-gradient(135deg, #eaf8ef 0%, #f5fbf7 100%) !important;
+}
+
+.landing-body .consultation-content h2,
+.landing-body .consultation-content p {
+    color: var(--landing-ink) !important;
+}
+
+.landing-body .consultation-content p {
+    opacity: 1;
+}
+
+.landing-body .consultation-content .hero-tagline {
+    color: var(--landing-teal-dark) !important;
+    background: #ffffff !important;
+    border-color: var(--landing-line) !important;
+}
+
+.landing-body .consultation-content .btn-premium {
+    background: var(--landing-teal) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 26px rgba(38, 184, 120, 0.2) !important;
+}
+
+.landing-body .consultation-content .btn-premium:hover {
+    background: var(--landing-teal-dark) !important;
 }

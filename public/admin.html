@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gest | Dashboard da Barbearia</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="gest-theme.css?v=20260924-surface-pass">
+    <link rel="stylesheet" href="gest-theme.css?v=20260924-final-pass">
     <link rel="icon" type="image/png" sizes="192x192" href="gest-icon-192.png?v=20260924-gest">
     <link rel="icon" type="image/png" sizes="512x512" href="gest-icon-512.png?v=20260924-gest">
     <link rel="apple-touch-icon" sizes="192x192" href="gest-icon-192.png?v=20260924-gest">
-    <link rel="manifest" href="barberpoint.webmanifest">
+    <link rel="manifest" href="gest.webmanifest?v=20260924-gest">
     <meta name="theme-color" content="#26b878">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -185,7 +185,7 @@
                     </svg>
                     <span class="nav-text">Comissões</span>
                 </div>
-                <div class="nav-item" data-sidebar-group="finance" data-permission="billing" onclick="admin.showTab('relatorios')">
+                <div class="nav-item" data-sidebar-group="finance" data-permission="billing,comissoes,despesas,vendas" onclick="admin.showTab('relatorios')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-4M12 16V8M16 16v-6"></path></svg>
                     <span class="nav-text">Relatórios</span>
                 </div>
@@ -1299,7 +1299,7 @@
                 <div class="sale-modal-summary-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: end; margin-top: 25px;">
                     <div class="input-group-new">
                         <label>Preço Unitário (R$)</label>
-                        <div class="glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dotted var(--border-bright); background: rgba(255, 255, 255, 0.02);">
+                        <div class="glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dotted var(--border-bright); background: #f7fcf9;">
                             <div>
                                 <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Preço por Unidade</span>
                                 <div id="modal-sale-price-unit-display" style="font-size: 1.8rem; font-weight: 800; color: var(--text-muted); margin-top: -2px;">R$ 0,00</div>
@@ -1310,7 +1310,7 @@
                     
                     <div class="input-group-new">
                         <label>Resumo Financeiro</label>
-                        <div class="sale-total-display glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-bright); background: rgba(0, 255, 136, 0.03);">
+                        <div class="sale-total-display glass" style="height: 80px; padding: 0 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-bright); background: #f1faf4;">
                             <div>
                                 <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Total da Venda</span>
                                 <div id="modal-sale-total" style="font-size: 2.2rem; font-weight: 900; color: var(--primary); margin-top: -2px;">R$ 0,00</div>
@@ -1352,10 +1352,10 @@
                     </div>
                 </div>
                 
-                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.2);">
+                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: #f7fcf9;">
                     <table class="data-table select-item-table">
                         <thead>
-                            <tr style="position: sticky; top: 0; background: #111; z-index: 10;">
+                            <tr style="position: sticky; top: 0; background: #effaf4; z-index: 10;">
                                 <th>Foto</th>
                                 <th>Produto</th>
                                 <th>Categoria</th>
@@ -1391,10 +1391,10 @@
                     </div>
                 </div>
                 
-                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.2);">
+                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: #f7fcf9;">
                     <table class="data-table">
                         <thead>
-                            <tr style="position: sticky; top: 0; background: #111; z-index: 10;">
+                            <tr style="position: sticky; top: 0; background: #effaf4; z-index: 10;">
                                 <th>Nome</th>
                                 <th>WhatsApp</th>
                                 <th style="text-align: right;">Ação</th>
@@ -1431,10 +1431,10 @@
                     </div>
                 </div>
                 
-                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.2);">
+                <div class="data-table-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: #f7fcf9;">
                     <table class="data-table">
                         <thead>
-                            <tr style="position: sticky; top: 0; background: #111; z-index: 10;">
+                            <tr style="position: sticky; top: 0; background: #effaf4; z-index: 10;">
                                 <th>Nome</th>
                                 <th>Profissão/Especialidade</th>
                                 <th style="text-align: right;">Ação</th>
@@ -1474,7 +1474,7 @@
 
             <div class="input-group-new">
                 <label>Descrição Curta</label>
-                <textarea autocomplete="off" id="modal-inv-desc" placeholder="Descreva as qualidades do produto..." style="width: 100%; height: 80px; background: var(--bg-card); color: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright); outline: none; resize: none;"></textarea>
+                <textarea autocomplete="off" id="modal-inv-desc" placeholder="Descreva as qualidades do produto..." style="width: 100%; height: 80px; background: #ffffff; color: var(--text-main); padding: 12px; border-radius: 8px; border: 1px solid var(--border-bright); outline: none; resize: none;"></textarea>
             </div>
 
             <div class="input-group-new inventory-photo-group inventory-field-photo">
@@ -1707,7 +1707,7 @@
     <div id="modal-delete-confirm" class="modal-overlay hidden">
         <div class="modal-content" style="text-align: center; max-width: 400px;">
             <div
-                style="background: rgba(255, 68, 68, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--danger);">
+                style="background: rgba(217, 77, 91, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--danger);">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18"></path>
@@ -1865,7 +1865,7 @@
         </div>
     </div>
 
-    <script src="admin.js?v=20260924-surface-pass"></script>
+    <script src="admin.js?v=20260924-functional-pass"></script>
     <!-- Client Details Modal (Full Screen) -->
     <div id="modal-client-details" class="modal-overlay modal-full hidden">
         <div class="modal-content glass client-details-content">
@@ -1947,7 +1947,7 @@
                     para clientes realizarem agendamentos diretos.</p>
                 <div class="input-group-new" style="margin-bottom: 0;">
                     <input autocomplete="off" type="text" id="share-link-input" readonly
-                        style="text-align: center; background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);">
+                        style="text-align: center; background: #f7fcf9; border: 1px solid var(--border-bright);">
                 </div>
             </div>
             <div class="share-actions">
@@ -2068,7 +2068,7 @@
     <div id="modal-logout" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <div
-                style="background: rgba(255, 68, 68, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--danger);">
+                style="background: rgba(217, 77, 91, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--danger);">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>

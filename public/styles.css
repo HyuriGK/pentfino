@@ -4034,22 +4034,22 @@ aside nav {
 
 /* Gest Admin Light Theme */
 .admin-light {
-    --bg-dark: #f4f6f8;
+    --bg-dark: #f5fbf7;
     --bg-card: #ffffff;
     --bg-sidebar: #ffffff;
-    --primary: #111827;
-    --primary-hover: #273244;
-    --accent: #0f766e;
-    --text-main: #111827;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-    --border-bright: #cbd5e1;
-    --danger: #dc2626;
-    --success: #047857;
-    --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    --primary: #26b878;
+    --primary-hover: #169c60;
+    --accent: #20a96e;
+    --text-main: #173629;
+    --text-muted: #6b7f73;
+    --border: #dcebe1;
+    --border-bright: #b9d8c4;
+    --danger: #d94d5b;
+    --success: #1ca568;
+    --shadow: 0 18px 44px rgba(27, 98, 60, 0.09);
     background:
-        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 32%),
-        linear-gradient(180deg, #fbfcfd 0%, #eef2f6 100%);
+        radial-gradient(circle at top left, rgba(38, 184, 120, 0.08), transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, #f5fbf7 100%);
     color: var(--text-main);
 }
 
