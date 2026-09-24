@@ -448,7 +448,7 @@ const app = {
 
         if (phone.length < 8 || phone.length > 15) {
             feedback.className = 'my-appointments-feedback is-error';
-            feedback.innerText = 'Informe um WhatsApp vÃ¡lido para consultar.';
+            feedback.innerText = 'Informe um WhatsApp válido para consultar.';
             results.innerHTML = '';
             return;
         }
@@ -464,7 +464,7 @@ const app = {
             const data = await response.json().catch(() => ({}));
 
             if (!response.ok) {
-                throw new Error(data.message || 'NÃ£o foi possÃ­vel consultar os agendamentos.');
+                throw new Error(data.message || 'Não foi possível consultar os agendamentos.');
             }
 
             this.myAppointments = Array.isArray(data.appointments) ? data.appointments : [];
@@ -475,7 +475,7 @@ const app = {
                 : 'Nenhum agendamento finalizado encontrado para este WhatsApp.';
         } catch (error) {
             feedback.className = 'my-appointments-feedback is-error';
-            feedback.innerText = error.message || 'NÃ£o foi possÃ­vel consultar os agendamentos.';
+            feedback.innerText = error.message || 'Não foi possível consultar os agendamentos.';
         } finally {
             button.disabled = false;
         }

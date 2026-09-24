@@ -842,6 +842,214 @@
     background: var(--landing-teal-dark) !important;
 }
 
+/* Full-system design audit: remove the last legacy gold/graphite accents
+   from secondary panels, tables, menus and public booking states. */
+.admin-light .admin-security-badge {
+    color: #13794c !important;
+    background: #eaf8ef !important;
+    border-color: #b9dfc6 !important;
+}
+
+.admin-light .admin-security-dot {
+    background: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(38, 184, 120, 0.14) !important;
+}
+
+.admin-light .admin-module-card:hover,
+.admin-light .admin-module-card:focus-visible {
+    border-color: #a9d8b9 !important;
+    box-shadow: 0 18px 36px rgba(27, 98, 60, 0.12) !important;
+}
+
+.admin-light .admin-module-card-coming-soon .admin-module-icon {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.admin-light .admin-module-icon {
+    color: #ffffff !important;
+}
+
+.admin-light .settings-card-icon {
+    color: #13794c !important;
+    background: #f0faf4 !important;
+    border-color: #b9dfc6 !important;
+}
+
+.admin-light .appointment-actions-trigger {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .appointment-actions-trigger:hover,
+.admin-light .appointment-actions-trigger[aria-expanded="true"] {
+    color: #13794c !important;
+    background: #eaf8ef !important;
+    border-color: var(--primary) !important;
+}
+
+.admin-light .appointment-actions-chevron,
+.admin-light .appointment-actions-trigger:hover .appointment-actions-chevron,
+.admin-light .appointment-actions-trigger[aria-expanded="true"] .appointment-actions-chevron {
+    color: var(--primary) !important;
+}
+
+.admin-light .appointment-actions-menu {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 18px 38px rgba(27, 98, 60, 0.16) !important;
+}
+
+.admin-light .appointment-action-menu-icon.is-warning {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+}
+
+.admin-light .appointment-action-menu-icon.is-primary {
+    color: #ffffff !important;
+    background: var(--primary) !important;
+}
+
+.admin-light .inventory-empty-state {
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.admin-light .inventory-empty-state strong {
+    color: var(--text-main) !important;
+}
+
+.admin-light .inventory-empty-state span {
+    color: var(--text-muted) !important;
+}
+
+.admin-light .agenda-calendar .fc-timegrid-axis,
+.admin-light .agenda-calendar .fc-timegrid-slot-label {
+    color: #527063 !important;
+    background: #f1faf4 !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light .agenda-calendar .fc-timegrid-axis-cushion,
+.admin-light .agenda-calendar .fc-timegrid-slot-label-cushion {
+    color: #527063 !important;
+}
+
+.admin-light .agenda-calendar .fc-timegrid-col.fc-day-today {
+    background: #eaf8ef !important;
+}
+
+.admin-light .agenda-calendar .fc-header-toolbar .fc-today-button {
+    color: #13794c !important;
+    background: #ffffff !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .agenda-calendar .fc-header-toolbar .fc-today-button:hover,
+.admin-light .agenda-calendar .fc-header-toolbar .fc-today-button.fc-button-active {
+    color: #ffffff !important;
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+.admin-light .commission-professional-avatar,
+.admin-light .commission-professional-avatar.has-photo,
+.admin-light #modal-prof-comm-details .professional-detail-avatar.has-photo {
+    background: #f1faf4 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.admin-light .commission-professional-avatar {
+    color: #13794c !important;
+}
+
+.admin-light .data-table th,
+.admin-light .data-table td,
+.admin-light .client-history-table th,
+.admin-light .client-history-table td,
+.admin-light .professional-history-table th,
+.admin-light .professional-history-table td {
+    border-right-color: var(--border) !important;
+}
+
+.admin-light .data-table-container,
+.admin-light .services-table-shell,
+.admin-light .sales-history-container {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+}
+
+.admin-light #modal-prof-services-list .checkbox-item:hover,
+.admin-light #modal-prof-services-list .checkbox-item:has(input:checked) {
+    color: var(--text-main) !important;
+    background: #eaf8ef !important;
+    border-color: #9dd5b1 !important;
+}
+
+.admin-light .billing-tooltip-swatch.sales {
+    background: #8fd3ad !important;
+}
+
+.admin-light #modal-confirm-service > .modal-content > div:first-child {
+    color: #ffffff !important;
+}
+
+.admin-light .payment-confirm-icon {
+    color: #ffffff !important;
+}
+
+/* The booking experience uses one Gest visual language even when legacy
+   theme values remain stored in an older configuration. */
+.booking-body .my-appointment-status {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+    border-color: #bce5ca !important;
+}
+
+.booking-body .booking-date-option.selected {
+    color: #ffffff !important;
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+.booking-body .service-card-media,
+.booking-body .service-card-media.has-photo {
+    color: #13794c !important;
+    background: #f1faf4 !important;
+    border-color: var(--border-bright) !important;
+}
+
+.booking-body .time-card-other {
+    color: #13794c !important;
+    background: #f0faf4 !important;
+    border-color: #b9dfc6 !important;
+}
+
+.booking-body .booking-style-preview,
+.admin-light .booking-style-preview {
+    background: #edf9f1 !important;
+    border: 1px solid #c9e8d4;
+}
+
+.booking-body .booking-style-preview i,
+.booking-body .booking-style-preview b,
+.booking-body .booking-style-preview em,
+.admin-light .booking-style-preview i,
+.admin-light .booking-style-preview b,
+.admin-light .booking-style-preview em {
+    background: #26b878 !important;
+}
+
+.admin-light .booking-style-preview b,
+.admin-light .booking-style-preview em {
+    background: #ffffff !important;
+    border: 1px solid #b9dfc6;
+}
+
 /* Detail modals: override the legacy dark profile surfaces with the same
    white/green language used by the rest of the administrator panel. */
 .admin-light #modal-client-details .client-details-content,
