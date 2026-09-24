@@ -265,7 +265,6 @@ const admin = {
     users: [],
     marketingLeads: [],
     loyaltyClients: [],
-    cashRegister: null,
     reportData: null,
     dashboardStats: null,
 
@@ -525,62 +524,6 @@ const admin = {
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     },
 
-    async loadCashRegister() {
-        const dateInput = document.getElementById('cash-date');
-        if (dateInput && !dateInput.value) dateInput.value = this.currentDateValue();
-        const date = dateInput?.value || this.currentDateValue();
-        try {
-            const response = await auth.apiRequest(`/api/cash/register/${auth.user.id}?date=${date}`);
-            const data = await response.json();
-            this.cashRegister = data;
-            const summary = data.summary || {};
-            document.getElementById('cash-opening')?.replaceChildren(this.money(data.register?.opening_balance));
-            document.getElementById('cash-inflow')?.replaceChildren(this.money(summary.inflow));
-            document.getElementById('cash-outflow')?.replaceChildren(this.money(Math.abs(summary.outflow || 0)));
-            document.getElementById('cash-expected')?.replaceChildren(this.money(summary.expectedCash));
-            document.getElementById('cash-method-cash')?.replaceChildren(this.money(summary.cashTotal));
-            document.getElementById('cash-method-pix')?.replaceChildren(this.money(summary.pixTotal));
-            document.getElementById('cash-method-card')?.replaceChildren(this.money(summary.cardTotal));
-            const status = document.getElementById('cash-register-status');
-            if (status) { status.textContent = data.register?.status === 'closed' ? 'Caixa fechado' : 'Caixa aberto'; status.className = `cash-register-status ${data.register?.status === 'closed' ? 'is-closed' : ''}`; }
-            const body = document.getElementById('cash-movements-body');
-            if (body) body.innerHTML = (data.movements || []).length
-                ? data.movements.map(movement => `<tr><td>${new Date(movement.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td><td>${this.escapeHtml(movement.description)}</td><td><span class="payment-method-pill payment-${movement.payment_method}">${({ cash: 'Dinheiro', pix: 'Pix', card: 'Cartão' }[movement.payment_method] || movement.payment_method)}</span></td><td class="cash-movement-value ${Number(movement.amount) >= 0 ? 'is-inflow' : 'is-outflow'}">${Number(movement.amount) >= 0 ? '+' : '-'} ${this.money(Math.abs(movement.amount))}</td></tr>`).join('')
-                : '<tr><td colspan="4" class="table-empty-result">Nenhuma movimentação registrada neste dia.</td></tr>';
-        } catch (error) { console.error('Erro ao carregar caixa:', error); }
-    },
-
-    async openCashRegisterModal() {
-        const date = document.getElementById('cash-date')?.value || this.currentDateValue();
-        const openingValue = window.prompt('Saldo inicial do caixa:', '0');
-        if (openingValue === null) return;
-        const openingBalance = Number(openingValue.replace(',', '.'));
-        if (!Number.isFinite(openingBalance) || openingBalance < 0) return;
-        try {
-            const response = await auth.apiRequest('/api/cash/register/open', { method: 'POST', body: JSON.stringify({ date, openingBalance }) });
-            const data = await response.json();
-            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível abrir o caixa.');
-            await this.loadCashRegister();
-            auth.notify('Caixa aberto com sucesso.', 'success');
-        } catch (error) { auth.notify(error.message || 'Não foi possível abrir o caixa.', 'error'); }
-    },
-
-    async closeCashRegister() {
-        const id = this.cashRegister?.register?.id;
-        if (!id) return auth.notify('Abra o caixa antes de fechá-lo.', 'error');
-        const closingValue = window.prompt('Informe o saldo final contado:', String(this.cashRegister.summary?.expectedCash || 0));
-        if (closingValue === null) return;
-        const closingBalance = Number(closingValue.replace(',', '.'));
-        if (!Number.isFinite(closingBalance) || closingBalance < 0) return;
-        try {
-            const response = await auth.apiRequest(`/api/cash/register/${id}/close`, { method: 'PATCH', body: JSON.stringify({ closingBalance }) });
-            const data = await response.json();
-            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível fechar o caixa.');
-            await this.loadCashRegister();
-            auth.notify('Caixa fechado e conferido.', 'success');
-        } catch (error) { auth.notify(error.message || 'Não foi possível fechar o caixa.', 'error'); }
-    },
-
     async loadReports() {
         const fromInput = document.getElementById('report-from');
         const toInput = document.getElementById('report-to');
@@ -660,7 +603,7 @@ const admin = {
     },
 
     showTab(tab, { skipLoading = false } = {}) {
-        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', caixa: 'billing', relatorios: 'billing', despesas: 'despesas', clientes: 'clientes', fidelidade: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
+        const permissionByTab = { home: 'dashboard', agenda: 'agenda', billing: 'billing', relatorios: 'billing', despesas: 'despesas', clientes: 'clientes', fidelidade: 'clientes', vendas: 'vendas', estoque: 'estoque', barbeiros: 'barbeiros', comissoes: 'comissoes', servicos: 'servicos', configuracoes: 'configuracoes' };
         if (tab === 'administracao' && auth.user?.role !== 'administrador') {
             auth.notify('Acesso exclusivo do administrador.', 'error');
             return;
@@ -711,7 +654,6 @@ const admin = {
             home: 'Dashboard',
             agenda: 'Agenda',
             billing: 'Faturamento',
-            caixa: 'Caixa',
             relatorios: 'Relatórios',
             clientes: 'Clientes',
             fidelidade: 'Fidelidade',
@@ -740,7 +682,7 @@ const admin = {
 
     activateTab(tab) {
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'caixa', 'relatorios', 'despesas', 'administracao'];
+        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'relatorios', 'despesas', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -756,9 +698,6 @@ const admin = {
 
         if (tab === 'billing') {
             this.loadBillingData();
-        }
-        if (tab === 'caixa') {
-            this.loadCashRegister();
         }
         if (tab === 'relatorios') {
             this.loadReports();
