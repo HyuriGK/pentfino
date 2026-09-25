@@ -13,12 +13,6 @@
             "sizes": "500x500",
             "type": "image/png",
             "purpose": "any"
-        },
-        {
-            "src": "logoG.png?v=20260925-logoG",
-            "sizes": "500x500",
-            "type": "image/png",
-            "purpose": "any"
         }
     ]
 }

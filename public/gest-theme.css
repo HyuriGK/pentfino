@@ -567,8 +567,8 @@
 /* Use the Gestano wordmark for visible branding; reserve the square icon for app chrome. */
 .admin-light .sidebar .logo-wordmark-expanded {
     display: block;
-    width: 210px;
-    height: 110px;
+    width: 200px;
+    height: 104px;
     object-fit: contain;
     object-position: center;
     border-radius: 0;
@@ -671,6 +671,13 @@
     transform: none;
 }
 
+@media (max-width: 640px) {
+    .landing-body .landing-wordmark {
+        width: 156px;
+        height: 82px;
+    }
+}
+
 .booking-body .booking-wordmark {
     width: 174px;
     height: 100px;
@@ -687,10 +694,10 @@
     border-radius: 9px;
 }
 
-.booking-body .success-wordmark {
+.booking-body .success-icon-mark {
     width: 64px;
     height: 64px;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
     border-radius: 10px;
 }
