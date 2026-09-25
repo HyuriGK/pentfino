@@ -849,6 +849,424 @@
     background: var(--landing-teal-dark) !important;
 }
 
+/* Gestano motion system: intentional, lightweight movement across the product. */
+.landing-body .hero-content {
+    animation: gestano-hero-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-body .hero-visual {
+    animation: gestano-hero-rise 0.95s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-body .hero-dashboard {
+    animation: gestano-dashboard-float 7s 1.1s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+.landing-body .hero-toast {
+    animation: gestano-toast-float 5.5s 1.4s ease-in-out infinite;
+}
+
+.landing-body .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(28px) scale(0.985);
+    transition:
+        opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+.landing-body .reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.landing-body .segments-grid span,
+.landing-body .numbers-grid div,
+.landing-body .feature-item,
+.landing-body .ai-grid div,
+.landing-body .faq-item,
+.landing-body .btn-premium,
+.landing-body .btn-outline-premium,
+.landing-body .nav-cta {
+    transition:
+        transform 0.24s ease,
+        border-color 0.24s ease,
+        box-shadow 0.24s ease,
+        background-color 0.24s ease,
+        color 0.24s ease;
+}
+
+@media (hover: hover) {
+    .landing-body .segments-grid span:hover {
+        border-color: rgba(15, 168, 143, 0.38);
+        color: var(--landing-teal-dark);
+        box-shadow: 0 10px 22px rgba(15, 168, 143, 0.1);
+        transform: translateY(-4px);
+    }
+
+    .landing-body .numbers-grid div:hover,
+    .landing-body .feature-item:hover,
+    .landing-body .ai-grid div:hover {
+        border-color: rgba(15, 168, 143, 0.3);
+        box-shadow: 0 18px 34px rgba(32, 36, 45, 0.09);
+        transform: translateY(-6px);
+    }
+
+    .landing-body .faq-item:hover {
+        border-bottom-color: rgba(15, 168, 143, 0.42);
+        transform: translateX(5px);
+    }
+
+    .landing-body .btn-premium:hover,
+    .landing-body .btn-outline-premium:hover,
+    .landing-body .nav-cta:hover {
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes gestano-hero-rise {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes gestano-dashboard-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes gestano-toast-float {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-1deg);
+    }
+
+    50% {
+        transform: translateY(-7px) rotate(0deg);
+    }
+}
+
+/* Shared responsive foundations for the panel. */
+.admin-light {
+    overflow-x: hidden;
+}
+
+.admin-light .dashboard-content {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.admin-light .dashboard-header,
+.admin-light .dashboard-header > div,
+.admin-light .list-header > div {
+    min-width: 0;
+}
+
+.admin-light .stat-card,
+.admin-light .dashboard-insight-card,
+.admin-light .report-card,
+.admin-light .settings-card,
+.admin-light .billing-chart-container,
+.admin-light .glass {
+    transition:
+        transform 0.24s ease,
+        box-shadow 0.24s ease,
+        border-color 0.24s ease;
+}
+
+@media (hover: hover) {
+    .admin-light .stat-card:hover,
+    .admin-light .dashboard-insight-card:hover,
+    .admin-light .report-card:hover,
+    .admin-light .settings-card:hover,
+    .admin-light .billing-chart-container:hover {
+        border-color: rgba(38, 184, 120, 0.36);
+        box-shadow: 0 18px 34px rgba(24, 88, 58, 0.1);
+        transform: translateY(-3px);
+    }
+
+    .admin-light .nav-item:hover {
+        transform: translateX(3px);
+    }
+}
+
+.admin-light .nav-item,
+.admin-light .mobile-menu-button,
+.admin-light .sidebar-scrim {
+    transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.admin-light .dashboard-content > .dashboard-header,
+.admin-light .dashboard-content > [id^="tab-"]:not(.hidden) > * {
+    animation: gestano-panel-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gestano-panel-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (max-width: 1024px) {
+    .landing-body .landing-container {
+        padding-inline: 24px;
+    }
+
+    .landing-body .hero-section {
+        padding: 136px 0 82px;
+    }
+
+    .landing-body .hero-title {
+        font-size: clamp(2.7rem, 8vw, 4.4rem);
+    }
+
+    .landing-body .hero-visual {
+        margin-top: 54px;
+    }
+
+    .landing-body .hero-dashboard {
+        min-height: 410px;
+        padding: 22px;
+    }
+
+    .admin-light .dashboard-content {
+        padding-inline: 18px;
+    }
+
+    .admin-light .mobile-menu-button {
+        background: #ffffff;
+        border-color: var(--border);
+        border-radius: 12px;
+        box-shadow: 0 10px 24px rgba(24, 88, 58, 0.14);
+    }
+
+    .admin-light .mobile-menu-button span {
+        background: var(--text-main);
+    }
+
+    .admin-light .sidebar-scrim {
+        background: rgba(23, 54, 41, 0.3);
+        backdrop-filter: blur(5px);
+    }
+}
+
+@media (max-width: 680px) {
+    .landing-body .landing-header {
+        padding: 10px 0;
+    }
+
+    .landing-body .hero-section {
+        padding: 132px 0 68px;
+    }
+
+    .landing-body .hero-title {
+        font-size: clamp(2.2rem, 10vw, 3.15rem);
+        line-height: 1.08;
+    }
+
+    .landing-body .hero-description {
+        font-size: 0.98rem;
+        line-height: 1.58;
+    }
+
+    .landing-body .hero-actions {
+        gap: 10px;
+    }
+
+    .landing-body .hero-actions .btn-premium,
+    .landing-body .hero-actions .btn-outline-premium {
+        width: 100%;
+        min-height: 50px;
+    }
+
+    .landing-body .hero-note {
+        align-items: center;
+        gap: 6px;
+    }
+
+    .landing-body .hero-visual {
+        margin-top: 36px;
+    }
+
+    .landing-body .hero-dashboard {
+        min-height: 350px;
+        padding: 16px;
+        border-radius: 20px;
+    }
+
+    .landing-body .hero-toast {
+        left: 12px;
+        right: 12px;
+        top: -22px;
+        width: auto;
+        min-width: 0;
+        padding: 12px 14px 12px 36px;
+    }
+
+    .landing-body .hero-toast span {
+        left: 13px;
+        top: 27px;
+    }
+
+    .landing-body .dashboard-metrics {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .landing-body .dashboard-list div {
+        padding: 10px 12px;
+    }
+
+    .landing-body .segments-section,
+    .landing-body .numbers-section,
+    .landing-body .features-section,
+    .landing-body .ai-section,
+    .landing-body .consultation-section,
+    .landing-body .faq-section {
+        padding-block: 68px;
+    }
+
+    .admin-light .dashboard-content {
+        padding: 76px 14px 28px;
+    }
+
+    .admin-light .dashboard-header {
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 16px;
+    }
+
+    .admin-light .dashboard-title {
+        font-size: clamp(1.25rem, 5vw, 1.5rem);
+    }
+
+    .admin-light .stat-grid,
+    .admin-light .billing-grid,
+    .admin-light .reports-summary-grid,
+    .admin-light .cash-summary-grid,
+    .admin-light .loyalty-summary-grid,
+    .admin-light .marketing-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-light .stat-grid,
+    .admin-light .billing-grid {
+        gap: 10px;
+    }
+
+    .admin-light .stat-card,
+    .admin-light .billing-card {
+        min-width: 0;
+        padding: 14px;
+    }
+
+    .admin-light .stat-label {
+        font-size: 0.58rem;
+        letter-spacing: 0.08em;
+    }
+
+    .admin-light .stat-value,
+    .admin-light .billing-card .stat-value {
+        font-size: 1.25rem !important;
+        letter-spacing: -0.06em;
+    }
+
+    .admin-light .dashboard-analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-light .dashboard-mini-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-light .page-header-actions,
+    .admin-light .admin-subpanel-actions {
+        width: 100%;
+    }
+
+    .admin-light .page-header-actions > *,
+    .admin-light .admin-subpanel-actions > * {
+        min-width: 0;
+        flex: 1 1 150px;
+    }
+
+    .admin-light .data-table-container,
+    .admin-light .services-table-shell,
+    .admin-light .marketing-leads-table-shell,
+    .admin-light .billing-chart-container {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-light .data-table,
+    .admin-light .services-table,
+    .admin-light .marketing-leads-table {
+        min-width: 600px;
+    }
+
+    .admin-light .modal-content {
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - 20px);
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 430px) {
+    .admin-light .stat-grid,
+    .admin-light .billing-grid,
+    .admin-light .reports-summary-grid,
+    .admin-light .cash-summary-grid,
+    .admin-light .loyalty-summary-grid,
+    .admin-light .marketing-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-light .dashboard-mini-metrics {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-body *,
+    .admin-light * {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
+
+    .landing-body .hero-dashboard,
+    .landing-body .hero-toast,
+    .landing-body .reveal-on-scroll,
+    .admin-light .dashboard-content > .dashboard-header,
+    .admin-light .dashboard-content > [id^="tab-"]:not(.hidden) > * {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
 /* Full-system design audit: remove the last legacy gold/graphite accents
    from secondary panels, tables, menus and public booking states. */
 .admin-light .admin-security-badge {
