@@ -417,8 +417,18 @@ const app = {
     },
 
     safeImageUrl(value) {
+        const rawValue = String(value || '').trim();
+        if (!rawValue) return '';
+
+        // Photos selected in the administrator are cropped in the browser and
+        // persisted as base64 data URLs. Keep accepting remote URLs as well,
+        // but reject arbitrary data protocols before placing the value in src.
+        if (/^data:image\/(?:avif|gif|jpe?g|png|webp);base64,[a-z0-9+/=\s]+$/i.test(rawValue)) {
+            return rawValue;
+        }
+
         try {
-            const url = new URL(String(value || ''), window.location.origin);
+            const url = new URL(rawValue, window.location.origin);
             return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
         } catch (_) {
             return '';
