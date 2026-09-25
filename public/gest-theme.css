@@ -3866,3 +3866,116 @@
         padding-inline: 12px;
     }
 }
+
+/* Mobile login: keep the complete form inside the viewport and show the
+   square Gestano mark when the promotional side is hidden. */
+.admin-light .auth-mobile-brand {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    body.admin-light:has(#auth-view:not(.hidden)) {
+        overflow: hidden;
+    }
+
+    .admin-light .auth-wrapper {
+        width: 100%;
+        height: 100svh;
+        min-height: 100svh;
+        max-height: 100svh;
+        overflow: hidden;
+    }
+
+    .admin-light .auth-form-side {
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        padding: 18px;
+        overflow: hidden;
+    }
+
+    .admin-light .auth-form-container {
+        display: flex;
+        width: min(100%, 430px);
+        max-width: 430px;
+        min-height: 0;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .admin-light .auth-mobile-brand {
+        display: grid;
+        place-items: center;
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 14px;
+        padding: 8px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        box-shadow: 0 14px 30px rgba(27, 98, 60, 0.12);
+    }
+
+    .admin-light .auth-mobile-brand img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 14px;
+    }
+
+    .admin-light .auth-card-new {
+        width: 100%;
+        max-height: calc(100svh - 124px);
+        padding: 24px 20px;
+        overflow: hidden;
+    }
+
+    .admin-light .auth-card-new .auth-title {
+        font-size: clamp(1.7rem, 7vw, 2.15rem);
+        line-height: 1.08;
+    }
+
+    .admin-light .auth-card-new .auth-description {
+        margin-bottom: 1.35rem;
+        font-size: 0.9rem;
+        line-height: 1.45;
+    }
+
+    .admin-light .auth-card-new .input-group-new {
+        margin-bottom: 12px;
+    }
+
+    .admin-light .auth-card-new .input-group-new input {
+        min-height: 50px;
+        font-size: 16px !important;
+    }
+
+    .admin-light .auth-card-new .btn-full {
+        min-height: 50px;
+        margin-top: 4px;
+    }
+}
+
+@media (max-width: 430px) {
+    .admin-light .auth-form-side {
+        padding: 12px;
+    }
+
+    .admin-light .auth-mobile-brand {
+        width: 68px;
+        height: 68px;
+        margin-bottom: 10px;
+        border-radius: 20px;
+    }
+
+    .admin-light .auth-card-new {
+        max-height: calc(100svh - 100px);
+        padding: 20px 16px;
+        border-radius: 18px;
+    }
+
+    .admin-light .auth-card-new .auth-title {
+        font-size: 1.6rem;
+    }
+}
