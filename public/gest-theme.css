@@ -2487,3 +2487,248 @@
         display: none;
     }
 }
+
+/* Reports screen: restore a clear KPI hierarchy and a stable card rhythm. */
+.admin-light #tab-relatorios {
+    min-width: 0;
+}
+
+.admin-light #tab-relatorios .reports-page-header {
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.admin-light #tab-relatorios .reports-page-header > div:first-child {
+    flex: 1 1 360px;
+    min-width: 0;
+}
+
+.admin-light #tab-relatorios .reports-page-header h2 {
+    margin: 0 0 7px;
+    color: var(--text-main) !important;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.8rem, 3vw, 2.35rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
+
+.admin-light #tab-relatorios .reports-page-header p {
+    margin: 0;
+    color: var(--text-muted) !important;
+    font-size: 0.96rem;
+    line-height: 1.5;
+}
+
+.admin-light #tab-relatorios .page-header-actions {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.admin-light #tab-relatorios .page-header-actions input[type="date"] {
+    width: 180px;
+    min-height: 54px;
+    padding: 0 13px;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px;
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    font-size: 0.9rem;
+}
+
+.admin-light #tab-relatorios .page-header-actions .btn {
+    min-height: 54px;
+    padding-inline: 20px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.admin-light #tab-relatorios .reports-summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.admin-light #tab-relatorios .reports-summary-grid .stat-card {
+    display: flex;
+    min-width: 0;
+    min-height: 152px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 26px 28px;
+    overflow: hidden;
+}
+
+.admin-light #tab-relatorios .reports-summary-grid .stat-card::before {
+    left: 24px;
+    width: 52px;
+    height: 3px;
+    border-radius: 999px;
+}
+
+.admin-light #tab-relatorios .reports-summary-grid .stat-label {
+    display: block;
+    margin: 0 0 10px;
+    color: var(--text-muted) !important;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    letter-spacing: 0.12em;
+}
+
+.admin-light #tab-relatorios .reports-summary-grid .stat-value {
+    display: block;
+    margin: 0 !important;
+    color: var(--text-main) !important;
+    font-size: clamp(1.7rem, 2.4vw, 2.35rem) !important;
+    line-height: 1;
+    letter-spacing: -0.065em;
+    white-space: nowrap;
+}
+
+.admin-light #tab-relatorios #report-revenue {
+    color: #13794c !important;
+}
+
+.admin-light #tab-relatorios #report-expenses {
+    color: #c44758 !important;
+}
+
+.admin-light #tab-relatorios #report-profit {
+    color: #13794c !important;
+}
+
+.admin-light #tab-relatorios #report-commission {
+    color: #2c7a5b !important;
+}
+
+.admin-light #tab-relatorios .reports-columns {
+    align-items: stretch;
+    gap: 18px;
+}
+
+.admin-light #tab-relatorios .report-card {
+    min-width: 0;
+    min-height: 430px;
+    padding: 28px 30px;
+}
+
+.admin-light #tab-relatorios .report-card .section-toolbar {
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-light #tab-relatorios .report-card .section-toolbar h3 {
+    color: var(--text-main) !important;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: -0.035em;
+}
+
+.admin-light #tab-relatorios .report-breakdown {
+    gap: 0;
+    margin-top: 4px;
+}
+
+.admin-light #tab-relatorios .report-breakdown-row {
+    min-height: 58px;
+    align-items: center;
+    padding: 14px 0;
+    color: var(--text-muted) !important;
+    border-bottom-color: var(--border) !important;
+    font-size: 0.96rem;
+}
+
+.admin-light #tab-relatorios .report-breakdown-row strong {
+    color: var(--text-main) !important;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.admin-light #tab-relatorios .report-breakdown-row small {
+    color: var(--text-muted) !important;
+}
+
+.admin-light #tab-relatorios .report-breakdown-subtitle {
+    margin: 24px 0 2px;
+    padding-top: 4px;
+    color: #169c68 !important;
+    font-size: 0.7rem;
+}
+
+.admin-light #tab-relatorios .report-card > .dashboard-empty-note {
+    display: block;
+    padding-top: 22px;
+    color: var(--text-muted) !important;
+}
+
+@media (max-width: 1100px) {
+    .admin-light #tab-relatorios .reports-page-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-light #tab-relatorios .page-header-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-light #tab-relatorios .reports-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-light #tab-relatorios .reports-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-light #tab-relatorios .report-card {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 680px) {
+    .admin-light #tab-relatorios .page-header-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .admin-light #tab-relatorios .page-header-actions > * {
+        width: 100%;
+        min-width: 0;
+        flex: none;
+    }
+
+    .admin-light #tab-relatorios .page-header-actions input[type="date"],
+    .admin-light #tab-relatorios .page-header-actions .btn {
+        width: 100%;
+        min-width: 0;
+        padding-inline: 12px;
+    }
+
+    .admin-light #tab-relatorios .reports-summary-grid {
+        gap: 10px;
+    }
+
+    .admin-light #tab-relatorios .reports-summary-grid .stat-card {
+        min-height: 126px;
+        padding: 20px;
+    }
+
+    .admin-light #tab-relatorios .reports-summary-grid .stat-value {
+        font-size: 1.55rem !important;
+    }
+
+    .admin-light #tab-relatorios .report-card {
+        padding: 22px 20px;
+    }
+}
+
+@media (max-width: 430px) {
+    .admin-light #tab-relatorios .page-header-actions,
+    .admin-light #tab-relatorios .reports-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
