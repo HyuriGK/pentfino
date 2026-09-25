@@ -2435,3 +2435,55 @@
 .landing-body .consultation-content .btn-premium:hover {
     background: var(--landing-teal-dark) !important;
 }
+
+/* Sales form: keep the complete flow visible without the generic modal
+   height cap creating an internal scrollbar. */
+.admin-light #modal-sales {
+    padding: clamp(16px, 3vw, 32px) !important;
+    overflow: visible;
+}
+
+.admin-light #modal-sales .sale-modal-content {
+    width: min(100%, 980px) !important;
+    max-width: 980px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 26px 40px 24px !important;
+    border-radius: 24px !important;
+}
+
+.admin-light #modal-sales .sale-modal-body {
+    gap: 18px;
+}
+
+.admin-light #modal-sales .sale-modal-product-row,
+.admin-light #modal-sales .sale-modal-details-row,
+.admin-light #modal-sales .sale-modal-summary-row {
+    gap: 14px !important;
+}
+
+.admin-light #modal-sales .sale-modal-footer {
+    margin-top: 18px !important;
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-sales {
+        align-items: flex-end;
+        padding: 10px !important;
+    }
+
+    .admin-light #modal-sales .sale-modal-content {
+        width: 100% !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 20px) !important;
+        overflow-y: auto !important;
+        scrollbar-width: none;
+        padding: 24px 20px 20px !important;
+        border-radius: 20px !important;
+    }
+
+    .admin-light #modal-sales .sale-modal-content::-webkit-scrollbar {
+        display: none;
+    }
+}
