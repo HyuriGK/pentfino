@@ -4032,7 +4032,7 @@ aside nav {
     max-height: 450px !important;
 }
 
-/* Gest Admin Light Theme */
+/* Gestano Admin Light Theme */
 .admin-light {
     --bg-dark: #f5fbf7;
     --bg-card: #ffffff;
@@ -4527,7 +4527,7 @@ aside nav {
     transform: translateY(-2px) scale(1.015);
 }
 
-/* Unified Gest product theme */
+/* Unified Gestano product theme */
 .admin-light,
 .booking-body {
     --bg-dark: #0c141b;

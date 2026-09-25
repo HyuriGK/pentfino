@@ -1,7 +1,7 @@
 {
-  "name": "barberpoint",
+  "name": "gestano",
   "version": "1.0.0",
-  "description": "Gest - sistema de gestao para barbearias",
+  "description": "Gestano - sistema de gestao para barbearias",
   "main": "api/index.js",
   "scripts": {
     "start": "node api/index.js",

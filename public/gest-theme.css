@@ -1,4 +1,4 @@
-/* Gest visual refresh: light green and white product theme. */
+/* Gestano visual refresh: light green and white product theme. */
 
 .admin-light {
     --bg-dark: #f5fbf7;
@@ -396,7 +396,7 @@
     color: #168653 !important;
 }
 
-/* Sidebar controls must stay inside the Gest green-and-white palette. */
+/* Sidebar controls must stay inside the Gestano green-and-white palette. */
 .admin-light .sidebar-nav-scroll nav .nav-group-title {
     color: #527063 !important;
     background: #f7fcf9 !important;
@@ -564,7 +564,7 @@
     color: #b83c48 !important;
 }
 
-/* Use the Gest wordmark for visible branding; reserve the square icon for app chrome. */
+/* Use the Gestano wordmark for visible branding; reserve the square icon for app chrome. */
 .admin-light .sidebar .logo-wordmark-expanded {
     display: block;
     width: 178px;
@@ -820,7 +820,7 @@
     border-color: var(--primary) !important;
 }
 
-/* Landing page: align the public marketing surface with Gest. */
+/* Landing page: align the public marketing surface with Gestano. */
 .landing-body {
     --landing-surface: #f5fbf7;
     --landing-card: #ffffff;
@@ -1002,7 +1002,7 @@
     color: #ffffff !important;
 }
 
-/* The booking experience uses one Gest visual language even when legacy
+/* The booking experience uses one Gestano visual language even when legacy
    theme values remain stored in an older configuration. */
 .booking-body .my-appointment-status {
     color: #13794c !important;
@@ -1397,7 +1397,7 @@
     }
 }
 
-/* Final Gest consistency pass: white surfaces, green interaction states and soft neutrals. */
+/* Final Gestano consistency pass: white surfaces, green interaction states and soft neutrals. */
 .admin-light {
     color-scheme: light;
 }

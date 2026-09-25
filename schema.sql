@@ -1,5 +1,5 @@
 /* 
-  SQL Schema for Neon PostgreSQL - Gest
+  SQL Schema for Neon PostgreSQL - Gestano
   Paste this into your Neon SQL Editor:
 */
 
@@ -270,7 +270,7 @@ INSERT INTO barbers (email, password, shop_name, is_admin)
 VALUES (
     'brasil.hyuri@gmail.com',
     '$2b$10$ZXI327CmozKhoq54XaBFYeROX3ZYM8cfk98Oo4dTDzLgmsR9V46lm',
-    'Painel Gest',
+    'Painel Gestano',
     TRUE
 )
 ON CONFLICT (email) DO UPDATE
@@ -279,7 +279,7 @@ SET password = EXCLUDED.password,
     is_admin = TRUE;
 
 INSERT INTO barbers (email, password, shop_name, is_admin)
-VALUES ('demo@barberpoint.com', 'demo123', 'Gest Demo', FALSE)
+VALUES ('demo@barberpoint.com', 'demo123', 'Gestano Demo', FALSE)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO services (barber_id, name, price, duration)

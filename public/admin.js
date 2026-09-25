@@ -1,4 +1,4 @@
-﻿console.log('[Gest] admin.js loaded');
+console.log('[Gestano] admin.js loaded');
 // Global State for diagnostic purposes
 window.__BARBER_DEBUG__ = {
     lastInventoryLoad: null,
@@ -197,7 +197,7 @@ const auth = {
     },
 
     getWelcomeMessage() {
-        const shopName = this.user?.shop_name || this.user?.shop || 'Gest';
+        const shopName = this.user?.shop_name || this.user?.shop || 'Gestano';
         const hour = new Date().getHours();
         const greeting = hour < 12 ? 'Bom dia' : (hour < 18 ? 'Boa tarde' : 'Boa noite');
         return `${greeting}, ${shopName}`;
@@ -972,7 +972,7 @@ const admin = {
 
         const phone = String(lead.phone || '').replace(/\D/g, '');
         const whatsappPhone = phone.startsWith('55') ? phone : `55${phone}`;
-        const message = `Olá, ${lead.name}! Aqui é da equipe Gest. Recebemos seu pedido de demonstração gratuita. Podemos conversar sobre como organizar melhor a agenda e a rotina da sua barbearia?`;
+        const message = `Olá, ${lead.name}! Aqui é da equipe Gestano. Recebemos seu pedido de demonstração gratuita. Podemos conversar sobre como organizar melhor a agenda e a rotina da sua barbearia?`;
         const url = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`;
         const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
         if (newWindow) newWindow.opener = null;
@@ -1514,7 +1514,7 @@ const admin = {
         if (!entry) return;
         const phone = String(entry.client_phone || '').replace(/\D/g, '');
         if (!phone) return auth.notify('Este cliente não possui WhatsApp válido.', 'error');
-        const message = `Olá, ${entry.client_name}! Surgiu uma oportunidade de encaixe${entry.service_name ? ` para ${entry.service_name}` : ''} no Gest. Quer aproveitar este horário?`;
+        const message = `Olá, ${entry.client_name}! Surgiu uma oportunidade de encaixe${entry.service_name ? ` para ${entry.service_name}` : ''} no Gestano. Quer aproveitar este horário?`;
         const newWindow = window.open(`https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
         if (newWindow) newWindow.opener = null;
         await this.updateWaitlist(id, 'contacted');
@@ -1637,7 +1637,7 @@ const admin = {
         const message = [
             `Olá, ${appointment.client_name}!`,
             '',
-            'Aqui é da Gest. Passando para confirmar o seu agendamento:',
+            'Aqui é da Gestano. Passando para confirmar o seu agendamento:',
             '',
             `Data: ${appointmentDate}`,
             `Horário: ${appointmentTime}`,
@@ -2134,7 +2134,7 @@ const admin = {
         button.onclick = () => {
             const preferredService = client.preferred_service ? ` de ${client.preferred_service}` : '';
             const message = Number(client.days_since_last_service) >= 30
-                ? `Olá, ${client.name}! Sentimos sua falta no Gest. Que tal agendar novamente seu${preferredService}?`
+                ? `Olá, ${client.name}! Sentimos sua falta no Gestano. Que tal agendar novamente seu${preferredService}?`
                 : `Olá, ${client.name}! Tudo bem? Estamos à disposição para cuidar do seu próximo atendimento.`;
             const newWindow = window.open(`https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
             if (newWindow) newWindow.opener = null;
@@ -4826,7 +4826,7 @@ const sessionManager = {
 
         const now = Date.now();
         if (now - lastActivity > this.TIMEOUT_MS) {
-            console.warn('Sessão expirada por inatividade (Gest).');
+            console.warn('Sessão expirada por inatividade (Gestano).');
             auth.logout();
         }
     },
@@ -4938,7 +4938,7 @@ document.addEventListener('mousedown', (e) => {
 window.onerror = function(msg, url, line, col, error) {
     const errorMsg = `[JS ERROR] ${msg} em ${url}:${line}:${col}`;
     console.error(errorMsg, error);
-    // Only alert for Gest scripts to avoid noise from extensions
+    // Only alert for Gestano scripts to avoid noise from extensions
     if (url.includes('admin.js') || url.includes('admin.html')) {
         alert(errorMsg);
     }
@@ -4947,4 +4947,4 @@ window.onerror = function(msg, url, line, col, error) {
 
 // Extra safety: expose admin globally
 window.admin = admin;
-console.log('[Gest] admin.js fully initialized');
+console.log('[Gestano] admin.js fully initialized');
