@@ -3216,3 +3216,50 @@
         border-bottom: 0 !important;
     }
 }
+
+/* Professional form: replace the legacy dark photo panel with the light
+   Gestano surface used by the rest of the administrator. */
+.admin-light #modal-professional .professional-photo-picker {
+    color: var(--text-main) !important;
+    background: linear-gradient(145deg, #f8fcfa, #eef9f2) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 10px 24px rgba(27, 98, 60, 0.06);
+}
+
+.admin-light #modal-professional .professional-photo-preview {
+    background: linear-gradient(145deg, #e6f8ed, #d7f1e1) !important;
+    border-color: #94d5ad !important;
+    color: #13794c !important;
+}
+
+.admin-light #modal-professional .professional-photo-picker-copy strong {
+    color: var(--text-main) !important;
+}
+
+.admin-light #modal-professional .professional-photo-picker-copy p {
+    color: var(--text-muted) !important;
+}
+
+.admin-light #modal-professional .professional-photo-picker-actions > .btn,
+.admin-light #modal-professional .professional-photo-picker-actions > .professional-photo-edit,
+.admin-light #modal-professional .professional-photo-picker-actions > .professional-photo-clear {
+    border-radius: 10px;
+}
+
+.admin-light #modal-professional .professional-photo-picker-actions > .btn {
+    color: #13794c !important;
+    background: #ffffff !important;
+    border-color: #a9d8b9 !important;
+}
+
+.admin-light #modal-professional .professional-photo-picker-actions > .professional-photo-edit {
+    color: #13794c !important;
+    background: #e6f8ed !important;
+    border-color: #a9d8b9 !important;
+}
+
+.admin-light #modal-professional .professional-photo-picker-actions > .professional-photo-clear {
+    color: #c44758 !important;
+    background: #fff1f2 !important;
+    border-color: #efb9c0 !important;
+}
