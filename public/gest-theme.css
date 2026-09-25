@@ -888,6 +888,101 @@
     background: var(--landing-teal-dark) !important;
 }
 
+/* Expense form: give the desktop modal room to breathe instead of forcing
+   the user through a narrow internal scrollbar. */
+.admin-light #modal-expense {
+    padding: clamp(16px, 3vw, 32px) !important;
+    overflow: visible;
+}
+
+.admin-light #modal-expense .expense-modal-content {
+    width: min(100%, 980px) !important;
+    max-width: 980px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 28px 36px 24px !important;
+    border-radius: 24px !important;
+}
+
+.admin-light #modal-expense .expense-modal-header {
+    margin-bottom: 20px;
+}
+
+.admin-light #modal-expense .expense-form-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 16px;
+    row-gap: 16px;
+}
+
+.admin-light #modal-expense .expense-form-wide {
+    grid-column: 1 / -1;
+}
+
+.admin-light #modal-expense .inventory-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 16px 0 0;
+    min-width: 0;
+}
+
+.admin-light #modal-expense .inventory-form-row .input-group-new {
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.admin-light #modal-expense .expense-modal-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+}
+
+@media (max-width: 900px) {
+    .admin-light #modal-expense .expense-modal-content {
+        width: min(100%, 760px) !important;
+        max-width: 760px !important;
+        padding: 26px 28px 22px !important;
+    }
+
+    .admin-light #modal-expense .expense-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-light #modal-expense {
+        align-items: flex-end;
+        padding: 10px !important;
+    }
+
+    .admin-light #modal-expense .expense-modal-content {
+        width: 100% !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 20px) !important;
+        overflow-y: auto !important;
+        scrollbar-width: none;
+        padding: 24px 20px 20px !important;
+        border-radius: 20px !important;
+    }
+
+    .admin-light #modal-expense .expense-modal-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .admin-light #modal-expense .expense-form-grid,
+    .admin-light #modal-expense .inventory-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-light #modal-expense .expense-modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    .admin-light #modal-expense .expense-modal-footer .btn {
+        width: 100%;
+    }
+}
+
 /* Keep the queue search as one clean control; global form rules must not
    recreate a second rectangular field inside it. */
 .admin-light .queue-search input[type="search"]:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
