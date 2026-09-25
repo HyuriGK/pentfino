@@ -2732,3 +2732,208 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Clients: fit the complete relation inside the frame and use cards on small
+   screens instead of exposing a horizontal scrollbar. */
+.admin-light #tab-clientes {
+    min-width: 0;
+}
+
+.admin-light #tab-clientes > .list-header {
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.admin-light #tab-clientes > .list-header h2 {
+    margin: 0;
+    color: var(--text-main) !important;
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.55rem, 3vw, 2rem) !important;
+    line-height: 1.05;
+    letter-spacing: -0.04em !important;
+}
+
+.admin-light #tab-clientes > .input-group-new {
+    width: min(100%, 500px);
+    max-width: none !important;
+    margin-bottom: 22px !important;
+}
+
+.admin-light #tab-clientes > .input-group-new input {
+    min-height: 50px;
+    border-radius: 14px;
+    background: #ffffff !important;
+}
+
+.admin-light #clients-table-shell {
+    width: 100%;
+    overflow-x: hidden !important;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+}
+
+.admin-light #clients-table-shell .data-table {
+    width: 100%;
+    min-width: 0 !important;
+    margin-top: 0;
+    table-layout: fixed;
+    border-spacing: 0;
+}
+
+.admin-light #clients-table-shell .data-table th,
+.admin-light #clients-table-shell .data-table td {
+    min-width: 0;
+    padding: 14px 10px;
+    border-right: 1px solid var(--border) !important;
+    border-top: 0;
+    border-bottom: 1px solid var(--border) !important;
+    overflow-wrap: anywhere;
+}
+
+.admin-light #clients-table-shell .data-table th {
+    height: 58px;
+    padding-block: 12px;
+    background: #f1faf4;
+    color: #527063 !important;
+    font-size: 0.66rem;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.admin-light #clients-table-shell .data-table td {
+    height: 74px;
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    line-height: 1.35;
+}
+
+.admin-light #clients-table-shell .data-table tbody tr:last-child td {
+    border-bottom: 0 !important;
+}
+
+.admin-light #clients-table-shell .data-table th:nth-child(1),
+.admin-light #clients-table-shell .data-table td:nth-child(1) { width: 20% !important; }
+.admin-light #clients-table-shell .data-table th:nth-child(2),
+.admin-light #clients-table-shell .data-table td:nth-child(2) { width: 13% !important; }
+.admin-light #clients-table-shell .data-table th:nth-child(3),
+.admin-light #clients-table-shell .data-table td:nth-child(3) { width: 17% !important; }
+.admin-light #clients-table-shell .data-table th:nth-child(4),
+.admin-light #clients-table-shell .data-table td:nth-child(4) { width: 9% !important; }
+.admin-light #clients-table-shell .data-table th:nth-child(5),
+.admin-light #clients-table-shell .data-table td:nth-child(5) { width: 10% !important; }
+.admin-light #clients-table-shell .data-table th:nth-child(6),
+.admin-light #clients-table-shell .data-table td:nth-child(6) { width: 8% !important; }
+.admin-light #clients-table-shell .data-table th:nth-child(7),
+.admin-light #clients-table-shell .data-table td:nth-child(7) { width: 11% !important; }
+.admin-light #clients-table-shell .data-table th:nth-child(8),
+.admin-light #clients-table-shell .data-table td:nth-child(8) { width: 12% !important; border-right: 0 !important; }
+
+.admin-light #clients-table-shell .data-table td:first-child strong {
+    display: block;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.admin-light #clients-table-shell .data-table td:nth-child(2),
+.admin-light #clients-table-shell .data-table td:nth-child(3) {
+    color: #527063 !important;
+}
+
+.admin-light #clients-table-shell .data-table td:last-child > div {
+    display: flex !important;
+    align-items: center;
+    justify-content: center !important;
+    flex-wrap: wrap;
+    gap: 6px !important;
+}
+
+.admin-light #clients-table-shell .data-table td:last-child .btn {
+    min-height: 34px;
+    padding: 6px 9px !important;
+    border-radius: 9px;
+    font-size: 0.66rem !important;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .admin-light #clients-table-shell {
+        overflow: visible !important;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .admin-light #clients-table-shell .data-table,
+    .admin-light #clients-table-shell .data-table tbody,
+    .admin-light #clients-table-shell .data-table tr,
+    .admin-light #clients-table-shell .data-table td {
+        display: block;
+        width: 100% !important;
+    }
+
+    .admin-light #clients-table-shell .data-table thead {
+        display: none;
+    }
+
+    .admin-light #clients-table-shell .data-table tbody tr {
+        margin-bottom: 12px;
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 10px 24px rgba(27, 98, 60, 0.07);
+    }
+
+    .admin-light #clients-table-shell .data-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        height: auto;
+        min-height: 44px;
+        padding: 10px 0;
+        border: 0 !important;
+        border-bottom: 1px solid var(--border) !important;
+        text-align: right !important;
+    }
+
+    .admin-light #clients-table-shell .data-table td::before {
+        flex: 0 0 38%;
+        color: var(--text-muted);
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1.2;
+        text-align: left;
+        text-transform: uppercase;
+    }
+
+    .admin-light #clients-table-shell .data-table td:nth-child(1)::before { content: "Nome"; }
+    .admin-light #clients-table-shell .data-table td:nth-child(2)::before { content: "WhatsApp"; }
+    .admin-light #clients-table-shell .data-table td:nth-child(3)::before { content: "Último atendimento"; }
+    .admin-light #clients-table-shell .data-table td:nth-child(4)::before { content: "Atendimentos"; }
+    .admin-light #clients-table-shell .data-table td:nth-child(5)::before { content: "Retorno"; }
+    .admin-light #clients-table-shell .data-table td:nth-child(6)::before { content: "Pontos"; }
+    .admin-light #clients-table-shell .data-table td:nth-child(7)::before { content: "Pendências"; }
+    .admin-light #clients-table-shell .data-table td:nth-child(8)::before { content: "Ações"; }
+
+    .admin-light #clients-table-shell .data-table td:first-child {
+        display: block;
+        text-align: left !important;
+    }
+
+    .admin-light #clients-table-shell .data-table td:first-child::before {
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .admin-light #clients-table-shell .data-table td:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .admin-light #clients-table-shell .data-table td:last-child > div {
+        justify-content: flex-end !important;
+    }
+}
