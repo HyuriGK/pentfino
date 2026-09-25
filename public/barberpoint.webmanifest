@@ -9,14 +9,14 @@
     "theme_color": "#26b878",
     "icons": [
         {
-            "src": "gestano.png?v=20260925-gestano",
-            "sizes": "any",
+            "src": "logoG.png?v=20260925-logoG",
+            "sizes": "500x500",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "gestano.png?v=20260925-gestano",
-            "sizes": "any",
+            "src": "logoG.png?v=20260925-logoG",
+            "sizes": "500x500",
             "type": "image/png",
             "purpose": "any"
         }
