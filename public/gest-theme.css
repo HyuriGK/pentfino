@@ -3384,3 +3384,485 @@
     border-color: var(--primary) !important;
     box-shadow: 0 0 0 3px rgba(38, 184, 120, 0.14) !important;
 }
+
+/* Final mobile pass: prevent iOS field zoom and keep every surface inside the
+   viewport, including the legacy screens that still use wide desktop grids. */
+@media (max-width: 768px) {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body.admin-light,
+    body.booking-body,
+    body.landing-body {
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    .admin-light select,
+    .admin-light textarea,
+    .booking-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    .booking-body select,
+    .booking-body textarea,
+    .landing-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    .landing-body select,
+    .landing-body textarea {
+        font-size: 16px !important;
+    }
+
+    .admin-light .dashboard-content {
+        width: 100%;
+        max-width: 100%;
+        padding: 76px 14px 28px;
+    }
+
+    .admin-light .dashboard-header,
+    .admin-light .list-header,
+    .admin-light .reports-page-header,
+    .admin-light .admin-panel-heading {
+        width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    .admin-light .dashboard-header > *,
+    .admin-light .list-header > *,
+    .admin-light .reports-page-header > *,
+    .admin-light .admin-panel-heading > * {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .admin-light .page-header-actions,
+    .admin-light .admin-subpanel-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        width: 100%;
+    }
+
+    .admin-light .page-header-actions > *,
+    .admin-light .admin-subpanel-actions > * {
+        width: 100% !important;
+        min-width: 0;
+        flex: none !important;
+    }
+
+    .admin-light .page-header-actions .btn,
+    .admin-light .admin-subpanel-actions .btn {
+        min-height: 48px;
+        padding-inline: 10px;
+        white-space: normal;
+    }
+
+    .admin-light .form-row,
+    .admin-light .form-row-3,
+    .admin-light .expense-form-grid,
+    .admin-light .inventory-form-row,
+    .admin-light .sale-modal-product-row,
+    .admin-light .sale-modal-details-row,
+    .admin-light .sale-modal-summary-row,
+    .admin-light .details-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .admin-light .data-table-container,
+    .admin-light .services-table-shell,
+    .admin-light .sales-history-container,
+    .admin-light .marketing-leads-table-shell,
+    .admin-light .table-responsive {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .admin-light .data-table-container::-webkit-scrollbar,
+    .admin-light .services-table-shell::-webkit-scrollbar,
+    .admin-light .sales-history-container::-webkit-scrollbar,
+    .admin-light .marketing-leads-table-shell::-webkit-scrollbar,
+    .admin-light .table-responsive::-webkit-scrollbar {
+        display: none;
+        height: 0;
+    }
+
+    .admin-light .data-table,
+    .admin-light .services-table,
+    .admin-light .marketing-leads-table {
+        min-width: 600px;
+    }
+
+    .admin-light .modal-overlay {
+        width: 100%;
+        max-width: 100%;
+        padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    }
+
+    .admin-light .modal-content {
+        width: min(100%, calc(100vw - 20px));
+        max-width: 100%;
+        max-height: calc(100dvh - 20px);
+        padding: 22px 16px;
+        border-radius: 20px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .admin-light .modal-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .admin-light .modal-header,
+    .admin-light .modal-footer {
+        min-width: 0;
+        gap: 10px;
+    }
+
+    .admin-light .modal-header {
+        align-items: flex-start;
+    }
+
+    .admin-light .modal-title,
+    .admin-light .modal-content h2 {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-light .modal-footer,
+    .admin-light .expense-modal-footer,
+    .admin-light .sale-modal-footer,
+    .admin-light .monthly-goal-modal-footer,
+    .admin-light .payment-confirm-actions {
+        flex-wrap: wrap;
+    }
+
+    .admin-light .modal-footer .btn,
+    .admin-light .expense-modal-footer .btn,
+    .admin-light .sale-modal-footer .btn,
+    .admin-light .monthly-goal-modal-footer .btn,
+    .admin-light .payment-confirm-actions .btn {
+        min-width: 0;
+        flex: 1 1 100%;
+    }
+
+    .admin-light #modal-sales .sale-modal-content {
+        padding: 20px 16px 18px !important;
+    }
+
+    .admin-light #modal-sales .sale-modal-product-row,
+    .admin-light #modal-sales .sale-modal-details-row,
+    .admin-light #modal-sales .sale-modal-summary-row {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .admin-light #modal-professional .professional-modal-content {
+        display: block;
+        max-height: calc(100dvh - 20px) !important;
+        overflow-y: auto !important;
+        padding: 22px 16px 18px !important;
+    }
+
+    .admin-light #modal-inventory .inventory-modal-content {
+        display: block !important;
+        max-height: calc(100dvh - 20px) !important;
+        overflow-y: auto !important;
+        padding: 22px 16px 18px !important;
+    }
+
+    .admin-light #modal-client-details .client-details-content,
+    .admin-light #modal-prof-comm-details .professional-details-content {
+        width: 100% !important;
+        height: calc(100dvh - 20px) !important;
+        max-height: calc(100dvh - 20px) !important;
+        border-radius: 20px !important;
+    }
+
+    .admin-light #modal-client-details .client-details-header,
+    .admin-light #modal-prof-comm-details .professional-details-header {
+        padding: 20px 18px 18px;
+    }
+
+    .admin-light #modal-client-details .client-details-body,
+    .admin-light #modal-prof-comm-details .professional-details-body {
+        padding: 20px 16px 24px;
+    }
+
+    .admin-light .professional-photo-picker,
+    .admin-light .inventory-photo-picker,
+    .admin-light .service-photo-picker {
+        flex-wrap: wrap;
+    }
+
+    .admin-light .professional-photo-picker-copy,
+    .admin-light .professional-photo-picker-actions {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .admin-light .professional-photo-picker-actions > * {
+        flex: 1 1 auto;
+        min-height: 42px;
+    }
+}
+
+@media (max-width: 680px) {
+    .landing-body .landing-container {
+        padding-inline: 16px;
+    }
+
+    .landing-body .landing-header {
+        padding: 8px 0;
+    }
+
+    .landing-body .landing-header .landing-container {
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px 8px;
+    }
+
+    .landing-body .logo-landing .landing-wordmark {
+        width: 138px;
+        height: 68px;
+    }
+
+    .landing-body .landing-nav {
+        flex: 1 1 100%;
+        justify-content: flex-end;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .landing-body .landing-nav a,
+    .landing-body .landing-nav .nav-cta {
+        min-height: 40px;
+        padding: 8px 9px;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+
+    .landing-body .landing-nav a[href="#segments"],
+    .landing-body .landing-nav a[href="#faq"],
+    .landing-body .landing-nav .nav-plan {
+        display: none;
+    }
+
+    .landing-body .hero-section .landing-container {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .landing-body .hero-title br {
+        display: none;
+    }
+
+    .landing-body .hero-note {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .landing-body .segments-grid,
+    .landing-body .numbers-grid,
+    .landing-body .features-grid,
+    .landing-body .ai-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .landing-body .numbers-grid,
+    .landing-body .features-grid,
+    .landing-body .ai-grid {
+        gap: 12px;
+    }
+
+    .landing-body .numbers-grid div,
+    .landing-body .feature-item,
+    .landing-body .ai-grid div {
+        padding: 24px 20px;
+    }
+
+    .landing-body .ai-content h2,
+    .landing-body .consultation-content h2 {
+        font-size: clamp(2rem, 9vw, 2.8rem);
+        line-height: 1.08;
+    }
+
+    .landing-body .demo-chat {
+        right: 10px;
+        bottom: 10px;
+        width: calc(100vw - 20px);
+        height: min(70dvh, 560px);
+        border-radius: 20px;
+    }
+
+    .admin-light .page-header-actions,
+    .admin-light .admin-subpanel-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-light .reports-page-header h2,
+    .admin-light #tab-fidelidade > .list-header h2,
+    .admin-light #tab-clientes > .list-header h2 {
+        font-size: clamp(1.65rem, 8vw, 2.1rem) !important;
+    }
+
+    .admin-light #tab-relatorios .reports-summary-grid,
+    .admin-light #tab-fidelidade .loyalty-summary-grid,
+    .admin-light .marketing-summary-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .admin-light .stat-card,
+    .admin-light .billing-card,
+    .admin-light #tab-relatorios .reports-summary-grid .stat-card,
+    .admin-light #tab-fidelidade .loyalty-summary-grid .stat-card {
+        min-height: 112px;
+        padding: 20px;
+    }
+
+    .admin-light .stat-value,
+    .admin-light .billing-card .stat-value,
+    .admin-light #tab-relatorios .reports-summary-grid .stat-value,
+    .admin-light #tab-fidelidade .loyalty-summary-grid .stat-value {
+        font-size: clamp(1.45rem, 7vw, 2rem) !important;
+    }
+
+    .admin-light .dashboard-mini-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-light .loyalty-panel,
+    .admin-light #tab-relatorios .report-card {
+        padding: 20px 16px;
+    }
+
+    .admin-light .data-table,
+    .admin-light .services-table,
+    .admin-light .marketing-leads-table {
+        min-width: 560px;
+    }
+
+    .booking-body .booking-main {
+        width: 100%;
+        min-width: 0;
+        padding: 24px 16px calc(34px + env(safe-area-inset-bottom));
+    }
+
+    .booking-body .step-container {
+        width: 100%;
+        max-width: none;
+        margin-top: 64px;
+    }
+
+    .booking-body .step-header {
+        margin-bottom: 22px;
+        padding-bottom: 18px;
+    }
+
+    .booking-body .step-title {
+        font-size: clamp(1.85rem, 9vw, 2.6rem);
+        line-height: 1.08;
+    }
+
+    .booking-body .card-grid-custom {
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .booking-body .service-card {
+        min-height: 72px;
+        padding: 14px;
+        gap: 10px;
+    }
+
+    .booking-body .service-card-content {
+        gap: 10px;
+    }
+
+    .booking-body .service-card-media,
+    .booking-body .service-card-image {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+    }
+
+    .booking-body .service-card strong {
+        font-size: 0.98rem;
+    }
+
+    .booking-body .service-card .price {
+        flex: 0 0 auto;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .booking-body .details-layout {
+        gap: 22px;
+    }
+
+    .booking-body .booking-date-options {
+        gap: 4px;
+    }
+
+    .booking-body .booking-date-option {
+        min-height: 62px;
+        padding: 8px 2px;
+    }
+
+    .booking-body .booking-date-option .booking-date-weekday {
+        font-size: 0.58rem;
+    }
+
+    .booking-body .booking-date-option strong {
+        font-size: 1.05rem;
+    }
+
+    .booking-body .step-footer,
+    .booking-body .step-footer-dual {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+
+    .booking-body .step-footer .btn,
+    .booking-body .step-footer-dual .btn,
+    .booking-body .btn-large {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .booking-body .booking-entry-card {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 430px) {
+    .admin-light .dashboard-content {
+        padding-inline: 12px;
+    }
+
+    .admin-light .dashboard-mini-metrics {
+        gap: 8px;
+    }
+
+    .admin-light .dashboard-mini-metrics div {
+        padding: 12px;
+    }
+
+    .landing-body .landing-nav a,
+    .landing-body .landing-nav .nav-cta {
+        padding-inline: 7px;
+        font-size: 0.68rem;
+    }
+
+    .booking-body .booking-main {
+        padding-inline: 12px;
+    }
+
+    .booking-body .step-title {
+        font-size: 1.8rem;
+    }
+
+    .booking-body .service-card {
+        padding-inline: 12px;
+    }
+}
