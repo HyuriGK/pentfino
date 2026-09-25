@@ -567,8 +567,8 @@
 /* Use the Gestano wordmark for visible branding; reserve the square icon for app chrome. */
 .admin-light .sidebar .logo-wordmark-expanded {
     display: block;
-    width: 178px;
-    height: 92px;
+    width: 210px;
+    height: 110px;
     object-fit: contain;
     object-position: center;
     border-radius: 0;
