@@ -888,6 +888,19 @@
     background: var(--landing-teal-dark) !important;
 }
 
+/* Keep the queue search as one clean control; global form rules must not
+   recreate a second rectangular field inside it. */
+.admin-light .queue-search input[type="search"]:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.admin-light .queue-search input[type="search"]:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):hover,
+.admin-light .queue-search input[type="search"]:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus {
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+}
+
 /* Gestano motion system: intentional, lightweight movement across the product. */
 .landing-body .hero-content {
     animation: gestano-hero-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
