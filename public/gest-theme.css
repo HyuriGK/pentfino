@@ -1385,6 +1385,22 @@
     }
 }
 
+/* Full Gestano wordmark on dark surfaces; keep the G mark for compact chrome. */
+html body.admin-light .sidebar:not(.collapsed) .logo-wordmark-expanded {
+    width: 190px;
+    height: 72px;
+    object-fit: contain;
+    filter: none !important;
+}
+
+html body.admin-light .auth-visual-side .logo-wordmark-auth {
+    width: 320px;
+    height: 120px;
+    object-fit: contain;
+    filter: none !important;
+    border-radius: 14px;
+}
+
 @media (max-width: 430px) {
     .admin-light .stat-grid,
     .admin-light .billing-grid,
