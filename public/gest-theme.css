@@ -8009,7 +8009,7 @@ html body.admin-light .sidebar-profile-trigger:focus-visible {
     min-height: 56px;
     padding: 7px 0;
     border: 0 !important;
-    border-radius: 0;
+    border-radius: 14px;
     outline: none !important;
     background: transparent !important;
     box-shadow: none !important;
