@@ -8025,9 +8025,9 @@ html body.admin-light .sidebar:not(.collapsed) .sidebar-profile-trigger {
     padding: 9px 14px;
 }
 
-/* Pull the commissions table directly below the month selector. */
+/* Preserve the selector gap and remove only the table's internal top offset. */
 html body.admin-light #tab-comissoes #commissions-month-selector {
-    margin-bottom: 0 !important;
+    margin-bottom: 2rem !important;
 }
 
 html body.admin-light #tab-comissoes .services-table {
