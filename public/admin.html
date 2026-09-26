@@ -774,6 +774,46 @@
                     <button class="btn btn-primary" id="save-booking-settings-btn" onclick="admin.saveBookingSettings()">Salvar ajustes</button>
                 </div>
 
+                <section class="glass settings-card settings-brand-card">
+                    <div class="settings-card-heading">
+                        <div>
+                            <span class="settings-eyebrow">Identidade p&uacute;blica</span>
+                            <h3>Personalize sua p&aacute;gina de agendamento</h3>
+                        </div>
+                        <span class="settings-card-icon">01</span>
+                    </div>
+                    <p class="settings-card-description">Escolha a foto ou logo que seus clientes ver&atilde;o no link p&uacute;blico e escreva uma mensagem com a cara do seu estabelecimento.</p>
+                    <div class="settings-brand-layout">
+                        <div>
+                            <div class="booking-brand-picker">
+                                <div class="booking-brand-preview" id="booking-brand-preview" aria-hidden="true"><span id="booking-brand-fallback">G</span></div>
+                                <div class="professional-photo-picker-copy">
+                                    <strong>Foto ou logo do estabelecimento</strong>
+                                    <p>Use uma imagem horizontal, quadrada ou a marca do seu neg&oacute;cio.</p>
+                                    <div class="professional-photo-picker-actions">
+                                        <label class="btn btn-ghost" for="booking-brand-file">Escolher imagem</label>
+                                        <button type="button" class="professional-photo-clear hidden" id="booking-brand-clear">Remover</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <input class="professional-photo-file" id="booking-brand-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+                            <input type="hidden" id="booking-brand-image">
+                        </div>
+                        <div class="settings-brand-fields">
+                            <div class="input-group-new">
+                                <label for="booking-public-title">Mensagem principal</label>
+                                <input id="booking-public-title" type="text" maxlength="110" placeholder="Seu pr&oacute;ximo atendimento come&ccedil;a aqui.">
+                                <small>Fica em destaque ao lado da sua identidade.</small>
+                            </div>
+                            <div class="input-group-new">
+                                <label for="booking-public-description">Texto de apoio</label>
+                                <textarea id="booking-public-description" maxlength="220" rows="3" placeholder="Escolha o servi&ccedil;o, o profissional e o melhor hor&aacute;rio para voc&ecirc;."></textarea>
+                                <small>Uma frase curta para orientar seus clientes.</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <div class="settings-layout">
                     <section class="glass settings-card">
                         <div class="settings-card-heading">
@@ -781,7 +821,7 @@
                                 <span class="settings-eyebrow">Apar&ecirc;ncia</span>
                                 <h3>Estilo da tela de agendamento</h3>
                             </div>
-                            <span class="settings-card-icon">01</span>
+                            <span class="settings-card-icon">02</span>
                         </div>
                         <p class="settings-card-description">A escolha ser&aacute; aplicada no link p&uacute;blico compartilhado com seus clientes.</p>
                         <div class="booking-style-grid" role="radiogroup" aria-label="Estilo da tela de agendamento">
@@ -824,7 +864,7 @@
                                 <span class="settings-eyebrow">Regras</span>
                                 <h3>Intervalos dos hor&aacute;rios</h3>
                             </div>
-                            <span class="settings-card-icon">02</span>
+                            <span class="settings-card-icon">03</span>
                         </div>
                         <p class="settings-card-description">Os hor&aacute;rios s&atilde;o gerados de acordo com a abertura, fechamento e intervalo escolhidos.</p>
                         <div class="settings-inline-fields settings-interval-fields">
@@ -864,7 +904,7 @@
                             <span class="settings-eyebrow">Funcionamento</span>
                             <h3>Hor&aacute;rios de atendimento</h3>
                         </div>
-                        <span class="settings-card-icon">03</span>
+                        <span class="settings-card-icon">04</span>
                     </div>
                     <p class="settings-card-description">Ative os dias em que a barbearia atende e defina o hor&aacute;rio de cada dia.</p>
                     <div class="booking-schedule-list" id="booking-schedule-list">
@@ -877,7 +917,7 @@
                         <div class="booking-schedule-row" data-day="6"><label class="schedule-day-toggle"><input type="checkbox" data-schedule-field="enabled"><span>S&aacute;bado</span></label><div class="schedule-time-fields"><label>Abre<input type="time" data-schedule-field="start"></label><span>&agrave;s</span><label>Fecha<input type="time" data-schedule-field="end"></label></div></div>
                     </div>
                     <div class="booking-blocks-panel">
-                        <div class="settings-card-heading"><div><span class="settings-eyebrow">Exce&ccedil;&otilde;es</span><h3>Folgas e bloqueios</h3></div><span class="settings-card-icon">04</span></div>
+                        <div class="settings-card-heading"><div><span class="settings-eyebrow">Exce&ccedil;&otilde;es</span><h3>Folgas e bloqueios</h3></div><span class="settings-card-icon">05</span></div>
                         <p class="settings-card-description">Bloqueie um dia inteiro ou apenas uma faixa de hor&aacute;rio para feriados, reuni&otilde;es e folgas.</p>
                         <div class="settings-inline-fields booking-block-form"><div class="input-group-new"><label for="booking-block-date">Data</label><input type="date" id="booking-block-date"></div><div class="input-group-new"><label for="booking-block-start">In&iacute;cio (opcional)</label><input type="time" id="booking-block-start"></div><div class="input-group-new"><label for="booking-block-end">Fim (opcional)</label><input type="time" id="booking-block-end"></div><div class="input-group-new"><label for="booking-block-reason">Motivo</label><input type="text" id="booking-block-reason" maxlength="160" placeholder="Feriado / folga"></div><button type="button" class="btn btn-ghost" onclick="admin.addBookingBlock()">Adicionar bloqueio</button></div>
                         <div id="booking-blocks-list" class="booking-blocks-list"></div>

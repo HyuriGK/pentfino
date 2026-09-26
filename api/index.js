@@ -18,6 +18,9 @@ const BOOKING_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 const createDefaultBookingSettings = () => ({
     bookingStyle: 'classic',
+    publicLogo: '',
+    publicTitle: '',
+    publicDescription: '',
     intervalMinutes: 60,
     breakEnabled: true,
     breakStart: '12:00',
@@ -70,8 +73,17 @@ const normalizeBookingSettings = (source = {}) => {
         })).filter(block => /^\d{4}-\d{2}-\d{2}$/.test(block.date) && ((block.start && block.end && timeToMinutes(block.start) < timeToMinutes(block.end)) || (!block.start && !block.end)))
         : [];
 
+    const publicLogoValue = String(source.publicLogo || '').trim();
+    const publicLogo = publicLogoValue && (
+        /^data:image\/(?:avif|gif|jpe?g|png|webp);base64,[a-z0-9+/=\s]+$/i.test(publicLogoValue)
+        || /^https?:\/\//i.test(publicLogoValue)
+    ) ? publicLogoValue.slice(0, 5500000) : '';
+
     return {
         bookingStyle: validStyles.includes(source.bookingStyle) ? source.bookingStyle : defaults.bookingStyle,
+        publicLogo,
+        publicTitle: String(source.publicTitle || '').trim().slice(0, 110),
+        publicDescription: String(source.publicDescription || '').trim().slice(0, 220),
         intervalMinutes: [15, 30, 60].includes(interval) ? interval : defaults.intervalMinutes,
         breakEnabled: source.breakEnabled !== false,
         breakStart,
@@ -243,6 +255,9 @@ const readBookingSettingsRow = (row, overrides = {}) => {
     return normalizeBookingSettings({
         ...(schedule || {}),
         bookingStyle: row.booking_style,
+        publicLogo: row.public_logo,
+        publicTitle: row.public_title,
+        publicDescription: row.public_description,
         allowCustomTime: row.allow_custom_time,
         ...overrides
     });
@@ -250,7 +265,7 @@ const readBookingSettingsRow = (row, overrides = {}) => {
 
 const fetchBookingSettings = async barberId => {
     const result = await pool.query(
-        'SELECT booking_style, schedule, allow_custom_time FROM barber_settings WHERE barber_id = $1',
+        'SELECT booking_style, schedule, allow_custom_time, public_logo, public_title, public_description FROM barber_settings WHERE barber_id = $1',
         [barberId]
     );
     const blocks = await pool.query(
@@ -360,6 +375,9 @@ const ensureOperationalSchema = () => {
             ALTER TABLE inventory ADD COLUMN IF NOT EXISTS cost_price DECIMAL(10,2) NOT NULL DEFAULT 0;
             ALTER TABLE services ADD COLUMN IF NOT EXISTS is_package BOOLEAN NOT NULL DEFAULT FALSE;
             ALTER TABLE services ADD COLUMN IF NOT EXISTS package_sessions INTEGER;
+            ALTER TABLE barber_settings ADD COLUMN IF NOT EXISTS public_logo TEXT;
+            ALTER TABLE barber_settings ADD COLUMN IF NOT EXISTS public_title VARCHAR(110);
+            ALTER TABLE barber_settings ADD COLUMN IF NOT EXISTS public_description VARCHAR(220);
 
             CREATE TABLE IF NOT EXISTS professional_services (
                 professional_id INTEGER REFERENCES professionals(id) ON DELETE CASCADE,
@@ -716,9 +734,15 @@ pool.on('connect', () => {
             booking_style VARCHAR(30) NOT NULL DEFAULT 'classic',
             schedule JSONB NOT NULL DEFAULT '{}'::jsonb,
             allow_custom_time BOOLEAN NOT NULL DEFAULT TRUE,
+            public_logo TEXT,
+            public_title VARCHAR(110),
+            public_description VARCHAR(220),
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `).catch(e => console.error('Migration error (barber_settings):', e));
+    pool.query('ALTER TABLE barber_settings ADD COLUMN IF NOT EXISTS public_logo TEXT').catch(() => {});
+    pool.query('ALTER TABLE barber_settings ADD COLUMN IF NOT EXISTS public_title VARCHAR(110)').catch(() => {});
+    pool.query('ALTER TABLE barber_settings ADD COLUMN IF NOT EXISTS public_description VARCHAR(220)').catch(() => {});
     pool.query(`
         CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -1193,9 +1217,12 @@ app.get('/api/business-settings/:barberId', authenticateToken, requireAnyPermiss
 });
 
 app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermission('configuracoes'), requireOwnBarber, async (req, res) => {
-    const { bookingStyle, intervalMinutes, breakEnabled, breakStart, breakEnd, allowCustomTime, weeklySchedule, blockedDates, blockedTimes } = req.body || {};
+    const { bookingStyle, publicLogo, publicTitle, publicDescription, intervalMinutes, breakEnabled, breakStart, breakEnd, allowCustomTime, weeklySchedule, blockedDates, blockedTimes } = req.body || {};
     const settings = normalizeBookingSettings({
         bookingStyle,
+        publicLogo,
+        publicTitle,
+        publicDescription,
         intervalMinutes,
         breakEnabled,
         breakStart,
@@ -1224,15 +1251,18 @@ app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermi
             weeklySchedule: settings.weeklySchedule
         });
         const result = await pool.query(`
-            INSERT INTO barber_settings (barber_id, booking_style, schedule, allow_custom_time, updated_at)
-            VALUES ($1, $2, $3::jsonb, $4, CURRENT_TIMESTAMP)
+            INSERT INTO barber_settings (barber_id, booking_style, schedule, allow_custom_time, public_logo, public_title, public_description, updated_at)
+            VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, CURRENT_TIMESTAMP)
             ON CONFLICT (barber_id) DO UPDATE SET
                 booking_style = EXCLUDED.booking_style,
                 schedule = EXCLUDED.schedule,
                 allow_custom_time = EXCLUDED.allow_custom_time,
+                public_logo = EXCLUDED.public_logo,
+                public_title = EXCLUDED.public_title,
+                public_description = EXCLUDED.public_description,
                 updated_at = CURRENT_TIMESTAMP
-            RETURNING booking_style, schedule, allow_custom_time
-        `, [req.params.barberId, settings.bookingStyle, schedule, settings.allowCustomTime]);
+            RETURNING booking_style, schedule, allow_custom_time, public_logo, public_title, public_description
+        `, [req.params.barberId, settings.bookingStyle, schedule, settings.allowCustomTime, settings.publicLogo || null, settings.publicTitle || null, settings.publicDescription || null]);
 
         await pool.query('DELETE FROM booking_blocks WHERE barber_id = $1', [req.params.barberId]);
         for (const date of settings.blockedDates) {

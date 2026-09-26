@@ -8,6 +8,7 @@ const app = {
     professionals: [],
     availableTimes: [],
     bookingSettings: null,
+    businessName: 'Gestano',
     
     // Legacy query links remain supported; new links resolve the business slug first.
     barberId: bookingQueryId,
@@ -27,6 +28,7 @@ const app = {
     async init() {
         await this.loadInitialData();
         this.applyBookingTheme();
+        this.applyBookingBranding();
         this.setDefaultDate();
         this.renderServices();
         this.renderTimes();
@@ -41,6 +43,7 @@ const app = {
                 if (businessResponse.ok) {
                     const businessData = await businessResponse.json();
                     this.barberId = Number(businessData.business?.id) || 0;
+                    this.businessName = businessData.business?.name || this.businessName;
                 }
             }
             if (!this.barberId && !this.businessSlug) this.barberId = 1;
@@ -61,6 +64,9 @@ const app = {
     getDefaultBookingSettings() {
         return {
             bookingStyle: 'classic',
+            publicLogo: '',
+            publicTitle: '',
+            publicDescription: '',
             intervalMinutes: 60,
             breakEnabled: true,
             breakStart: '12:00',
@@ -89,6 +95,28 @@ const app = {
             'booking-theme-ocean'
         );
         document.body.classList.add(`booking-theme-${style}`);
+    },
+
+    applyBookingBranding() {
+        const settings = this.bookingSettings || this.getDefaultBookingSettings();
+        const logoUrl = this.safeImageUrl(settings.publicLogo);
+        const title = settings.publicTitle || 'Seu próximo atendimento começa aqui.';
+        const description = settings.publicDescription || 'Escolha. Agende. Pronto.';
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+
+        setText('booking-welcome-title', title);
+        setText('booking-welcome-description', description);
+        document.title = `${this.businessName || 'Gestano'} | Agendamento`;
+
+        document.querySelectorAll('[data-booking-brand]').forEach(image => {
+            if (!logoUrl) return;
+            image.src = logoUrl;
+            image.alt = this.businessName || 'Estabelecimento';
+            image.classList.add('has-custom-brand');
+        });
     },
 
     timeToMinutes(value) {

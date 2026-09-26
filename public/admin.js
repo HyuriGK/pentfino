@@ -385,6 +385,7 @@ const admin = {
         this.setupProfessionalPhotoPicker();
         this.setupServicePhotoPicker();
         this.setupInventoryPhotoPicker();
+        this.setupBookingBrandPhotoPicker();
         this.loadFinancialVisibility();
         const dateParts = new Intl.DateTimeFormat('pt-BR', {
             timeZone: 'America/Sao_Paulo',
@@ -4092,6 +4093,9 @@ const admin = {
     getDefaultBookingSettings() {
         return {
             bookingStyle: 'classic',
+            publicLogo: '',
+            publicTitle: '',
+            publicDescription: '',
             intervalMinutes: 60,
             breakEnabled: true,
             breakStart: '12:00',
@@ -4138,11 +4142,18 @@ const admin = {
         const breakStart = document.getElementById('booking-break-start');
         const breakEnd = document.getElementById('booking-break-end');
         const allowCustom = document.getElementById('booking-allow-custom-time');
+        const publicTitle = document.getElementById('booking-public-title');
+        const publicDescription = document.getElementById('booking-public-description');
         if (interval) interval.value = String(settings.intervalMinutes || 60);
         if (breakEnabled) breakEnabled.checked = settings.breakEnabled !== false;
         if (breakStart) breakStart.value = settings.breakStart || '12:00';
         if (breakEnd) breakEnd.value = settings.breakEnd || '14:00';
         if (allowCustom) allowCustom.checked = settings.allowCustomTime !== false;
+        if (publicTitle) publicTitle.value = settings.publicTitle || '';
+        if (publicDescription) publicDescription.value = settings.publicDescription || '';
+        const publicLogo = document.getElementById('booking-brand-image');
+        if (publicLogo) publicLogo.value = settings.publicLogo || '';
+        this.updateBookingBrandPreview(settings.publicLogo || '');
         this.bookingBlocks = [
             ...(settings.blockedDates || []).map(date => ({ date, start: '', end: '', reason: 'Dia bloqueado' })),
             ...(settings.blockedTimes || [])
@@ -4167,6 +4178,95 @@ const admin = {
         document.querySelectorAll('.booking-schedule-row [data-schedule-field="enabled"]').forEach(input => {
             input.onchange = () => input.closest('.booking-schedule-row')?.classList.toggle('is-closed', !input.checked);
         });
+    },
+
+    setupBookingBrandPhotoPicker() {
+        const fileInput = document.getElementById('booking-brand-file');
+        if (!fileInput || fileInput.dataset.bound === 'true') return;
+
+        fileInput.dataset.bound = 'true';
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                auth.notify('Selecione uma imagem JPG, PNG ou WEBP.', 'error');
+                fileInput.value = '';
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                auth.notify('A imagem precisa ter no mÃ¡ximo 5 MB.', 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            try {
+                const imageUrl = await this.prepareBookingBrandPhoto(file);
+                const input = document.getElementById('booking-brand-image');
+                if (input) input.value = imageUrl;
+                this.updateBookingBrandPreview(imageUrl);
+            } catch (err) {
+                console.error('Erro ao preparar imagem da pÃ¡gina pÃºblica:', err);
+                auth.notify('NÃ£o foi possÃ­vel preparar essa imagem.', 'error');
+                fileInput.value = '';
+            }
+        });
+
+        document.getElementById('booking-brand-clear')?.addEventListener('click', () => {
+            const input = document.getElementById('booking-brand-image');
+            if (input) input.value = '';
+            fileInput.value = '';
+            this.updateBookingBrandPreview('');
+            auth.notify('Imagem removida. Salve os ajustes para confirmar.', 'success');
+        });
+    },
+
+    prepareBookingBrandPhoto(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('Falha ao ler o arquivo'));
+            reader.onload = () => {
+                const image = new Image();
+                image.onerror = () => reject(new Error('Falha ao abrir a imagem'));
+                image.onload = () => {
+                    const maxDimension = 1400;
+                    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+                    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+                    const context = canvas.getContext('2d');
+                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    let result = canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', file.type === 'image/png' ? undefined : 0.88);
+                    if (result.length > 2400000) result = canvas.toDataURL('image/jpeg', 0.78);
+                    if (result.length > 2900000) result = canvas.toDataURL('image/jpeg', 0.62);
+                    resolve(result);
+                };
+                image.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    },
+
+    updateBookingBrandPreview(imageUrl = '') {
+        const preview = document.getElementById('booking-brand-preview');
+        const clearButton = document.getElementById('booking-brand-clear');
+        if (!preview) return;
+
+        preview.replaceChildren();
+        if (imageUrl) {
+            const image = document.createElement('img');
+            image.src = imageUrl;
+            image.alt = 'Foto ou logo do estabelecimento';
+            preview.appendChild(image);
+            clearButton?.classList.remove('hidden');
+            return;
+        }
+
+        const fallback = document.createElement('span');
+        const name = auth.user?.shop_name || auth.user?.shop || 'Gestano';
+        fallback.textContent = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'G';
+        preview.appendChild(fallback);
+        clearButton?.classList.add('hidden');
     },
 
     renderProfilePage({ loadData = true } = {}) {
@@ -4378,6 +4478,9 @@ const admin = {
 
         return {
             bookingStyle: document.querySelector('input[name="booking-style"]:checked')?.value || 'classic',
+            publicLogo: document.getElementById('booking-brand-image')?.value || '',
+            publicTitle: document.getElementById('booking-public-title')?.value.trim() || '',
+            publicDescription: document.getElementById('booking-public-description')?.value.trim() || '',
             intervalMinutes: Number(document.getElementById('booking-interval')?.value || 60),
             breakEnabled: Boolean(document.getElementById('booking-break-enabled')?.checked),
             breakStart: document.getElementById('booking-break-start')?.value || '12:00',
