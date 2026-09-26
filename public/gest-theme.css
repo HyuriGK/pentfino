@@ -8019,3 +8019,27 @@ html body.admin-light .sidebar-profile-trigger:hover,
 html body.admin-light .sidebar-profile-trigger[aria-expanded="true"] {
     background: #20262f !important;
 }
+
+/* Use explicit plus/minus controls for expandable sidebar groups. */
+html body.admin-light .sidebar-nav-scroll nav .nav-group-chevron {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+    font-size: 0;
+}
+
+html body.admin-light .sidebar-nav-scroll nav .nav-group-chevron::before {
+    display: block;
+    width: auto;
+    height: auto;
+    border: 0 !important;
+    content: "+" !important;
+    font-size: 1.35rem;
+    font-weight: 400;
+    line-height: 1;
+    transform: none !important;
+}
+
+html body.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-chevron::before {
+    content: "−" !important;
+}
