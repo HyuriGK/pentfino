@@ -1463,6 +1463,60 @@ app.post('/api/appointments', async (req, res) => {
     }
 });
 
+app.post('/api/manual-attendances', authenticateToken, requireAnyPermission('agenda'), async (req, res) => {
+    const serviceId = Number(req.body?.serviceId);
+    const professionalId = Number(req.body?.professionalId);
+    const clientName = String(req.body?.clientName || '').trim();
+    const clientPhone = String(req.body?.clientPhone || '').trim();
+    const date = String(req.body?.date || '').slice(0, 10);
+    const time = String(req.body?.time || '').slice(0, 5);
+    const paymentMethod = normalizePaymentMethod(req.body?.paymentMethod);
+    let db;
+
+    if (!Number.isInteger(serviceId) || serviceId <= 0 || !Number.isInteger(professionalId) || professionalId <= 0) {
+        return res.status(400).json({ success: false, message: 'Selecione o serviço e o profissional.' });
+    }
+    if (clientName.length < 2 || clientName.length > 100 || !/^\d{8,15}$/.test(clientPhone.replace(/\D/g, ''))) {
+        return res.status(400).json({ success: false, message: 'Informe nome e WhatsApp válidos.' });
+    }
+    if (!isValidDateValue(date) || !BOOKING_TIME_PATTERN.test(time)) {
+        return res.status(400).json({ success: false, message: 'Informe a data e o horário do atendimento.' });
+    }
+
+    try {
+        await ensureOperationalSchema();
+        await ensureAppointmentPaymentSchema();
+        const selection = await getBookingSelection(pool, req.user.id, serviceId, professionalId);
+        if (!selection) {
+            return res.status(400).json({ success: false, message: 'O serviço não está vinculado a este profissional.' });
+        }
+
+        db = await pool.connect();
+        await db.query('BEGIN');
+        const result = await db.query(`
+            INSERT INTO appointments (
+                barber_id, service_id, professional_id, client_name, client_phone,
+                appointment_time, appointment_date, status, payment_status,
+                payment_method, payment_paid_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'completed', 'paid', $8, CURRENT_TIMESTAMP)
+            RETURNING *
+        `, [req.user.id, serviceId, professionalId, clientName, clientPhone, time, date, paymentMethod]);
+
+        const appointment = result.rows[0];
+        await syncAppointmentCashMovement(db, appointment.id, 'completed', 'paid', paymentMethod);
+        await db.query('COMMIT');
+        await logAudit(req, 'appointment.manual_created', 'appointment', appointment.id, { serviceId, professionalId, paymentMethod });
+        res.status(201).json({ success: true, appointment });
+    } catch (err) {
+        if (db) await db.query('ROLLBACK').catch(() => {});
+        console.error('Erro ao registrar atendimento manual:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível registrar o atendimento.' });
+    } finally {
+        if (db) db.release();
+    }
+});
+
 app.patch('/api/appointments/:id', authenticateToken, requireAppointmentMutationPermission, async (req, res) => {
     const { id } = req.params;
     const { status, paymentStatus, paymentMethod, serviceId, professionalId, clientName, clientPhone, time, date } = req.body;

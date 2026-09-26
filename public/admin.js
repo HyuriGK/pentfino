@@ -801,7 +801,7 @@ const admin = {
 
         if (tab === 'agenda') {
             agenda.init();
-            this.loadWaitlist();
+            this.prepareManualAttendanceForm();
             setTimeout(() => {
                 if (agenda.calendar) {
                     agenda.calendar.updateSize();
@@ -1495,74 +1495,84 @@ const admin = {
         }
     },
 
-    async loadWaitlist() {
+    prepareManualAttendanceForm() {
+        const serviceSelect = document.getElementById('manual-attendance-service');
+        const professionalSelect = document.getElementById('manual-attendance-professional');
+        const dateInput = document.getElementById('manual-attendance-date');
+        const timeInput = document.getElementById('manual-attendance-time');
+        const paymentSelect = document.getElementById('manual-attendance-payment');
+        if (!serviceSelect || !professionalSelect) return;
+
+        const currentService = serviceSelect.value;
+        const currentProfessional = professionalSelect.value;
+        const services = Array.isArray(this.services) ? this.services : [];
+        serviceSelect.innerHTML = `<option value="">${services.length ? 'Selecione o serviço' : 'Nenhum serviço cadastrado'}</option>${services.map(service => `<option value="${service.id}">${this.escapeHtml(service.name)}</option>`).join('')}`;
+        if (services.some(service => String(service.id) === currentService)) serviceSelect.value = currentService;
+
+        const refreshProfessionals = (preferredId = professionalSelect.value) => {
+            const serviceId = serviceSelect.value;
+            const professionals = (Array.isArray(this.professionals) ? this.professionals : []).filter(professional => (
+                !serviceId || (Array.isArray(professional.services) && professional.services.some(service => String(service.id) === serviceId))
+            ));
+            professionalSelect.innerHTML = `<option value="">${professionals.length ? 'Selecione o profissional' : 'Nenhum profissional vinculado'}</option>${professionals.map(professional => `<option value="${professional.id}">${this.escapeHtml(professional.name)}</option>`).join('')}`;
+            if (professionals.some(professional => String(professional.id) === preferredId)) professionalSelect.value = preferredId;
+        };
+
+        refreshProfessionals(currentProfessional);
+        serviceSelect.onchange = () => refreshProfessionals();
+        if (dateInput && !dateInput.value) dateInput.value = this.currentDateValue();
+        if (timeInput && !timeInput.value) {
+            timeInput.value = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'America/Sao_Paulo',
+                hour: '2-digit',
+                minute: '2-digit',
+                hourCycle: 'h23'
+            }).format(new Date());
+        }
+        if (paymentSelect && !paymentSelect.value) paymentSelect.value = 'cash';
+    },
+
+    async registerManualAttendance(event) {
+        event?.preventDefault();
+        const form = document.querySelector('.manual-attendance-form');
+        const button = document.getElementById('manual-attendance-submit');
+        const name = document.getElementById('manual-attendance-name')?.value.trim() || '';
+        const phone = document.getElementById('manual-attendance-phone')?.value.trim() || '';
+        const serviceId = Number(document.getElementById('manual-attendance-service')?.value || 0);
+        const professionalId = Number(document.getElementById('manual-attendance-professional')?.value || 0);
+        const date = document.getElementById('manual-attendance-date')?.value || '';
+        const time = document.getElementById('manual-attendance-time')?.value || '';
+        const paymentMethod = document.getElementById('manual-attendance-payment')?.value || 'cash';
+
+        if (!name || !phone || !serviceId || !professionalId || !date || !time) {
+            return auth.notify('Preencha todos os dados do atendimento.', 'error');
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Registrando...';
+        }
+
         try {
-            const response = await auth.apiRequest(`/api/waitlist/${auth.user.id}`);
-            const data = await response.json();
-            const serviceSelect = document.getElementById('waitlist-service');
-            if (serviceSelect) {
-                const currentValue = serviceSelect.value;
-                serviceSelect.innerHTML = `<option value="">Qualquer serviço</option>${(this.services || []).map(service => `<option value="${service.id}">${this.escapeHtml(service.name)}</option>`).join('')}`;
-                serviceSelect.value = currentValue;
-            }
-            this.waitlistEntries = data.entries || [];
-            this.renderWaitlist();
+            const response = await auth.apiRequest('/api/manual-attendances', {
+                method: 'POST',
+                body: JSON.stringify({ clientName: name, clientPhone: phone, serviceId, professionalId, date, time, paymentMethod })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível registrar o atendimento.');
+
+            form?.reset();
+            this.prepareManualAttendanceForm();
+            await this.loadData();
+            auth.notify('Atendimento registrado com sucesso.', 'success');
         } catch (error) {
-            console.error('Erro ao carregar fila de encaixe:', error);
-            auth.notify('Não foi possível carregar a fila de encaixe.', 'error');
+            auth.notify(error.message || 'Não foi possível registrar o atendimento.', 'error');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Registrar atendimento';
+            }
         }
-    },
-
-    renderWaitlist() {
-        const container = document.getElementById('waitlist-list');
-        if (!container) return;
-        const entries = this.waitlistEntries || [];
-        if (!entries.length) {
-            container.innerHTML = '<span class="dashboard-empty-note">Nenhum cliente aguardando encaixe.</span>';
-            return;
-        }
-        const statusLabels = { waiting: 'Aguardando', contacted: 'Contatado' };
-        container.innerHTML = entries.map(entry => `
-            <div class="waitlist-item">
-                <div><strong>${this.escapeHtml(entry.client_name)}</strong><span>${this.escapeHtml(this.formatWhatsApp(entry.client_phone))}</span><small>${this.escapeHtml(entry.service_name || 'Qualquer serviço')}${entry.desired_date ? ` · ${this.formatAppointmentDate(entry.desired_date)}` : ''}</small></div>
-                <div class="waitlist-actions"><span class="appointment-status-chip status-${entry.status}">${statusLabels[entry.status] || entry.status}</span><button type="button" class="btn btn-ghost btn-sm" onclick="admin.contactWaitlist(${entry.id})">WhatsApp</button><button type="button" class="btn-queue-cancel" aria-label="Remover da fila" onclick="admin.updateWaitlist(${entry.id}, 'canceled')">×</button></div>
-            </div>
-        `).join('');
-    },
-
-    async addWaitlistEntry() {
-        const name = document.getElementById('waitlist-name')?.value.trim();
-        const phone = document.getElementById('waitlist-phone')?.value.trim();
-        const serviceId = document.getElementById('waitlist-service')?.value || null;
-        const desiredDate = document.getElementById('waitlist-date')?.value || null;
-        if (!name || !phone) return auth.notify('Informe nome e WhatsApp para adicionar à fila.', 'error');
-        try {
-            const response = await auth.apiRequest('/api/waitlist', { method: 'POST', body: JSON.stringify({ clientName: name, clientPhone: phone, serviceId, desiredDate }) });
-            const data = await response.json();
-            if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível cadastrar o encaixe.');
-            ['waitlist-name', 'waitlist-phone', 'waitlist-date'].forEach(id => { const input = document.getElementById(id); if (input) input.value = ''; });
-            await this.loadWaitlist();
-            auth.notify('Cliente adicionado à fila de encaixe.', 'success');
-        } catch (error) { auth.notify(error.message || 'Não foi possível cadastrar o encaixe.', 'error'); }
-    },
-
-    async updateWaitlist(id, status) {
-        try {
-            const response = await auth.apiRequest(`/api/waitlist/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
-            if (!response.ok) throw new Error('Não foi possível atualizar o encaixe.');
-            await this.loadWaitlist();
-        } catch (error) { auth.notify(error.message || 'Não foi possível atualizar o encaixe.', 'error'); }
-    },
-
-    async contactWaitlist(id) {
-        const entry = (this.waitlistEntries || []).find(item => String(item.id) === String(id));
-        if (!entry) return;
-        const phone = String(entry.client_phone || '').replace(/\D/g, '');
-        if (!phone) return auth.notify('Este cliente não possui WhatsApp válido.', 'error');
-        const message = `Olá, ${entry.client_name}! Surgiu uma oportunidade de encaixe${entry.service_name ? ` para ${entry.service_name}` : ''} no Gestano. Quer aproveitar este horário?`;
-        const newWindow = window.open(`https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-        if (newWindow) newWindow.opener = null;
-        await this.updateWaitlist(id, 'contacted');
     },
 
     renderAppointments() {
@@ -3255,6 +3265,7 @@ const admin = {
             if (!document.getElementById('tab-perfil')?.classList.contains('hidden')) this.renderProfilePage({ loadData: false });
             if (!document.getElementById('tab-plano')?.classList.contains('hidden')) this.renderPlanPage({ loadData: false });
             if (agenda.calendar) agenda.populateProfessionalFilter();
+            if (!document.getElementById('tab-agenda')?.classList.contains('hidden')) this.prepareManualAttendanceForm();
         } catch (err) { console.error('Erro ao carregar barbeiros'); }
     },
 
@@ -4471,6 +4482,7 @@ const admin = {
             const res = await auth.apiRequest(`/api/services/${auth.user.id}`);
             this.services = await res.json();
             this.renderServices();
+            if (!document.getElementById('tab-agenda')?.classList.contains('hidden')) this.prepareManualAttendanceForm();
             if (!document.getElementById('tab-plano')?.classList.contains('hidden')) this.renderPlanPage({ loadData: false });
         } catch (err) { console.error('Erro ao carregar serviços'); }
     },

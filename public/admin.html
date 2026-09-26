@@ -511,7 +511,7 @@
                     <div class="agenda-heading-copy">
                         <span class="agenda-kicker">Planejamento da equipe</span>
                         <h2>Agenda</h2>
-                        <p>Visualize os horários, acompanhe os atendimentos e organize os encaixes em um só lugar.</p>
+                        <p>Visualize os horários, acompanhe os atendimentos e registre atendimentos avulsos em um só lugar.</p>
                     </div>
                     <div class="agenda-controls">
                         <label class="agenda-filter-control" for="agenda-professional-filter">
@@ -543,22 +543,25 @@
                         </div>
                         <div id="calendar" class="agenda-calendar"></div>
                     </section>
-                    <aside class="glass waitlist-panel" aria-labelledby="waitlist-title">
+                    <aside class="glass waitlist-panel manual-attendance-panel" aria-labelledby="manual-attendance-title">
                         <div class="section-toolbar">
-                            <div><span class="page-eyebrow">Oportunidades</span><h3 id="waitlist-title">Fila de encaixe</h3><p>Cadastre clientes interessados e chame-os assim que surgir um horário.</p></div>
+                            <div><span class="page-eyebrow">Atendimento avulso</span><h3 id="manual-attendance-title">Registrar atendimento</h3><p>Lance atendimentos realizados fora da agenda e mantenha seu histórico em dia.</p></div>
                         </div>
-                        <div class="waitlist-form">
-                            <input id="waitlist-name" type="text" placeholder="Nome do cliente" aria-label="Nome do cliente da fila de encaixe">
-                            <input id="waitlist-phone" type="tel" placeholder="WhatsApp" aria-label="WhatsApp do cliente da fila de encaixe">
-                            <select id="waitlist-service" aria-label="Serviço desejado"><option value="">Qualquer serviço</option></select>
-                            <input id="waitlist-date" type="date" aria-label="Data desejada">
-                            <button type="button" class="btn btn-primary" onclick="admin.addWaitlistEntry()">Adicionar à fila</button>
-                        </div>
-                        <div class="waitlist-list-heading">
-                            <span>Clientes aguardando</span>
-                            <button type="button" class="btn btn-ghost btn-sm" onclick="admin.loadWaitlist()">Atualizar</button>
-                        </div>
-                        <div id="waitlist-list" class="waitlist-list"><span class="dashboard-empty-note">Carregando encaixes...</span></div>
+                        <form class="waitlist-form manual-attendance-form" onsubmit="admin.registerManualAttendance(event)">
+                            <input id="manual-attendance-name" type="text" placeholder="Nome do cliente" aria-label="Nome do cliente" autocomplete="name" required>
+                            <input id="manual-attendance-phone" type="tel" placeholder="WhatsApp" aria-label="WhatsApp do cliente" autocomplete="tel" required>
+                            <select id="manual-attendance-service" aria-label="Serviço realizado" required><option value="">Selecione o serviço</option></select>
+                            <select id="manual-attendance-professional" aria-label="Profissional responsável" required><option value="">Selecione o profissional</option></select>
+                            <input id="manual-attendance-date" type="date" aria-label="Data do atendimento" required>
+                            <input id="manual-attendance-time" type="time" aria-label="Horário do atendimento" required>
+                            <select id="manual-attendance-payment" aria-label="Forma de pagamento">
+                                <option value="cash">Dinheiro</option>
+                                <option value="pix">Pix</option>
+                                <option value="card">Cartão</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary" id="manual-attendance-submit">Registrar atendimento</button>
+                        </form>
+                        <p class="settings-feedback manual-attendance-feedback" id="manual-attendance-feedback" aria-live="polite"></p>
                     </aside>
                 </div>
             </div>
