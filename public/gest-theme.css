@@ -5453,3 +5453,20 @@ html body.booking-body .booking-date-option:not(.selected):focus-visible:not(:di
         display: none;
     }
 }
+
+/* Compact the sidebar brand area so navigation starts higher on the page. */
+.admin-light .sidebar:not(.collapsed) {
+    padding-top: 12px;
+}
+
+.admin-light .sidebar:not(.collapsed) .sidebar-header {
+    min-height: 0;
+    margin-bottom: 6px;
+    padding: 0 0 10px !important;
+}
+
+.admin-light .sidebar:not(.collapsed) .logo-wordmark-expanded {
+    width: 174px;
+    height: 66px;
+    object-fit: cover;
+}
