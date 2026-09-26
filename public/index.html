@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestano | Gestão de Barbearia</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="gest-theme.css?v=20260925-landing-motion">
+    <link rel="stylesheet" href="gest-theme.css?v=20260925-planifai-inspired-2">
     <link rel="icon" type="image/png" sizes="500x500" href="logoG.png?v=20260925-logoG">
     <link rel="apple-touch-icon" sizes="500x500" href="logoG.png?v=20260925-logoG">
     <link rel="manifest" href="gest.webmanifest?v=20260925-logoG">
@@ -24,11 +24,11 @@
             </div>
             <nav class="landing-nav">
                 <a href="#vision">Funcionalidades</a>
-                <a href="#segments">Para sua barbearia</a>
+                <a href="#booking">Agendamento</a>
+                <a href="#control">Gestão</a>
                 <a href="#faq">Dúvidas</a>
-                <a class="nav-plan" href="#consultation">Ver planos</a>
-                <button type="button" class="nav-cta demo-chat-trigger">Começar agora</button>
-                <a href="admin.html">Acessar</a>
+                <a class="nav-login" href="admin.html">Entrar</a>
+                <button type="button" class="nav-cta demo-chat-trigger">Testar grátis</button>
             </nav>
         </div>
     </header>
@@ -38,105 +38,106 @@
             <div class="landing-container">
                 <div class="hero-content">
                     <span class="hero-tagline"><i></i> Sistema de gestão para barbearias</span>
-                    <h1 class="hero-title">Sua barbearia organizada. <span>Seu crescimento no controle.</span></h1>
-                    <p class="hero-description">Agendamento online, agenda por barbeiro, clientes e financeiro organizados. O Gestano coloca a rotina da sua barbearia no controle, sem complicar.</p>
+                    <h1 class="hero-title">Sua agenda, seus clientes e sua gestão <span>em um só lugar.</span></h1>
+                    <p class="hero-description">Organize a rotina da barbearia, facilite o agendamento dos clientes e acompanhe o negócio com clareza — sem planilhas e sem complicação.</p>
                     <div class="hero-actions">
                         <button type="button" class="btn-premium demo-chat-trigger">
-                            <span>Testar gratuitamente</span>
+                            <span>Quero conhecer o Gestano</span>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
                         </button>
-                        <a class="btn-outline-premium" href="#vision">Conhecer o sistema</a>
                     </div>
                     <div class="hero-note" aria-label="Benefícios de começar">
-                        <span>✓ Sem instalação</span>
-                        <span>✓ Suporte em português</span>
-                        <span>✓ Feito para barbearias</span>
+                        <span>Sem instalação</span>
+                        <span>Suporte humanizado</span>
+                        <span>Feito para barbearias</span>
                     </div>
                 </div>
                 <div class="hero-visual">
-                    <div class="hero-toast"><span></span><small>Novo agendamento</small><strong>João S. · Corte + Barba · 15h30</strong></div>
-                    <div class="hero-dashboard" aria-label="Resumo visual do painel Gestano">
-                        <div class="dashboard-topbar">
+                    <div class="hero-product" aria-label="Demonstração da agenda Gestano">
+                        <div class="product-browser-bar">
                             <div class="dashboard-window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                            <div class="dashboard-brand"><strong>Gestano</strong><small>Visão geral</small></div>
-                            <div class="dashboard-live"><i></i> Ao vivo</div>
+                            <span>app.gestano.com.br</span>
                         </div>
-                        <div class="dashboard-metrics">
-                            <div>
-                                <small>Receita</small>
-                                <strong>R$ 42,8k</strong>
+                        <div class="product-app-shell">
+                            <aside class="product-sidebar">
+                                <img src="logoG.png?v=20260925-logoG" alt="">
+                                <i class="active"></i><i></i><i></i><i></i><i></i>
+                            </aside>
+                            <div class="product-agenda">
+                                <div class="product-agenda-header">
+                                    <div><small>Agenda</small><strong>Hoje, 25 de setembro</strong></div>
+                                    <button type="button" tabindex="-1">+ Novo horário</button>
+                                </div>
+                                <div class="product-days">
+                                    <span><small>SEG</small>22</span><span><small>TER</small>23</span><span><small>QUA</small>24</span><span class="active"><small>QUI</small>25</span><span><small>SEX</small>26</span>
+                                </div>
+                                <div class="product-schedule">
+                                    <div class="schedule-time">09:00</div><div class="schedule-card green"><strong>Marcos Lima</strong><small>Corte degradê · Rafael</small></div>
+                                    <div class="schedule-time">10:30</div><div class="schedule-card sand"><strong>André Souza</strong><small>Corte + barba · Bruno</small></div>
+                                    <div class="schedule-time">13:00</div><div class="schedule-card pale"><strong>Horário disponível</strong><small>Adicionar atendimento</small></div>
+                                    <div class="schedule-time">14:30</div><div class="schedule-card green"><strong>Lucas Rocha</strong><small>Barba · Rafael</small></div>
+                                </div>
                             </div>
-                            <div>
-                                <small>Agenda</small>
-                                <strong>86%</strong>
-                            </div>
-                            <div>
-                                <small>Clientes</small>
-                                <strong>1.248</strong>
-                            </div>
-                        </div>
-                        <div class="dashboard-chart">
-                            <span style="height: 38%"></span>
-                            <span style="height: 62%"></span>
-                            <span style="height: 48%"></span>
-                            <span style="height: 78%"></span>
-                            <span style="height: 56%"></span>
-                            <span style="height: 88%"></span>
-                            <span style="height: 70%"></span>
-                        </div>
-                        <div class="dashboard-list">
-                            <div><span></span><p>Agendamentos confirmados</p><strong>32</strong></div>
-                            <div><span></span><p>Vendas no período</p><strong>148</strong></div>
-                            <div><span></span><p>Equipe em operação</p><strong>12</strong></div>
                         </div>
                     </div>
+                    <div class="hero-toast"><span>✓</span><small>Novo agendamento</small><strong>Corte + barba confirmado para 15h30</strong></div>
                 </div>
             </div>
         </section>
 
-        <section id="segments" class="segments-section">
+        <section class="trust-strip" aria-label="Principais recursos">
+            <div class="landing-container">
+                <span>Agenda online 24 horas</span>
+                <span>Gestão da equipe</span>
+                <span>Clientes e fidelidade</span>
+                <span>Financeiro integrado</span>
+            </div>
+        </section>
+
+        <section id="booking" class="booking-section">
+            <div class="landing-container">
+                <div class="booking-copy">
+                    <span class="section-label">Agenda e agendamento</span>
+                    <h2>Sua barbearia disponível para o cliente, mesmo fora do horário.</h2>
+                    <p>Compartilhe sua página de agendamento e deixe cada cliente escolher o serviço, o profissional e o melhor horário pelo celular.</p>
+                    <ul class="landing-checklist">
+                        <li><span>✓</span> Página personalizada para sua barbearia</li>
+                        <li><span>✓</span> Horários organizados por profissional</li>
+                        <li><span>✓</span> Menos mensagens para marcar e remarcar</li>
+                    </ul>
+                    <a class="section-text-link" href="#consultation">Ver como funciona <span>→</span></a>
+                </div>
+                <div class="booking-visual" aria-label="Página de agendamento no celular">
+                    <div class="booking-orbit booking-orbit-one"></div>
+                    <div class="booking-orbit booking-orbit-two"></div>
+                    <div class="booking-phone">
+                        <div class="booking-phone-speaker"></div>
+                        <div class="booking-phone-screen">
+                            <div class="booking-mini-brand"><img src="logoG.png?v=20260925-logoG" alt=""><div><strong>Barbearia Central</strong><small>Agendamento online</small></div></div>
+                            <p>Escolha um serviço</p>
+                            <div class="booking-service selected"><span><strong>Corte masculino</strong><small>45 min</small></span><b>R$ 45</b></div>
+                            <div class="booking-service"><span><strong>Corte + barba</strong><small>1h</small></span><b>R$ 70</b></div>
+                            <p>Melhor horário</p>
+                            <div class="booking-date-row"><span>14:00</span><span class="selected">15:30</span><span>17:00</span></div>
+                            <button type="button" tabindex="-1">Continuar</button>
+                        </div>
+                    </div>
+                    <div class="booking-floating-card"><span>✓</span><div><small>Agendamento confirmado</small><strong>Quinta-feira, 15h30</strong></div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="workflow-section">
             <div class="landing-container">
                 <div class="section-heading section-heading-centered">
-                    <span class="section-label">Tudo o que sua rotina precisa</span>
-                    <h2>Uma operação completa, sem complicação.</h2>
-                    <p>As ferramentas essenciais para atender melhor e tomar decisões com mais segurança.</p>
+                    <span class="section-label">Uma rotina conectada</span>
+                    <h2>Do agendamento ao fechamento do caixa.</h2>
+                    <p>O Gestano mantém cada etapa da operação organizada para você ganhar tempo e enxergar melhor o negócio.</p>
                 </div>
-                <div class="segments-grid">
-                    <span>Agendamento online</span>
-                    <span>Agenda por barbeiro</span>
-                    <span>Lembretes e confirmações</span>
-                    <span>Histórico do cliente</span>
-                    <span>Vendas e produtos</span>
-                    <span>Financeiro claro</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="numbers-section">
-            <div class="landing-container">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-label">Uma visão mais simples do seu negócio</span>
-                        <h2>Menos tarefas soltas.<br>Mais tempo para crescer.</h2>
-                    </div>
-                    <p>O Gestano conecta atendimento, operação e gestão para sua equipe trabalhar no mesmo ritmo.</p>
-                </div>
-                <div class="numbers-grid">
-                    <div>
-                        <span class="metric-index">01 · Agenda</span>
-                        <strong>24/7</strong>
-                        <p>Seu cliente pode encontrar um horário e agendar mesmo quando a barbearia está fechada.</p>
-                    </div>
-                    <div>
-                        <span class="metric-index">02 · Operação</span>
-                        <strong>1 painel</strong>
-                        <p>Agenda, equipe, clientes, serviços, vendas e financeiro em uma única visão.</p>
-                    </div>
-                    <div>
-                        <span class="metric-index">03 · Gestão</span>
-                        <strong>Mais controle</strong>
-                        <p>Menos retrabalho no dia a dia e mais clareza para decidir os próximos passos.</p>
-                    </div>
+                <div class="workflow-grid">
+                    <article><span>01</span><div class="workflow-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 10h18"></path></svg></div><h3>O cliente agenda</h3><p>Ele escolhe serviço, profissional e horário na sua página.</p></article>
+                    <article><span>02</span><div class="workflow-icon"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-3-6"></path><path d="M20 4v7h-7"></path><path d="M8 12l3 3 5-6"></path></svg></div><h3>Sua equipe atende</h3><p>A agenda mostra o que precisa acontecer ao longo do dia.</p></article>
+                    <article><span>03</span><div class="workflow-icon"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path></svg></div><h3>Você acompanha</h3><p>Vendas, clientes e financeiro ficam reunidos no mesmo painel.</p></article>
                 </div>
             </div>
         </section>
@@ -144,9 +145,9 @@
         <section id="vision" class="features-section">
             <div class="landing-container">
                 <div class="section-heading section-heading-centered">
-                    <span class="section-label">Por que o Gestano funciona</span>
-                    <h2>Tudo conversa dentro do mesmo sistema.</h2>
-                    <p>Uma experiência simples para sua equipe e profissional para seus clientes.</p>
+                    <span class="section-label">Gestão completa</span>
+                    <h2>As ferramentas certas, sem deixar o sistema complicado.</h2>
+                    <p>Uma experiência simples para quem administra, para a equipe e para os clientes.</p>
                 </div>
                 <div class="features-grid">
                     <div class="feature-item">
@@ -183,28 +184,27 @@
             </div>
         </section>
 
-        <section class="ai-section">
+        <section id="control" class="control-section">
             <div class="landing-container">
-                <div class="ai-content">
-                    <span class="hero-tagline">Automação e inteligência</span>
-                    <h2>Faça mais em menos tempo com rotinas inteligentes.</h2>
-                    <p>O Gestano ajuda sua equipe a priorizar clientes, enxergar oportunidades e reduzir tarefas repetitivas no atendimento e na gestão da barbearia.</p>
+                <div class="control-copy">
+                    <span class="section-label">Visão do negócio</span>
+                    <h2>Decisões melhores começam com informações claras.</h2>
+                    <p>Acompanhe a movimentação da barbearia em um painel limpo, com os indicadores essenciais para entender a operação.</p>
+                    <div class="control-points">
+                        <div><strong>Financeiro</strong><span>Entradas, despesas e resultado do período.</span></div>
+                        <div><strong>Equipe</strong><span>Agenda e desempenho por profissional.</span></div>
+                        <div><strong>Clientes</strong><span>Histórico, retorno e relacionamento.</span></div>
+                    </div>
                 </div>
-                <div class="ai-grid">
-                    <div>
-                        <span class="ai-card-number">01</span>
-                        <h3>WhatsApp consultivo</h3>
-                        <p>Capture interessados, confirme dados e encaminhe conversas para o time comercial.</p>
-                    </div>
-                    <div>
-                        <span class="ai-card-number">02</span>
-                        <h3>Retenção ativa</h3>
-                        <p>Identifique clientes parados e acione campanhas para trazer receita de volta.</p>
-                    </div>
-                    <div>
-                        <span class="ai-card-number">03</span>
-                        <h3>Cobrança organizada</h3>
-                        <p>Reduza esquecimentos e acompanhe pendências com uma visão clara do financeiro.</p>
+                <div class="control-dashboard" aria-label="Painel de gestão Gestano">
+                    <div class="control-dashboard-top"><span><i></i><i></i><i></i></span><b>Visão geral</b><small>Este mês</small></div>
+                    <div class="control-dashboard-body">
+                        <aside><img src="logoG.png?v=20260925-logoG" alt=""><span class="active"></span><span></span><span></span><span></span></aside>
+                        <div class="control-dashboard-main">
+                            <p>Olá, vamos acompanhar sua barbearia?</p>
+                            <div class="control-metrics"><div><small>Faturamento</small><strong>R$ 18.540</strong><em>↑ 12%</em></div><div><small>Atendimentos</small><strong>286</strong><em>↑ 8%</em></div><div><small>Ticket médio</small><strong>R$ 64,82</strong><em>↑ 4%</em></div></div>
+                            <div class="control-chart-card"><div><strong>Movimentação</strong><small>Últimos 7 dias</small></div><div class="control-chart"><span style="height:35%"></span><span style="height:52%"></span><span style="height:44%"></span><span style="height:72%"></span><span style="height:60%"></span><span style="height:86%"></span><span style="height:68%"></span></div></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -214,9 +214,9 @@
             <div class="landing-container">
                 <div class="consultation-content">
                     <span class="hero-tagline" style="margin-bottom: 20px; display: inline-block;">Demonstração gratuita</span>
-                    <h2>Veja na prática como o Gestano se encaixa na sua barbearia.</h2>
-                    <p>Fale com um consultor, conte como sua operação funciona e receba uma apresentação guiada com os módulos que fazem sentido para o seu negócio.</p>
-                    <button type="button" class="btn-premium demo-chat-trigger"><span>Pedir demonstração gratuita</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+                    <h2>Pronto para organizar sua barbearia de verdade?</h2>
+                    <p>Conheça o Gestano em uma apresentação rápida e veja como o sistema se adapta à rotina do seu negócio.</p>
+                    <button type="button" class="btn-premium demo-chat-trigger"><span>Quero uma demonstração</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
                     <div class="consultation-proof" aria-label="Condições da demonstração">
                         <span>Sem compromisso</span>
                         <span>Apresentação personalizada</span>
@@ -499,14 +499,15 @@
         });
 
         const revealSelector = [
-            '.landing-body .segments-section .section-heading',
-            '.landing-body .segments-grid span',
-            '.landing-body .numbers-section .section-heading',
-            '.landing-body .numbers-grid > div',
+            '.landing-body .trust-strip span',
+            '.landing-body .booking-copy',
+            '.landing-body .booking-visual',
+            '.landing-body .workflow-section .section-heading',
+            '.landing-body .workflow-grid article',
             '.landing-body .features-section .section-heading',
             '.landing-body .feature-item',
-            '.landing-body .ai-content',
-            '.landing-body .ai-grid > div',
+            '.landing-body .control-copy',
+            '.landing-body .control-dashboard',
             '.landing-body .consultation-content',
             '.landing-body .faq-section .section-heading',
             '.landing-body .faq-item',
@@ -515,7 +516,7 @@
         const revealItems = Array.from(document.querySelectorAll(revealSelector));
 
         revealItems.forEach((item, index) => {
-            const isTextBlock = item.matches('.section-heading, .ai-content, .consultation-content, .landing-footer .landing-container');
+            const isTextBlock = item.matches('.section-heading, .booking-copy, .control-copy, .consultation-content, .landing-footer .landing-container');
             item.classList.add('reveal-on-scroll', isTextBlock ? 'reveal-zoom' : 'reveal-lift');
             item.style.setProperty('--reveal-delay', `${Math.min(index % 5, 4) * 70}ms`);
         });
