@@ -4510,11 +4510,12 @@ const agenda = {
         this.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
             headerToolbar: {
-                left: 'prev,next',
+                left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             buttonText: {
+                today: 'Hoje',
                 month: 'Mês',
                 week: 'Semana',
                 day: 'Dia'
