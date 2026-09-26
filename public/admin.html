@@ -982,6 +982,99 @@
                 </div>
             </div>
 
+            <!-- TAB PLANO E FATURAMENTO -->
+            <div id="tab-plano" class="hidden">
+                <div class="admin-plan-page">
+                    <div class="admin-plan-heading">
+                        <div>
+                            <button type="button" class="admin-plan-back" onclick="admin.showTab('perfil')"><span aria-hidden="true">&larr;</span> Perfil</button>
+                            <span class="admin-plan-eyebrow">Conta Gestano</span>
+                            <h2>Plano &amp; faturamento</h2>
+                            <p>Tenha clareza sobre o seu plano, o uso da conta e os pr&oacute;ximos passos.</p>
+                        </div>
+                    </div>
+
+                    <section class="glass admin-plan-trial-card">
+                        <div class="admin-plan-card-heading">
+                            <div class="admin-plan-card-title">
+                                <span class="admin-plan-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 7v13M12 7H8.5a2.5 2.5 0 1 1 0-5C12 2 12 7 12 7ZM12 7h3.5a2.5 2.5 0 1 0 0-5C12 2 12 7 12 7Z"></path></svg></span>
+                                <div><h3>Seu teste gr&aacute;tis</h3><span class="admin-plan-status">Ativo</span></div>
+                            </div>
+                            <strong class="admin-plan-trial-days">14 de 14 dias restantes</strong>
+                        </div>
+                        <div class="admin-plan-progress"><span style="width: 100%"></span></div>
+                        <p class="admin-plan-trial-caption">Aproveite todos os recursos enquanto conhece o Gestano. Sem cobran&ccedil;a autom&aacute;tica e sem surpresas.</p>
+                        <div class="admin-plan-benefits">
+                            <span><b aria-hidden="true">&check;</b> Atendente IA 24h no WhatsApp</span>
+                            <span><b aria-hidden="true">&check;</b> Lembretes autom&aacute;ticos</span>
+                            <span><b aria-hidden="true">&check;</b> Agenda que se preenche sozinha</span>
+                            <span><b aria-hidden="true">&check;</b> Pesquisa de satisfa&ccedil;&atilde;o</span>
+                        </div>
+                        <div class="admin-plan-trial-note">Ap&oacute;s o teste, voc&ecirc; poder&aacute; escolher o plano ideal para o momento da sua barbearia.</div>
+                    </section>
+
+                    <section class="glass admin-plan-usage-card">
+                        <div class="admin-plan-section-heading"><div><span class="admin-plan-eyebrow">Acompanhamento</span><h3>Uso do plano</h3></div><span class="admin-plan-updated">Atualizado agora</span></div>
+                        <div class="admin-plan-usage-grid">
+                            <div class="admin-plan-usage-item">
+                                <div class="admin-plan-usage-label"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Profissionais</span><strong id="plan-usage-professionals">0/5</strong></div>
+                                <div class="admin-plan-usage-track"><span id="plan-usage-professionals-bar" style="width: 0%"></span></div>
+                            </div>
+                            <div class="admin-plan-usage-item">
+                                <div class="admin-plan-usage-label"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h5"></path></svg>Servi&ccedil;os</span><strong id="plan-usage-services">0/150</strong></div>
+                                <div class="admin-plan-usage-track"><span id="plan-usage-services-bar" style="width: 0%"></span></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-plan-options">
+                        <div class="admin-plan-options-heading">
+                            <div><span class="admin-plan-eyebrow">Escolha com calma</span><h3>Quando decidir, estes s&atilde;o os planos</h3></div>
+                            <div class="admin-plan-cycle" role="tablist" aria-label="Periodicidade de pagamento">
+                                <button type="button" class="is-active" id="plan-cycle-monthly" role="tab" aria-selected="true" onclick="admin.setPlanCycle('monthly')">Mensal</button>
+                                <button type="button" id="plan-cycle-annual" role="tab" aria-selected="false" onclick="admin.setPlanCycle('annual')">Anual</button>
+                            </div>
+                        </div>
+                        <p class="admin-plan-savings" id="plan-cycle-note">Economize 20% no plano anual</p>
+
+                        <div class="admin-plan-cards">
+                            <article class="admin-plan-card" data-plan-card="expansao">
+                                <div class="admin-plan-card-top"><div><h4>Expans&atilde;o</h4><p>Para equipes em expans&atilde;o</p></div></div>
+                                <div class="admin-plan-price"><strong id="plan-price-expansao">R$ 119,90</strong><span id="plan-period-expansao">/m&ecirc;s</span></div>
+                                <ul class="admin-plan-feature-list">
+                                    <li>At&eacute; 5 profissionais</li><li>Sua equipe acessa de qualquer celular</li><li>At&eacute; 150 servi&ccedil;os</li><li>Atendente IA 24h no WhatsApp</li><li>Lembretes para todos</li><li>Pesquisa de satisfa&ccedil;&atilde;o autom&aacute;tica</li><li>Hist&oacute;rico de conversas da IA</li><li>Agenda que se preenche sozinha</li><li>Relat&oacute;rios e comiss&atilde;o por profissional</li><li>Sua p&aacute;gina e seus links pro cliente sem a marca Gestano</li>
+                                </ul>
+                                <button type="button" class="admin-plan-choose" onclick="admin.selectPlan('expansao')">Escolher Expans&atilde;o</button>
+                            </article>
+
+                            <article class="admin-plan-card is-popular" data-plan-card="equipe">
+                                <span class="admin-plan-popular"><span aria-hidden="true">&#9734;</span> Mais popular</span>
+                                <div class="admin-plan-card-top"><div><h4>Equipe</h4><p>Para neg&oacute;cios em crescimento</p></div></div>
+                                <div class="admin-plan-price"><strong id="plan-price-equipe">R$ 79,90</strong><span id="plan-period-equipe">/m&ecirc;s</span></div>
+                                <ul class="admin-plan-feature-list">
+                                    <li>At&eacute; 3 profissionais</li><li>Sua equipe acessa de qualquer celular</li><li>At&eacute; 80 servi&ccedil;os</li><li>Atendente IA 24h no WhatsApp</li><li>Lembretes para todos</li><li>Pesquisa de satisfa&ccedil;&atilde;o autom&aacute;tica</li><li>Hist&oacute;rico de conversas da IA</li><li>Agenda que se preenche sozinha</li><li>Relat&oacute;rios e comiss&atilde;o por profissional</li><li>Sua p&aacute;gina e seus links pro cliente sem a marca Gestano</li>
+                                </ul>
+                                <button type="button" class="admin-plan-choose" onclick="admin.selectPlan('equipe')">Escolher Equipe</button>
+                            </article>
+
+                            <article class="admin-plan-card" data-plan-card="essencial">
+                                <div class="admin-plan-card-top"><div><h4>Essencial</h4><p>Para profissionais solo</p></div></div>
+                                <div class="admin-plan-price"><strong id="plan-price-essencial">R$ 49,90</strong><span id="plan-period-essencial">/m&ecirc;s</span></div>
+                                <ul class="admin-plan-feature-list">
+                                    <li>1 profissional</li><li>At&eacute; 40 servi&ccedil;os</li><li>Atendente IA 24h no WhatsApp</li><li>Lembretes para todos</li><li>Pesquisa de satisfa&ccedil;&atilde;o autom&aacute;tica</li><li>Hist&oacute;rico de conversas da IA</li><li>Agenda que se preenche sozinha</li><li>Relat&oacute;rios do seu movimento</li><li>Sua p&aacute;gina e seus links pro cliente sem a marca Gestano</li>
+                                </ul>
+                                <button type="button" class="admin-plan-choose" onclick="admin.selectPlan('essencial')">Escolher Essencial</button>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="glass admin-plan-history-card">
+                        <div><span class="admin-plan-eyebrow">Hist&oacute;rico</span><h3>Pagamentos e cobran&ccedil;as</h3><p>Seus pagamentos aparecer&atilde;o aqui quando um plano pago estiver ativo.</p></div>
+                        <span class="admin-plan-history-empty">Nenhum pagamento registrado</span>
+                    </section>
+                </div>
+            </div>
+
             <div id="tab-administracao" class="hidden">
                 <div class="admin-panel-heading">
                     <div>

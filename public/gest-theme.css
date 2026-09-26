@@ -8402,6 +8402,495 @@ html body.admin-light #tab-perfil button:focus-visible {
     }
 }
 
+/* Plan and billing hub: pricing and account status in the same Gestano language. */
+html body.admin-light #tab-plano .admin-plan-page {
+    display: grid;
+    gap: 20px;
+    max-width: 1240px;
+    padding-bottom: 34px;
+}
+
+html body.admin-light #tab-plano .admin-plan-heading {
+    padding: 4px 2px 2px;
+}
+
+html body.admin-light #tab-plano .admin-plan-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 18px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #667085;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.9rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-back:hover {
+    color: #148b77;
+}
+
+html body.admin-light #tab-plano .admin-plan-eyebrow {
+    display: block;
+    color: #168c79;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+html body.admin-light #tab-plano .admin-plan-heading h2 {
+    margin: 6px 0 5px;
+    color: #172033;
+    font-family: Outfit, Inter, sans-serif;
+    font-size: clamp(1.8rem, 3vw, 2.45rem);
+    letter-spacing: -0.04em;
+}
+
+html body.admin-light #tab-plano .admin-plan-heading p,
+html body.admin-light #tab-plano .admin-plan-trial-caption,
+html body.admin-light #tab-plano .admin-plan-history-card p {
+    margin: 0;
+    color: #667085;
+    font-size: 0.92rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-trial-card,
+html body.admin-light #tab-plano .admin-plan-usage-card,
+html body.admin-light #tab-plano .admin-plan-history-card {
+    border: 1px solid #e6e8e4;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(23, 32, 51, 0.045);
+}
+
+html body.admin-light #tab-plano .admin-plan-trial-card {
+    padding: 24px 28px;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-heading,
+html body.admin-light #tab-plano .admin-plan-section-heading,
+html body.admin-light #tab-plano .admin-plan-options-heading,
+html body.admin-light #tab-plano .admin-plan-history-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 12px;
+    background: #eef8f5;
+    color: #15967f;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-icon svg,
+html body.admin-light #tab-plano .admin-plan-usage-label svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-title h3,
+html body.admin-light #tab-plano .admin-plan-section-heading h3,
+html body.admin-light #tab-plano .admin-plan-history-card h3 {
+    margin: 3px 0 0;
+    color: #273246;
+    font-family: Outfit, Inter, sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-title > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+html body.admin-light #tab-plano .admin-plan-status {
+    display: inline-flex;
+    min-height: 23px;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #e5f6ef;
+    color: #12856f;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+html body.admin-light #tab-plano .admin-plan-trial-days {
+    color: #667085;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+html body.admin-light #tab-plano .admin-plan-progress,
+html body.admin-light #tab-plano .admin-plan-usage-track {
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf0ee;
+}
+
+html body.admin-light #tab-plano .admin-plan-progress {
+    height: 9px;
+    margin: 20px 0 12px;
+}
+
+html body.admin-light #tab-plano .admin-plan-progress span,
+html body.admin-light #tab-plano .admin-plan-usage-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #1aa78f;
+}
+
+html body.admin-light #tab-plano .admin-plan-trial-caption {
+    line-height: 1.5;
+}
+
+html body.admin-light #tab-plano .admin-plan-benefits {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 28px;
+    margin-top: 20px;
+    color: #667085;
+    font-size: 0.88rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-benefits span {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+html body.admin-light #tab-plano .admin-plan-benefits b {
+    color: #149a84;
+    font-size: 1rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-trial-note {
+    margin-top: 20px;
+    padding: 13px 15px;
+    border: 1px solid #e7ebe8;
+    border-radius: 12px;
+    background: #fbfcfb;
+    color: #667085;
+    font-size: 0.86rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-trial-note strong {
+    color: #273246;
+}
+
+html body.admin-light #tab-plano .admin-plan-usage-card {
+    padding: 22px 28px 24px;
+}
+
+html body.admin-light #tab-plano .admin-plan-section-heading {
+    align-items: flex-start;
+}
+
+html body.admin-light #tab-plano .admin-plan-updated {
+    color: #9ba5a3;
+    font-size: 0.78rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-usage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+    margin-top: 22px;
+}
+
+html body.admin-light #tab-plano .admin-plan-usage-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-usage-label span {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+
+html body.admin-light #tab-plano .admin-plan-usage-label svg {
+    color: #77858c;
+}
+
+html body.admin-light #tab-plano .admin-plan-usage-label strong {
+    color: #273246;
+    font-size: 0.9rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-usage-track {
+    height: 8px;
+}
+
+html body.admin-light #tab-plano .admin-plan-options {
+    padding-top: 4px;
+}
+
+html body.admin-light #tab-plano .admin-plan-options-heading {
+    align-items: flex-end;
+}
+
+html body.admin-light #tab-plano .admin-plan-options-heading h3 {
+    margin: 5px 0 0;
+    color: #273246;
+    font-family: Outfit, Inter, sans-serif;
+    font-size: 1.42rem;
+    letter-spacing: -0.03em;
+}
+
+html body.admin-light #tab-plano .admin-plan-cycle {
+    display: inline-flex;
+    padding: 4px;
+    border-radius: 999px;
+    background: #e9ebe9;
+}
+
+html body.admin-light #tab-plano .admin-plan-cycle button {
+    min-width: 82px;
+    min-height: 36px;
+    padding: 7px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #667085;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+html body.admin-light #tab-plano .admin-plan-cycle button.is-active {
+    background: #ffffff;
+    color: #273246;
+    box-shadow: 0 2px 5px rgba(23, 32, 51, 0.09);
+}
+
+html body.admin-light #tab-plano .admin-plan-savings {
+    margin: 11px 0 24px;
+    color: #16a35f;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+html body.admin-light #tab-plano .admin-plan-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 18px;
+}
+
+html body.admin-light #tab-plano .admin-plan-card {
+    position: relative;
+    display: flex;
+    min-height: 530px;
+    flex-direction: column;
+    padding: 24px 24px 20px;
+    border: 1px solid #e6e8e4;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(23, 32, 51, 0.045);
+}
+
+html body.admin-light #tab-plano .admin-plan-card.is-popular {
+    border-color: #23b69c;
+    box-shadow: 0 14px 30px rgba(26, 167, 143, 0.13);
+}
+
+html body.admin-light #tab-plano .admin-plan-popular {
+    position: absolute;
+    top: -13px;
+    left: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #18a88e;
+    color: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-top h4 {
+    margin: 0;
+    color: #273246;
+    font-family: Outfit, Inter, sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: -0.03em;
+}
+
+html body.admin-light #tab-plano .admin-plan-card-top p {
+    margin: 4px 0 0;
+    color: #667085;
+    font-size: 0.86rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    margin: 24px 0 20px;
+}
+
+html body.admin-light #tab-plano .admin-plan-price strong {
+    color: #273246;
+    font-family: Outfit, Inter, sans-serif;
+    font-size: clamp(2rem, 3vw, 2.45rem);
+    letter-spacing: -0.05em;
+}
+
+html body.admin-light #tab-plano .admin-plan-price span {
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+html body.admin-light #tab-plano .admin-plan-feature-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: #667085;
+    font-size: 0.85rem;
+    line-height: 1.42;
+}
+
+html body.admin-light #tab-plano .admin-plan-feature-list li {
+    display: flex;
+    gap: 9px;
+}
+
+html body.admin-light #tab-plano .admin-plan-feature-list li::before {
+    content: "✓";
+    flex: 0 0 12px;
+    color: #72818a;
+    font-weight: 700;
+}
+
+html body.admin-light #tab-plano .admin-plan-choose {
+    width: 100%;
+    min-height: 46px;
+    margin-top: auto;
+    padding: 11px 16px;
+    border: 1px solid #dfe5e2;
+    border-radius: 13px;
+    background: #ffffff;
+    color: #273246;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 800;
+    transition: border-color 150ms ease, background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+html body.admin-light #tab-plano .admin-plan-card.is-popular .admin-plan-choose,
+html body.admin-light #tab-plano .admin-plan-choose:hover {
+    border-color: #18a88e;
+    background: #18a88e;
+    color: #ffffff;
+}
+
+html body.admin-light #tab-plano .admin-plan-choose:hover {
+    transform: translateY(-1px);
+}
+
+html body.admin-light #tab-plano .admin-plan-history-card {
+    align-items: flex-start;
+    padding: 22px 28px;
+}
+
+html body.admin-light #tab-plano .admin-plan-history-empty {
+    flex: 0 0 auto;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #f4f6f5;
+    color: #667085;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+html body.admin-light #tab-plano button:focus,
+html body.admin-light #tab-plano button:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+@media (max-width: 980px) {
+    html body.admin-light #tab-plano .admin-plan-cards {
+        grid-template-columns: 1fr;
+    }
+
+    html body.admin-light #tab-plano .admin-plan-card {
+        min-height: auto;
+    }
+
+    html body.admin-light #tab-plano .admin-plan-feature-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    html body.admin-light #tab-plano .admin-plan-choose {
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 640px) {
+    html body.admin-light #tab-plano .admin-plan-card-heading,
+    html body.admin-light #tab-plano .admin-plan-section-heading,
+    html body.admin-light #tab-plano .admin-plan-options-heading,
+    html body.admin-light #tab-plano .admin-plan-history-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    html body.admin-light #tab-plano .admin-plan-trial-card,
+    html body.admin-light #tab-plano .admin-plan-usage-card,
+    html body.admin-light #tab-plano .admin-plan-history-card {
+        padding: 20px;
+    }
+
+    html body.admin-light #tab-plano .admin-plan-trial-days {
+        margin-left: 52px;
+    }
+
+    html body.admin-light #tab-plano .admin-plan-benefits,
+    html body.admin-light #tab-plano .admin-plan-usage-grid,
+    html body.admin-light #tab-plano .admin-plan-feature-list {
+        grid-template-columns: 1fr;
+    }
+
+    html body.admin-light #tab-plano .admin-plan-savings {
+        text-align: left;
+    }
+}
+
 /* Use explicit plus/minus controls for expandable sidebar groups. */
 html body.admin-light .sidebar-nav-scroll nav .nav-group-chevron {
     width: 22px;

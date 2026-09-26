@@ -736,6 +736,7 @@ const admin = {
             servicos: 'Serviços',
             configuracoes: 'Ajustes',
             perfil: 'Perfil',
+            plano: 'Plano e faturamento',
             administracao: 'Administração'
         };
         const label = loader.querySelector('[data-navigation-label]');
@@ -755,7 +756,7 @@ const admin = {
 
     activateTab(tab) {
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'perfil', 'comissoes', 'billing', 'relatorios', 'despesas', 'administracao'];
+        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'perfil', 'plano', 'comissoes', 'billing', 'relatorios', 'despesas', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -831,6 +832,10 @@ const admin = {
 
         if (tab === 'perfil') {
             this.renderProfilePage();
+        }
+
+        if (tab === 'plano') {
+            this.renderPlanPage();
         }
 
         if (tab === 'comissoes') {
@@ -3229,6 +3234,7 @@ const admin = {
             this.professionals = await res.json();
             this.renderProfessionals();
             if (!document.getElementById('tab-perfil')?.classList.contains('hidden')) this.renderProfilePage({ loadData: false });
+            if (!document.getElementById('tab-plano')?.classList.contains('hidden')) this.renderPlanPage({ loadData: false });
             if (agenda.calendar) agenda.populateProfessionalFilter();
         } catch (err) { console.error('Erro ao carregar barbeiros'); }
     },
@@ -4200,6 +4206,52 @@ const admin = {
         window.setTimeout(() => document.querySelector('#tab-configuracoes .settings-schedule-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30);
     },
 
+    renderPlanPage({ loadData = true } = {}) {
+        const professionalCount = Array.isArray(this.professionals) ? this.professionals.length : 0;
+        const serviceCount = Array.isArray(this.services) ? this.services.length : 0;
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+        const setWidth = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.style.width = Math.min(100, Math.max(0, value)) + '%';
+        };
+
+        setText('plan-usage-professionals', professionalCount + '/5');
+        setText('plan-usage-services', serviceCount + '/150');
+        setWidth('plan-usage-professionals-bar', professionalCount / 5 * 100);
+        setWidth('plan-usage-services-bar', serviceCount / 150 * 100);
+        this.setPlanCycle(this.planCycle || 'monthly');
+
+        if (loadData) {
+            if (!this.professionals?.length) this.loadProfessionals();
+            if (!this.services?.length) this.loadServices();
+        }
+    },
+
+    setPlanCycle(cycle = 'monthly') {
+        this.planCycle = cycle === 'annual' ? 'annual' : 'monthly';
+        const prices = this.planCycle === 'annual'
+            ? { expansao: 'R$ 95,92', equipe: 'R$ 63,92', essencial: 'R$ 39,92' }
+            : { expansao: 'R$ 119,90', equipe: 'R$ 79,90', essencial: 'R$ 49,90' };
+        Object.entries(prices).forEach(([plan, price]) => {
+            document.getElementById('plan-price-' + plan)?.replaceChildren(price);
+            document.getElementById('plan-period-' + plan)?.replaceChildren(this.planCycle === 'annual' ? '/mês no anual' : '/mês');
+        });
+        document.getElementById('plan-cycle-monthly')?.classList.toggle('is-active', this.planCycle === 'monthly');
+        document.getElementById('plan-cycle-annual')?.classList.toggle('is-active', this.planCycle === 'annual');
+        document.getElementById('plan-cycle-monthly')?.setAttribute('aria-selected', String(this.planCycle === 'monthly'));
+        document.getElementById('plan-cycle-annual')?.setAttribute('aria-selected', String(this.planCycle === 'annual'));
+        const note = document.getElementById('plan-cycle-note');
+        if (note) note.textContent = this.planCycle === 'annual' ? '20% de economia no plano anual' : 'Economize 20% no plano anual';
+    },
+
+    selectPlan(plan) {
+        const labels = { expansao: 'Expansão', equipe: 'Equipe', essencial: 'Essencial' };
+        auth.notify('O plano ' + (labels[plan] || 'selecionado') + ' ficará disponível para ativação após a configuração do pagamento.', 'info');
+    },
+
     collectBookingSettings() {
         const weeklySchedule = {};
         document.querySelectorAll('.booking-schedule-row').forEach(row => {
@@ -4316,6 +4368,7 @@ const admin = {
             const res = await auth.apiRequest(`/api/services/${auth.user.id}`);
             this.services = await res.json();
             this.renderServices();
+            if (!document.getElementById('tab-plano')?.classList.contains('hidden')) this.renderPlanPage({ loadData: false });
         } catch (err) { console.error('Erro ao carregar serviços'); }
     },
 
@@ -5033,7 +5086,7 @@ const ui = {
 
     openBillingFromProfile() {
         this.closeProfileMenu();
-        admin.showTab('billing');
+        admin.showTab('plano');
     },
 
     shareFromProfile() {
