@@ -285,6 +285,17 @@ const slugifyBusinessName = value => String(value || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '');
 
+const businessNameAlreadyExists = async (shopName, ignoredId = null) => {
+    const slug = slugifyBusinessName(shopName);
+    if (!slug) return false;
+
+    const result = ignoredId === null
+        ? await pool.query('SELECT id, shop_name FROM barbers')
+        : await pool.query('SELECT id, shop_name FROM barbers WHERE id <> $1', [ignoredId]);
+
+    return result.rows.some(row => slugifyBusinessName(row.shop_name) === slug);
+};
+
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -878,6 +889,9 @@ app.patch('/api/profile', authenticateToken, async (req, res) => {
 
     try {
         await ensureProfileSchema();
+        if (await businessNameAlreadyExists(shopName, Number(req.user.id))) {
+            return res.status(409).json({ success: false, message: 'Este nome de estabelecimento já está cadastrado. Escolha outro nome.' });
+        }
         const result = await pool.query(
             'UPDATE barbers SET shop_name = $1, owner_name = $2, owner_phone = $3 WHERE id = $4 RETURNING id, email, shop_name, owner_name, owner_phone, is_admin, permissions, is_active',
             [shopName, name, phone, req.user.id]
@@ -1027,8 +1041,9 @@ app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =>
 
 app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
     const { email, password, shop, role = 'operador', permissions, isActive = true } = req.body;
+    const shopName = String(shop || '').trim().replace(/\s+/g, ' ');
 
-    if (!email || !password || !shop) {
+    if (!email || !password || !shopName) {
         return res.status(400).json({ success: false, message: 'Informe nome da barbearia, e-mail e senha.' });
     }
 
@@ -1037,6 +1052,9 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
     }
 
     try {
+        if (await businessNameAlreadyExists(shopName)) {
+            return res.status(409).json({ success: false, message: 'Este nome de estabelecimento já está cadastrado. Escolha outro nome.' });
+        }
         const hashedPassword = await bcrypt.hash(password, 10);
         const isAdmin = role === 'administrador';
         const normalizedPermissions = normalizePermissions(permissions, isAdmin);
@@ -1044,7 +1062,7 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
             `INSERT INTO barbers (email, password, shop_name, is_admin, permissions, is_active)
              VALUES ($1, $2, $3, $4, $5::jsonb, $6)
              RETURNING id, email, shop_name, is_admin, (email = $7) AS is_main_admin, permissions, is_active, created_at`,
-            [email, hashedPassword, shop, isAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), ADMIN_EMAIL]
+            [email, hashedPassword, shopName, isAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), ADMIN_EMAIL]
         );
 
         res.status(201).json({ success: true, user: result.rows[0] });
@@ -1060,8 +1078,9 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
 app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { email, password, shop, role = 'operador', permissions, isActive = true } = req.body;
+    const shopName = String(shop || '').trim().replace(/\s+/g, ' ');
 
-    if (!email || !shop) {
+    if (!email || !shopName) {
         return res.status(400).json({ success: false, message: 'Informe nome da barbearia e e-mail.' });
     }
 
@@ -1102,7 +1121,7 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
                  SET email = $1, shop_name = $2, password = $3, is_admin = $4, permissions = $5::jsonb, is_active = $6
                  WHERE id = $7
                  RETURNING id, email, shop_name, is_admin, (email = $8) AS is_main_admin, permissions, is_active, created_at`,
-                [email, shop, hashedPassword, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
+                [email, shopName, hashedPassword, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
             );
         } else {
             result = await pool.query(
@@ -1110,7 +1129,7 @@ app.patch('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, r
                  SET email = $1, shop_name = $2, is_admin = $3, permissions = $4::jsonb, is_active = $5
                  WHERE id = $6
                  RETURNING id, email, shop_name, is_admin, (email = $7) AS is_main_admin, permissions, is_active, created_at`,
-                [email, shop, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
+                [email, shopName, newIsAdmin, JSON.stringify(normalizedPermissions), Boolean(isActive), id, ADMIN_EMAIL]
             );
         }
 
@@ -1141,6 +1160,10 @@ app.delete('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, 
 
         if (!user) {
             return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+        }
+
+        if (await businessNameAlreadyExists(shopName, Number(id))) {
+            return res.status(409).json({ success: false, message: 'Este nome de estabelecimento já está cadastrado. Escolha outro nome.' });
         }
 
         if (user.email === ADMIN_EMAIL) {
