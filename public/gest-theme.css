@@ -8014,3 +8014,8 @@ html body.admin-light .sidebar-profile-trigger:focus-visible {
     background: transparent !important;
     box-shadow: none !important;
 }
+
+html body.admin-light .sidebar-profile-trigger:hover,
+html body.admin-light .sidebar-profile-trigger[aria-expanded="true"] {
+    background: #20262f !important;
+}
