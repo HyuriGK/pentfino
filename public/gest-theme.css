@@ -919,6 +919,11 @@
     grid-column: 1 / -1;
 }
 
+.admin-light #modal-expense .expense-form-wide textarea {
+    box-sizing: border-box;
+    padding: 14px 16px !important;
+}
+
 .admin-light #modal-expense .inventory-form-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
