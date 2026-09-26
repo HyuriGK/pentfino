@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestano | Gestão de Barbearia</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="gest-theme.css?v=20260925-landing-refresh">
+    <link rel="stylesheet" href="gest-theme.css?v=20260925-landing-motion">
     <link rel="icon" type="image/png" sizes="500x500" href="logoG.png?v=20260925-logoG">
     <link rel="apple-touch-icon" sizes="500x500" href="logoG.png?v=20260925-logoG">
     <link rel="manifest" href="gest.webmanifest?v=20260925-logoG">
@@ -324,6 +324,15 @@
             });
         });
 
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', event => {
+                const target = document.querySelector(link.getAttribute('href'));
+                if (!target) return;
+                event.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
         const demoChat = document.getElementById('demo-chat');
         const demoChatBody = document.getElementById('demo-chat-body');
         const demoChatInput = document.getElementById('demo-chat-input');
@@ -490,22 +499,24 @@
         });
 
         const revealSelector = [
-            '.landing-body .segments-section .section-label',
+            '.landing-body .segments-section .section-heading',
             '.landing-body .segments-grid span',
-            '.landing-body .numbers-section .section-label',
+            '.landing-body .numbers-section .section-heading',
             '.landing-body .numbers-grid > div',
-            '.landing-body .features-section .section-label',
+            '.landing-body .features-section .section-heading',
             '.landing-body .feature-item',
             '.landing-body .ai-content',
             '.landing-body .ai-grid > div',
             '.landing-body .consultation-content',
-            '.landing-body .faq-section .section-label',
-            '.landing-body .faq-item'
+            '.landing-body .faq-section .section-heading',
+            '.landing-body .faq-item',
+            '.landing-footer .landing-container'
         ].join(',');
         const revealItems = Array.from(document.querySelectorAll(revealSelector));
 
         revealItems.forEach((item, index) => {
-            item.classList.add('reveal-on-scroll');
+            const isTextBlock = item.matches('.section-heading, .ai-content, .consultation-content, .landing-footer .landing-container');
+            item.classList.add('reveal-on-scroll', isTextBlock ? 'reveal-zoom' : 'reveal-lift');
             item.style.setProperty('--reveal-delay', `${Math.min(index % 5, 4) * 70}ms`);
         });
 

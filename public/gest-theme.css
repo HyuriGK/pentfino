@@ -5470,3 +5470,172 @@ html body.booking-body .booking-date-option:not(.selected):focus-visible:not(:di
     height: 66px;
     object-fit: cover;
 }
+
+/* Landing motion refinement: calmer hero, smooth anchors and restrained text zoom. */
+html:has(body.landing-body) {
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
+}
+
+.landing-body {
+    overscroll-behavior-y: none;
+}
+
+.landing-body section[id] {
+    scroll-margin-top: 88px;
+}
+
+.landing-body .hero-section {
+    min-height: min(800px, 100vh);
+    padding: 136px 0 82px;
+}
+
+.landing-body .hero-section::before {
+    top: 154px;
+    left: -132px;
+    width: 360px;
+    height: 360px;
+    border-color: rgba(21, 143, 89, 0.065);
+    box-shadow: 0 0 0 58px rgba(32, 185, 120, 0.018), 0 0 0 116px rgba(32, 185, 120, 0.012);
+}
+
+.landing-body .hero-content {
+    max-width: 620px;
+    animation: none;
+}
+
+.landing-body .hero-content > .hero-tagline {
+    margin-bottom: 22px;
+    padding: 8px 13px;
+    border-color: rgba(21, 143, 89, 0.16);
+    box-shadow: 0 6px 18px rgba(17, 85, 56, 0.045);
+    font-size: 0.7rem;
+    letter-spacing: 0.075em;
+    animation: landing-soft-zoom 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-body .hero-title {
+    max-width: 640px;
+    margin-bottom: 22px;
+    font-size: clamp(3rem, 4.55vw, 4.25rem);
+    line-height: 1.035;
+    letter-spacing: -0.05em;
+    animation: landing-soft-zoom 0.76s 80ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-body .hero-title span {
+    margin-top: 7px;
+    color: #169a61;
+}
+
+.landing-body .hero-description {
+    max-width: 540px;
+    margin-bottom: 28px;
+    color: #6c8075;
+    font-size: 1.02rem;
+    animation: landing-soft-rise 0.7s 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-body .hero-actions {
+    animation: landing-soft-rise 0.7s 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-body .hero-note {
+    animation: landing-soft-rise 0.7s 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-body .reveal-on-scroll.reveal-zoom {
+    opacity: 0;
+    transform: translateY(14px) scale(0.955);
+    transform-origin: center center;
+    transition:
+        opacity 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.82s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+.landing-body .reveal-on-scroll.reveal-lift {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+}
+
+.landing-body .reveal-on-scroll.reveal-zoom.is-visible,
+.landing-body .reveal-on-scroll.reveal-lift.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+@keyframes landing-soft-zoom {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.965);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes landing-soft-rise {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (max-width: 1100px) {
+    .landing-body .hero-title {
+        max-width: 720px;
+        font-size: clamp(2.7rem, 6vw, 3.55rem);
+        line-height: 1.04;
+    }
+
+    .landing-body .hero-title span {
+        margin-top: 5px;
+    }
+}
+
+@media (max-width: 640px) {
+    html:has(body.landing-body) {
+        scroll-padding-top: 76px;
+    }
+
+    .landing-body section[id] {
+        scroll-margin-top: 76px;
+    }
+
+    .landing-body .hero-section {
+        padding-top: 116px;
+    }
+
+    .landing-body .hero-title {
+        max-width: 360px;
+        font-size: clamp(2.15rem, 10vw, 2.75rem);
+        line-height: 1.04;
+        letter-spacing: -0.045em;
+    }
+
+    .landing-body .hero-content > .hero-tagline {
+        max-width: 330px;
+        font-size: 0.57rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.landing-body) {
+        scroll-behavior: auto;
+    }
+
+    .landing-body .hero-content > *,
+    .landing-body .reveal-on-scroll {
+        opacity: 1 !important;
+        animation: none !important;
+        transform: none !important;
+    }
+}
