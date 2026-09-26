@@ -736,6 +736,7 @@ const admin = {
             servicos: 'Serviços',
             configuracoes: 'Ajustes',
             perfil: 'Perfil',
+            conta: 'Conta',
             plano: 'Plano e faturamento',
             administracao: 'Administração'
         };
@@ -756,7 +757,7 @@ const admin = {
 
     activateTab(tab) {
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'perfil', 'plano', 'comissoes', 'billing', 'relatorios', 'despesas', 'administracao'];
+        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'perfil', 'conta', 'plano', 'comissoes', 'billing', 'relatorios', 'despesas', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -832,6 +833,10 @@ const admin = {
 
         if (tab === 'perfil') {
             this.renderProfilePage();
+        }
+
+        if (tab === 'conta') {
+            this.renderAccountPage();
         }
 
         if (tab === 'plano') {
@@ -4162,6 +4167,83 @@ const admin = {
         if (loadData) {
             if (!this.bookingSettings) this.loadBookingSettings();
             if (!Array.isArray(this.professionals)) this.loadProfessionals();
+        }
+    },
+
+    openAccountPage() {
+        this.showTab('conta', { skipLoading: true });
+    },
+
+    renderAccountPage() {
+        const user = auth.user || {};
+        const shopName = user.shop_name || user.shop || 'Gestano';
+        const ownerName = user.name || user.full_name || shopName.split(/\s+/)[0] || 'Gestano';
+        const initials = ownerName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('') || 'G';
+        const nameInput = document.getElementById('account-name');
+        const phoneInput = document.getElementById('account-phone');
+        const emailInput = document.getElementById('account-email');
+        if (nameInput) nameInput.value = ownerName;
+        if (phoneInput) {
+            phoneInput.value = user.phone || user.owner_phone || '';
+            phoneInput.oninput = () => {
+                const digits = phoneInput.value.replace(/\D/g, '').slice(0, 11);
+                if (!digits) {
+                    phoneInput.value = '';
+                } else if (digits.length <= 10) {
+                    phoneInput.value = digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '');
+                } else {
+                    phoneInput.value = digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '');
+                }
+            };
+        }
+        if (emailInput) emailInput.value = user.email || '';
+        const avatar = document.getElementById('account-page-avatar');
+        if (avatar) avatar.textContent = initials;
+    },
+
+    async saveAccountProfile(event) {
+        event?.preventDefault();
+        const nameInput = document.getElementById('account-name');
+        const phoneInput = document.getElementById('account-phone');
+        const button = document.getElementById('account-save-button');
+        const name = nameInput?.value.trim().replace(/\s+/g, ' ') || '';
+        const phone = phoneInput?.value.trim() || '';
+        const phoneDigits = phone.replace(/\D/g, '');
+
+        if (name.length < 2 || name.length > 120) {
+            return auth.notify('Informe um nome completo válido.', 'error');
+        }
+        if (phone && (phoneDigits.length < 10 || phoneDigits.length > 11)) {
+            return auth.notify('Confira o WhatsApp pessoal informado.', 'error');
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Salvando...';
+        }
+
+        try {
+            const response = await auth.apiRequest('/api/profile', {
+                method: 'PATCH',
+                body: JSON.stringify({ name, phone })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.success) throw new Error(data.message || 'Não foi possível salvar seus dados.');
+
+            auth.user = { ...auth.user, ...data.user };
+            authStorage.write('barberpoint_user', JSON.stringify(auth.user));
+            ui.updateProfileCard();
+            this.renderProfilePage({ loadData: false });
+            this.showTab('perfil', { skipLoading: true });
+            auth.notify('Dados da conta atualizados com sucesso.', 'success');
+        } catch (err) {
+            console.error('Save Account Profile Error:', err);
+            auth.notify(err.message || 'Não foi possível salvar seus dados.', 'error');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Salvar';
+            }
         }
     },
 

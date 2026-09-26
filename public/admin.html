@@ -897,7 +897,7 @@
                         </button>
                     </div>
 
-                    <section class="glass admin-profile-identity">
+                    <section class="glass admin-profile-identity is-clickable" role="button" tabindex="0" aria-label="Editar informa&ccedil;&otilde;es da conta" onclick="admin.openAccountPage()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); admin.openAccountPage(); }">
                         <div class="admin-profile-avatar" id="profile-page-avatar">HY</div>
                         <div class="admin-profile-identity-copy">
                             <span class="admin-profile-eyebrow">Seu acesso</span>
@@ -906,6 +906,7 @@
                             <strong id="profile-page-shop">Hyuri Barber</strong>
                         </div>
                         <div class="admin-profile-identity-mark" aria-hidden="true">Gestano</div>
+                        <span class="admin-profile-identity-arrow" aria-hidden="true">&rarr;</span>
                     </section>
 
                     <div class="admin-profile-overview-grid">
@@ -978,6 +979,48 @@
                             <p>Volte ao dashboard para acompanhar o movimento da barbearia.</p>
                         </div>
                         <button type="button" class="btn btn-primary" onclick="admin.showTab('home')">Ir para o dashboard</button>
+                    </section>
+                </div>
+            </div>
+
+            <!-- TAB CONTA -->
+            <div id="tab-conta" class="hidden">
+                <div class="admin-account-page">
+                    <div class="admin-account-heading">
+                        <button type="button" class="admin-account-back" onclick="admin.showTab('perfil')"><span aria-hidden="true">&larr;</span> Perfil</button>
+                        <span class="admin-profile-eyebrow">Seu acesso</span>
+                        <h2>Conta</h2>
+                        <p>Atualize seus dados pessoais para manter seu acesso sempre em dia.</p>
+                    </div>
+
+                    <section class="glass admin-account-card">
+                        <div class="admin-account-card-heading">
+                            <div>
+                                <span class="admin-profile-eyebrow">Informa&ccedil;&otilde;es da conta</span>
+                                <h3>Seus dados</h3>
+                            </div>
+                            <div class="admin-account-avatar" id="account-page-avatar">PG</div>
+                        </div>
+                        <form id="account-profile-form" class="admin-account-form" onsubmit="admin.saveAccountProfile(event)">
+                            <div class="admin-account-field">
+                                <label for="account-name">Nome completo</label>
+                                <input id="account-name" name="name" type="text" maxlength="120" autocomplete="name" placeholder="Como podemos chamar voc&ecirc;?">
+                            </div>
+                            <div class="admin-account-field">
+                                <label for="account-phone">Seu WhatsApp pessoal <span>(opcional)</span></label>
+                                <input id="account-phone" name="phone" type="tel" maxlength="20" autocomplete="tel" placeholder="(11) 99999-9999">
+                                <small>Esse n&uacute;mero &eacute; usado apenas para facilitar seu contato com a equipe Gestano.</small>
+                            </div>
+                            <div class="admin-account-field">
+                                <label for="account-email">E-mail</label>
+                                <input id="account-email" name="email" type="email" disabled>
+                                <small>O e-mail de acesso n&atilde;o pode ser alterado por aqui.</small>
+                            </div>
+                            <div class="admin-account-actions">
+                                <button type="button" class="btn btn-ghost" onclick="admin.showTab('perfil')">Cancelar</button>
+                                <button type="submit" class="btn btn-primary" id="account-save-button">Salvar</button>
+                            </div>
+                        </form>
                     </section>
                 </div>
             </div>

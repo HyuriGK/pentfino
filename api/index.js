@@ -603,6 +603,21 @@ const ensureAppointmentPaymentSchema = () => {
     return appointmentPaymentSchemaPromise;
 };
 
+let profileSchemaPromise;
+const ensureProfileSchema = () => {
+    if (!profileSchemaPromise) {
+        profileSchemaPromise = pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS owner_name VARCHAR(120)')
+            .then(() => pool.query('ALTER TABLE barbers ADD COLUMN IF NOT EXISTS owner_phone VARCHAR(30)'))
+            .catch(error => {
+                profileSchemaPromise = null;
+                throw error;
+            });
+    }
+    return profileSchemaPromise;
+};
+
+ensureProfileSchema().catch(error => console.error('Profile schema migration error:', error.message));
+
 ensureOperationalSchema().catch(error => console.error('Operational schema migration error:', error.message));
 
 const requireAnyPermission = (...permissions) => async (req, res, next) => {
@@ -762,6 +777,7 @@ pool.on('connect', () => {
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     try {
+        await ensureProfileSchema();
         const result = await pool.query('SELECT * FROM barbers WHERE email = $1', [email]);
         const user = result.rows[0];
         
@@ -788,6 +804,8 @@ app.post('/api/login', async (req, res) => {
                         id: user.id,
                         email: user.email,
                         shop: user.shop_name,
+                        name: user.owner_name || '',
+                        phone: user.owner_phone || '',
                         role,
                         isAdmin: role === 'administrador',
                         permissions,
@@ -805,6 +823,7 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/session', authenticateToken, async (req, res) => {
     try {
+        await ensureProfileSchema();
         const result = await pool.query('SELECT * FROM barbers WHERE id = $1', [req.user.id]);
         const user = result.rows[0];
 
@@ -819,6 +838,8 @@ app.get('/api/session', authenticateToken, async (req, res) => {
                 id: user.id,
                 email: user.email,
                 shop: user.shop_name,
+                name: user.owner_name || '',
+                phone: user.owner_phone || '',
                 role,
                 isAdmin: role === 'administrador',
                 permissions: normalizePermissions(user.permissions, role === 'administrador'),
@@ -828,6 +849,52 @@ app.get('/api/session', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Erro ao validar sessão.' });
+    }
+});
+
+app.patch('/api/profile', authenticateToken, async (req, res) => {
+    const name = String(req.body?.name || '').trim().replace(/\s+/g, ' ');
+    const phone = String(req.body?.phone || '').trim();
+    const phoneDigits = phone.replace(/\D/g, '');
+
+    if (name.length < 2 || name.length > 120) {
+        return res.status(400).json({ success: false, message: 'Informe um nome válido.' });
+    }
+    if (phone && (phoneDigits.length < 10 || phoneDigits.length > 11)) {
+        return res.status(400).json({ success: false, message: 'Informe um WhatsApp válido ou deixe o campo vazio.' });
+    }
+
+    try {
+        await ensureProfileSchema();
+        const result = await pool.query(
+            'UPDATE barbers SET owner_name = $1, owner_phone = $2 WHERE id = $3 RETURNING id, email, shop_name, owner_name, owner_phone, is_admin, permissions, is_active',
+            [name, phone, req.user.id]
+        );
+        const user = result.rows[0];
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Conta não encontrada.' });
+        }
+
+        const role = getUserRole(user);
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                shop: user.shop_name,
+                shop_name: user.shop_name,
+                name: user.owner_name || '',
+                phone: user.owner_phone || '',
+                role,
+                isAdmin: role === 'administrador',
+                permissions: normalizePermissions(user.permissions, role === 'administrador'),
+                isActive: user.is_active !== false
+            }
+        });
+    } catch (err) {
+        console.error('Erro ao atualizar perfil:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível atualizar os dados da conta.' });
     }
 });
 
