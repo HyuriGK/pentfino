@@ -6079,6 +6079,12 @@ html:has(body.landing-body) {
     box-shadow: 0 18px 48px rgba(23, 32, 51, 0.09) !important;
 }
 
+/* Dashboard home: keep the queue as the primary focus and remove the KPI blocks. */
+.admin-light #tab-home > .stat-grid,
+.admin-light #tab-home > .dashboard-analytics-grid {
+    display: none !important;
+}
+
 /* Planifai-inspired landing: quiet hierarchy, generous spacing and product-led visuals. */
 .landing-body {
     --landing-ink: #132c24;
