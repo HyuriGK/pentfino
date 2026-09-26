@@ -11802,6 +11802,10 @@ textarea:focus-visible,
     table-layout: fixed;
 }
 
+.admin-light #tab-servicos .data-table {
+    margin-top: 0;
+}
+
 .admin-light #clients-table-shell .data-table th,
 .admin-light #clients-table-shell .data-table td,
 .admin-light #tab-comissoes .data-table th,
