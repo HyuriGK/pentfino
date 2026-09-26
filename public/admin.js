@@ -640,8 +640,22 @@ const admin = {
         const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `gest-relatorio-${this.currentDateValue()}.csv`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(link.href);
     },
 
+    getPublicBookingSlug() {
+        const source = auth.user?.shop_name || auth.user?.shop || '';
+        const slug = String(source)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '');
+        return slug || 'barbearia-' + (auth.user?.id || 'gestano');
+    },
+
+    getPublicBookingLink() {
+        return window.location.origin + '/' + this.getPublicBookingSlug();
+    },
+
     openShareModal() {
-        const link = `${window.location.origin}/reserva.html?businessId=${auth.user.id}`;
+        const link = this.getPublicBookingLink();
         document.getElementById('share-link-input').value = link;
         this.openModal('share');
     },
@@ -782,7 +796,7 @@ const admin = {
         const linkBtn = document.getElementById('public-link-btn');
         if (linkBtn) {
             linkBtn.classList.toggle('hidden', tab !== 'home');
-            linkBtn.onclick = () => window.open(`reserva.html?businessId=${auth.user.id}`, '_blank');
+            linkBtn.onclick = () => window.open(this.getPublicBookingLink(), '_blank');
         }
 
         if (tab === 'agenda') {

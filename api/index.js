@@ -279,6 +279,12 @@ const normalizePermissions = (permissions, isAdmin = false) => {
     return Object.fromEntries(PERMISSION_KEYS.map(key => [key, source?.[key] === true]));
 };
 
+const slugifyBusinessName = value => String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -1211,6 +1217,33 @@ app.patch('/api/business-settings/:barberId', authenticateToken, requireAnyPermi
     } catch (err) {
         console.error('Erro ao salvar configurações da barbearia:', err);
         res.status(500).json({ success: false, message: 'Não foi possível salvar as configurações.' });
+    }
+});
+
+app.get('/api/public/business/:slug', async (req, res) => {
+    const slug = slugifyBusinessName(req.params.slug);
+    if (!slug) {
+        return res.status(400).json({ success: false, message: 'Link da barbearia inválido.' });
+    }
+
+    try {
+        const result = await pool.query('SELECT id, shop_name FROM barbers');
+        const business = result.rows.find(row => slugifyBusinessName(row.shop_name) === slug);
+        if (!business) {
+            return res.status(404).json({ success: false, message: 'Barbearia não encontrada.' });
+        }
+
+        res.json({
+            success: true,
+            business: {
+                id: business.id,
+                name: business.shop_name,
+                slug
+            }
+        });
+    } catch (err) {
+        console.error('Erro ao resolver link público:', err);
+        res.status(500).json({ success: false, message: 'Não foi possível carregar a barbearia.' });
     }
 });
 
@@ -2595,6 +2628,25 @@ app.delete('/api/sales/:id', authenticateToken, requireAnyPermission('vendas'), 
         res.status(500).send('Server Error');
     } finally {
         if (client) client.release();
+    }
+});
+
+// Friendly public booking links for local/server deployments.
+app.get('/:slug', async (req, res, next) => {
+    const rawSlug = String(req.params.slug || '');
+    if (!rawSlug || rawSlug.includes('.') || rawSlug === 'api') return next();
+
+    const slug = slugifyBusinessName(rawSlug);
+    if (!slug) return next();
+
+    try {
+        const result = await pool.query('SELECT shop_name FROM barbers');
+        const exists = result.rows.some(row => slugifyBusinessName(row.shop_name) === slug);
+        if (!exists) return next();
+        res.sendFile(path.join(__dirname, '..', 'public', 'reserva.html'));
+    } catch (err) {
+        console.error('Erro ao abrir link público:', err);
+        next();
     }
 });
 

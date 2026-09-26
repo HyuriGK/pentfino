@@ -1,11 +1,17 @@
+const bookingUrlParams = new URLSearchParams(window.location.search);
+const bookingPathParts = window.location.pathname.split('/').filter(Boolean);
+const bookingPathSlug = bookingPathParts.length === 1 && !bookingPathParts[0].includes('.') ? decodeURIComponent(bookingPathParts[0]) : '';
+const bookingQueryId = parseInt(bookingUrlParams.get('businessId') || bookingUrlParams.get('barberId'), 10) || 0;
+
 const app = {
     services: [],
     professionals: [],
     availableTimes: [],
     bookingSettings: null,
     
-    // Dynamic business ID from URL. barberId is kept in API payloads for backend compatibility.
-    barberId: parseInt(new URLSearchParams(window.location.search).get('businessId') || new URLSearchParams(window.location.search).get('barberId')) || 1,
+    // Legacy query links remain supported; new links resolve the business slug first.
+    barberId: bookingQueryId,
+    businessSlug: bookingPathSlug,
 
     booking: {
         service: null,
@@ -30,6 +36,15 @@ const app = {
 
     async loadInitialData() {
         try {
+            if (!this.barberId && this.businessSlug) {
+                const businessResponse = await fetch('/api/public/business/' + encodeURIComponent(this.businessSlug));
+                if (businessResponse.ok) {
+                    const businessData = await businessResponse.json();
+                    this.barberId = Number(businessData.business?.id) || 0;
+                }
+            }
+            if (!this.barberId && !this.businessSlug) this.barberId = 1;
+
             const [svcRes, profRes, settingsRes] = await Promise.all([
                 fetch(`/api/services/${this.barberId}`),
                 fetch(`/api/professionals/${this.barberId}`),
