@@ -8020,6 +8020,11 @@ html body.admin-light .sidebar-profile-trigger[aria-expanded="true"] {
     background: #20262f !important;
 }
 
+html body.admin-light .sidebar:not(.collapsed) .sidebar-profile-trigger {
+    min-height: 64px;
+    padding: 9px 14px;
+}
+
 /* Use explicit plus/minus controls for expandable sidebar groups. */
 html body.admin-light .sidebar-nav-scroll nav .nav-group-chevron {
     width: 22px;
