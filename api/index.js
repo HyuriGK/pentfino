@@ -859,10 +859,14 @@ app.get('/api/session', authenticateToken, async (req, res) => {
 });
 
 app.patch('/api/profile', authenticateToken, async (req, res) => {
+    const shopName = String(req.body?.shopName || '').trim().replace(/\s+/g, ' ');
     const name = String(req.body?.name || '').trim().replace(/\s+/g, ' ');
     const phone = String(req.body?.phone || '').trim();
     const phoneDigits = phone.replace(/\D/g, '');
 
+    if (shopName.length < 2 || shopName.length > 120) {
+        return res.status(400).json({ success: false, message: 'Informe um nome válido para a barbearia.' });
+    }
     if (name.length < 2 || name.length > 120) {
         return res.status(400).json({ success: false, message: 'Informe um nome válido.' });
     }
@@ -873,8 +877,8 @@ app.patch('/api/profile', authenticateToken, async (req, res) => {
     try {
         await ensureProfileSchema();
         const result = await pool.query(
-            'UPDATE barbers SET owner_name = $1, owner_phone = $2 WHERE id = $3 RETURNING id, email, shop_name, owner_name, owner_phone, is_admin, permissions, is_active',
-            [name, phone, req.user.id]
+            'UPDATE barbers SET shop_name = $1, owner_name = $2, owner_phone = $3 WHERE id = $4 RETURNING id, email, shop_name, owner_name, owner_phone, is_admin, permissions, is_active',
+            [shopName, name, phone, req.user.id]
         );
         const user = result.rows[0];
 

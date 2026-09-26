@@ -4193,9 +4193,11 @@ const admin = {
         const shopName = user.shop_name || user.shop || 'Gestano';
         const ownerName = user.name || user.full_name || shopName.split(/\s+/)[0] || 'Gestano';
         const initials = ownerName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('') || 'G';
+        const shopInput = document.getElementById('account-shop');
         const nameInput = document.getElementById('account-name');
         const phoneInput = document.getElementById('account-phone');
         const emailInput = document.getElementById('account-email');
+        if (shopInput) shopInput.value = shopName;
         if (nameInput) nameInput.value = ownerName;
         if (phoneInput) {
             phoneInput.value = user.phone || user.owner_phone || '';
@@ -4217,13 +4219,18 @@ const admin = {
 
     async saveAccountProfile(event) {
         event?.preventDefault();
+        const shopInput = document.getElementById('account-shop');
         const nameInput = document.getElementById('account-name');
         const phoneInput = document.getElementById('account-phone');
         const button = document.getElementById('account-save-button');
+        const shopName = shopInput?.value.trim().replace(/\s+/g, ' ') || '';
         const name = nameInput?.value.trim().replace(/\s+/g, ' ') || '';
         const phone = phoneInput?.value.trim() || '';
         const phoneDigits = phone.replace(/\D/g, '');
 
+        if (shopName.length < 2 || shopName.length > 120) {
+            return auth.notify('Informe um nome válido para a barbearia.', 'error');
+        }
         if (name.length < 2 || name.length > 120) {
             return auth.notify('Informe um nome completo válido.', 'error');
         }
@@ -4239,7 +4246,7 @@ const admin = {
         try {
             const response = await auth.apiRequest('/api/profile', {
                 method: 'PATCH',
-                body: JSON.stringify({ name, phone })
+                body: JSON.stringify({ shopName, name, phone })
             });
             const data = await response.json().catch(() => ({}));
             if (!response.ok || !data.success) throw new Error(data.message || 'Não foi possível salvar seus dados.');
@@ -4249,7 +4256,7 @@ const admin = {
             ui.updateProfileCard();
             this.renderProfilePage({ loadData: false });
             this.showTab('perfil', { skipLoading: true });
-            auth.notify('Dados da conta atualizados com sucesso.', 'success');
+            auth.notify('Dados da conta e da barbearia atualizados com sucesso.', 'success');
         } catch (err) {
             console.error('Save Account Profile Error:', err);
             auth.notify(err.message || 'Não foi possível salvar seus dados.', 'error');
