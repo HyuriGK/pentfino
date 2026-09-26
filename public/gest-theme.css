@@ -7804,8 +7804,9 @@ html body.admin-light .sidebar-profile-trigger[aria-expanded="true"] {
 
 html body.admin-light .sidebar-profile-trigger:focus,
 html body.admin-light .sidebar-profile-trigger:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(95, 211, 178, 0.22);
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: #303741 !important;
 }
 
 html body.admin-light .sidebar-profile-avatar {
@@ -7847,15 +7848,29 @@ html body.admin-light .sidebar-profile-copy small {
 }
 
 html body.admin-light .sidebar-profile-chevron {
+    display: grid;
+    width: 18px;
+    height: 24px;
+    flex: 0 0 18px;
+    place-items: center;
+    margin-left: auto;
     color: #8e99a5;
-    font-size: 1.1rem;
-    line-height: 1;
-    transform: translateY(2px);
+    line-height: 0;
+    transition: color 160ms ease, opacity 160ms ease;
+}
+
+html body.admin-light .sidebar-profile-chevron svg {
+    width: 16px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.45;
 }
 
 html body.admin-light .sidebar-profile-trigger[aria-expanded="true"] .sidebar-profile-chevron {
     color: #73d9bd;
-    transform: translateY(0) rotate(180deg);
 }
 
 html body.admin-light .sidebar:has(.sidebar-profile-menu:not(.hidden)) {

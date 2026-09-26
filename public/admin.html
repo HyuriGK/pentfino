@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestano | Dashboard da Barbearia</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="gest-theme.css?v=20260925-logoG-transparent">
+    <link rel="stylesheet" href="gest-theme.css?v=20260925-profile-chevron">
     <link rel="icon" type="image/png" sizes="500x500" href="logoG.png?v=20260925-logoG-transparent">
     <link rel="apple-touch-icon" sizes="500x500" href="logoG.png?v=20260925-logoG-transparent">
     <link rel="manifest" href="gest.webmanifest?v=20260925-logoG-transparent">
@@ -228,7 +228,12 @@
                             <strong id="sidebar-profile-shop">Hyuri Barber</strong>
                             <small id="sidebar-profile-owner">Hyuri</small>
                         </span>
-                        <span class="sidebar-profile-chevron" aria-hidden="true">⌃</span>
+                        <span class="sidebar-profile-chevron" aria-hidden="true">
+                            <svg viewBox="0 0 16 16" focusable="false">
+                                <path d="m4 6 4-4 4 4"></path>
+                                <path d="m4 10 4 4 4-4"></path>
+                            </svg>
+                        </span>
                     </button>
                     <div class="sidebar-profile-menu hidden" id="sidebar-profile-menu" role="menu" aria-label="Menu do perfil">
                         <button type="button" role="menuitem" onclick="ui.openProfileSettings()">
