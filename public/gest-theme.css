@@ -7969,3 +7969,11 @@ html body.admin-light .sidebar-profile-menu .sidebar-profile-logout:focus-visibl
         bottom: 0;
     }
 }
+
+/* Keep the sidebar flush to the viewport: square outer edge, rounded inner edge only. */
+html body.admin-light .sidebar,
+html body.admin-light .sidebar.collapsed {
+    margin: 0 !important;
+    height: 100vh !important;
+    border-radius: 0 20px 20px 0 !important;
+}
