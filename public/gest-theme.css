@@ -3979,3 +3979,89 @@
         font-size: 1.6rem;
     }
 }
+
+/*
+   Focus visual reset
+   Keep keyboard focus functional, but do not change the appearance of any
+   text field, button or button-like control while it is focused. This block
+   stays at the end of the theme so it also overrides screen and modal rules.
+*/
+html body :is(button, input, select, textarea, [role="button"], .btn-outline-premium):focus,
+html body :is(button, input, select, textarea, [role="button"], .btn-outline-premium):focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+}
+
+html body.admin-light .input-group-new input:focus,
+html body.admin-light .input-group-new select:focus,
+html body.admin-light textarea:focus,
+html body.admin-light .glass-select:focus,
+html body.admin-light #agenda-professional-filter:focus,
+html body.admin-light .waitlist-form input:focus,
+html body.admin-light .waitlist-form select:focus,
+html body.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+html body.admin-light select:focus,
+html body.admin-light textarea:focus,
+html body.admin-light #modal-expense textarea:focus,
+html body.admin-light #modal-expense textarea:focus-visible,
+html body.admin-light #modal-professional .professional-modal-content > .input-group-new input:focus {
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+}
+
+html body.booking-body .custom-time-picker input:focus,
+html body.booking-body .input-group-modern input:focus,
+html body.booking-body #booking-date:focus {
+    border-color: var(--border-bright) !important;
+    border-bottom-color: var(--border-bright) !important;
+    box-shadow: none !important;
+}
+
+html body.admin-light .queue-search:focus-within {
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Button-like cards and menu controls also keep their regular state on focus. */
+html body.admin-light .admin-module-card:focus-visible,
+html body.admin-light .dashboard-financial-toggle:focus-visible,
+html body.admin-light .billing-goal-card:focus-visible {
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+    transform: none !important;
+}
+
+html body.admin-light .appointment-action-menu-item:focus-visible {
+    background: transparent !important;
+}
+
+html body.admin-light .nav-group-title:not([aria-expanded="true"]):focus-visible {
+    color: #527063 !important;
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+}
+
+html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:focus-visible {
+    background: #f7fcf9 !important;
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+}
+
+html body.booking-body .booking-entry-card:focus-visible {
+    background: linear-gradient(135deg, #ffffff 0%, #f3fcf7 100%) !important;
+    border-color: #bfe7cf !important;
+    box-shadow: 0 12px 28px rgba(21, 126, 76, 0.09) !important;
+    transform: none !important;
+}
+
+html body.booking-body .booking-date-nav:focus-visible:not(:disabled) {
+    background: transparent !important;
+}
+
+html body.booking-body .booking-date-option:not(.selected):focus-visible:not(:disabled) {
+    background: rgba(255, 255, 255, 0.045) !important;
+    border-color: transparent !important;
+    transform: none !important;
+}
