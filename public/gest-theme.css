@@ -7977,3 +7977,10 @@ html body.admin-light .sidebar.collapsed {
     height: 100vh !important;
     border-radius: 0 20px 20px 0 !important;
 }
+
+/* The compact mark is dark and transparent; invert it only on dark chrome surfaces. */
+html body.admin-light .sidebar.collapsed .logo-icon-collapsed,
+.landing-body .product-sidebar img,
+.landing-body .control-dashboard-body aside img {
+    filter: brightness(0) invert(1) !important;
+}

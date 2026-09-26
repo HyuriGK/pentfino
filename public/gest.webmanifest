@@ -9,7 +9,7 @@
     "theme_color": "#26b878",
     "icons": [
         {
-            "src": "logoG.png?v=20260925-logoG",
+            "src": "logoG.png?v=20260925-logoG-transparent",
             "sizes": "500x500",
             "type": "image/png",
             "purpose": "any"
