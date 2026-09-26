@@ -4361,3 +4361,44 @@ html body.booking-body .booking-date-option:not(.selected):focus-visible:not(:di
         grid-column: auto;
     }
 }
+
+/* Sidebar group icons: one consistent, crisp icon language. */
+.admin-light .sidebar-nav-scroll nav .nav-group-label {
+    gap: 10px;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    stroke-width: 1.9;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-icon {
+    color: var(--primary-hover) !important;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-chevron::before {
+    display: block;
+    width: 7px;
+    height: 7px;
+    content: "";
+    border-right: 1.8px solid currentColor;
+    border-bottom: 1.8px solid currentColor;
+    font-size: 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+    transition: transform 160ms ease;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-chevron::before {
+    transform: rotate(225deg) translate(-1px, -1px);
+}
+
+@media (min-width: 1025px) {
+    .admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-icon {
+        width: 21px;
+        height: 21px;
+        flex-basis: 21px;
+        stroke-width: 1.85;
+    }
+}
