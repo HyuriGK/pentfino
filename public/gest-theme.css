@@ -7699,3 +7699,49 @@ html:has(body.landing-body) {
         padding-inline: 0;
     }
 }
+
+/* Final header override: weekday emphasis and full month name. */
+html body.admin-light .dashboard-greeting {
+    margin: 0 0 4px;
+    min-height: 0;
+    color: #667085 !important;
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.35;
+}
+
+html body.admin-light .dashboard-date-title {
+    display: block;
+    margin: 0;
+    color: #667085 !important;
+    font-size: clamp(1.9rem, 3vw, 2.45rem);
+    font-weight: 800;
+    letter-spacing: -0.055em;
+    line-height: 1.08;
+    white-space: normal;
+}
+
+html body.admin-light .dashboard-date-title .dashboard-date-weekday {
+    color: #172033 !important;
+}
+
+html body.admin-light .dashboard-greeting.is-typing::after {
+    content: "▋";
+    display: inline-block;
+    margin-left: 0.12em;
+    color: #1aa78f;
+    font-size: 0.85em;
+    font-weight: 700;
+    animation: gest-welcome-cursor 0.9s steps(1, end) infinite;
+}
+
+@media (max-width: 680px) {
+    html body.admin-light .dashboard-greeting {
+        font-size: 0.78rem;
+    }
+
+    html body.admin-light .dashboard-date-title {
+        font-size: clamp(1.7rem, 8vw, 2.2rem);
+    }
+}

@@ -385,12 +385,22 @@ const admin = {
         this.setupServicePhotoPicker();
         this.setupInventoryPhotoPicker();
         this.loadFinancialVisibility();
-        document.getElementById('current-date').innerText = new Intl.DateTimeFormat('pt-BR', {
+        const dateParts = new Intl.DateTimeFormat('pt-BR', {
             timeZone: 'America/Sao_Paulo',
+            weekday: 'long',
             day: '2-digit',
-            month: '2-digit',
+            month: 'long',
             year: 'numeric'
-        }).format(new Date());
+        }).formatToParts(new Date()).reduce((result, part) => {
+            result[part.type] = part.value;
+            return result;
+        }, {});
+        const weekday = (dateParts.weekday || '').replace(/-feira$/, '');
+        const capitalizedWeekday = weekday ? weekday.charAt(0).toUpperCase() + weekday.slice(1) : '';
+        const currentDate = document.getElementById('current-date');
+        if (currentDate) {
+            currentDate.innerHTML = `<span class="dashboard-date-weekday">${capitalizedWeekday},</span> ${dateParts.day} de ${dateParts.month} de ${dateParts.year}`;
+        }
         const initialLoads = [];
         if (['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) initialLoads.push(this.loadData());
         if (auth.can('clientes')) initialLoads.push(this.loadClients());
