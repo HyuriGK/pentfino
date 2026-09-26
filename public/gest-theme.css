@@ -6079,6 +6079,139 @@ html:has(body.landing-body) {
     box-shadow: 0 18px 48px rgba(23, 32, 51, 0.09) !important;
 }
 
+/* Refined collapsed sidebar: graphite surfaces with a restrained mint accent. */
+@media (min-width: 1025px) {
+    html body.admin-light .sidebar.collapsed {
+        width: 82px;
+        padding: 14px 7px 12px;
+        border-right: 1px solid #27313b !important;
+        border-radius: 0 14px 14px 0;
+        background: linear-gradient(180deg, #0d1117 0%, #111820 100%) !important;
+        box-shadow: 10px 0 28px rgba(12, 17, 24, 0.16) !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-header {
+        width: 100%;
+        margin-bottom: 12px;
+        padding: 0 0 13px !important;
+        border-bottom: 1px solid #27313b;
+    }
+
+    html body.admin-light .sidebar.collapsed .logo {
+        min-height: 62px;
+    }
+
+    html body.admin-light .sidebar.collapsed .logo-icon-collapsed {
+        width: 54px;
+        height: 54px;
+        object-fit: contain;
+        filter: none;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll {
+        width: 100%;
+        padding: 0 1px;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav {
+        gap: 7px;
+        padding: 0;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        margin: 0;
+        padding: 0;
+        border: 1px solid transparent !important;
+        border-radius: 12px;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #82909e !important;
+        transform: none !important;
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-label,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item {
+        justify-content: center;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-icon,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item svg {
+        width: 21px;
+        height: 21px;
+        margin: 0;
+        color: #82909e !important;
+        stroke-width: 1.8;
+        transition: color 160ms ease;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:hover,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:focus-visible,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item:hover,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item:focus-visible {
+        border-color: #2c4149 !important;
+        background: #18242d !important;
+        color: #a5b5c2 !important;
+        outline: none !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:hover .nav-group-icon,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title:focus-visible .nav-group-icon,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item:hover svg,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item:focus-visible svg {
+        color: #79d9bc !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"],
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item.active {
+        border-color: #31564f !important;
+        background: #1c302f !important;
+        color: #b2efdd !important;
+        box-shadow: inset 3px 0 0 #5fd3b2 !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-icon,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-item.active svg {
+        color: #67d8b8 !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-group-chevron,
+    html body.admin-light .sidebar.collapsed .sidebar-nav-scroll nav .nav-text {
+        display: none !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-footer {
+        width: 100%;
+        gap: 7px;
+        padding: 12px 1px 0;
+        border-top: 1px solid #27313b !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-footer .nav-item {
+        min-height: 46px;
+        border-radius: 12px;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-footer .nav-item:first-child,
+    html body.admin-light .sidebar.collapsed .sidebar-footer .nav-item:first-child svg {
+        color: #62dabb !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-footer .nav-item:last-child,
+    html body.admin-light .sidebar.collapsed .sidebar-footer .nav-item:last-child svg {
+        color: #ff8797 !important;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-footer .nav-item:hover:first-child,
+    html body.admin-light .sidebar.collapsed .sidebar-footer .nav-item:hover:last-child {
+        background: #18242d !important;
+    }
+}
+
 /* Dashboard home: keep the queue as the primary focus and remove the KPI blocks. */
 .admin-light #tab-home > .stat-grid,
 .admin-light #tab-home > .dashboard-analytics-grid {
