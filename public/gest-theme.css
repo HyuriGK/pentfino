@@ -7999,3 +7999,18 @@ html body.admin-light .sidebar.collapsed .logo-icon-collapsed,
 .landing-body .control-dashboard-body aside img {
     filter: brightness(0) invert(1) !important;
 }
+
+/* Keep the account control as a simple sidebar row instead of a card. */
+html body.admin-light .sidebar-profile-trigger,
+html body.admin-light .sidebar-profile-trigger:hover,
+html body.admin-light .sidebar-profile-trigger[aria-expanded="true"],
+html body.admin-light .sidebar-profile-trigger:focus,
+html body.admin-light .sidebar-profile-trigger:focus-visible {
+    min-height: 56px;
+    padding: 7px 0;
+    border: 0 !important;
+    border-radius: 0;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
