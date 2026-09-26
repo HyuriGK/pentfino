@@ -385,7 +385,12 @@ const admin = {
         this.setupServicePhotoPicker();
         this.setupInventoryPhotoPicker();
         this.loadFinancialVisibility();
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
+        document.getElementById('current-date').innerText = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(new Date());
         const initialLoads = [];
         if (['dashboard', 'agenda', 'billing', 'comissoes'].some(permission => auth.can(permission))) initialLoads.push(this.loadData());
         if (auth.can('clientes')) initialLoads.push(this.loadClients());
