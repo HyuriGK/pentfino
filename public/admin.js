@@ -1501,7 +1501,6 @@ const admin = {
         const professionalSelect = document.getElementById('manual-attendance-professional');
         const dateInput = document.getElementById('manual-attendance-date');
         const timeInput = document.getElementById('manual-attendance-time');
-        const paymentSelect = document.getElementById('manual-attendance-payment');
         if (!serviceSelect || !professionalSelect) return;
 
         const currentService = serviceSelect.value;
@@ -1530,7 +1529,6 @@ const admin = {
                 hourCycle: 'h23'
             }).format(new Date());
         }
-        if (paymentSelect && !paymentSelect.value) paymentSelect.value = 'cash';
     },
 
     async registerManualAttendance(event) {
@@ -1543,7 +1541,6 @@ const admin = {
         const professionalId = Number(document.getElementById('manual-attendance-professional')?.value || 0);
         const date = document.getElementById('manual-attendance-date')?.value || '';
         const time = document.getElementById('manual-attendance-time')?.value || '';
-        const paymentMethod = document.getElementById('manual-attendance-payment')?.value || 'cash';
 
         if (!name || !phone || !serviceId || !professionalId || !date || !time) {
             return auth.notify('Preencha todos os dados do atendimento.', 'error');
@@ -1557,7 +1554,7 @@ const admin = {
         try {
             const response = await auth.apiRequest('/api/manual-attendances', {
                 method: 'POST',
-                body: JSON.stringify({ clientName: name, clientPhone: phone, serviceId, professionalId, date, time, paymentMethod })
+                body: JSON.stringify({ clientName: name, clientPhone: phone, serviceId, professionalId, date, time })
             });
             const data = await response.json().catch(() => ({}));
             if (!response.ok || data.success === false) throw new Error(data.message || 'Não foi possível registrar o atendimento.');
@@ -1565,7 +1562,7 @@ const admin = {
             form?.reset();
             this.prepareManualAttendanceForm();
             await this.loadData();
-            auth.notify('Atendimento registrado com sucesso.', 'success');
+            auth.notify('Atendimento registrado. Confirme a conclusão para informar o pagamento.', 'success');
         } catch (error) {
             auth.notify(error.message || 'Não foi possível registrar o atendimento.', 'error');
         } finally {

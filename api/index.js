@@ -1500,7 +1500,6 @@ app.post('/api/manual-attendances', authenticateToken, requireAnyPermission('age
     const clientPhone = String(req.body?.clientPhone || '').trim();
     const date = String(req.body?.date || '').slice(0, 10);
     const time = String(req.body?.time || '').slice(0, 5);
-    const paymentMethod = normalizePaymentMethod(req.body?.paymentMethod);
     let db;
 
     if (!Number.isInteger(serviceId) || serviceId <= 0 || !Number.isInteger(professionalId) || professionalId <= 0) {
@@ -1526,17 +1525,15 @@ app.post('/api/manual-attendances', authenticateToken, requireAnyPermission('age
         const result = await db.query(`
             INSERT INTO appointments (
                 barber_id, service_id, professional_id, client_name, client_phone,
-                appointment_time, appointment_date, status, payment_status,
-                payment_method, payment_paid_at
+                appointment_time, appointment_date, status, payment_status
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 'completed', 'paid', $8, CURRENT_TIMESTAMP)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed', 'pending')
             RETURNING *
-        `, [req.user.id, serviceId, professionalId, clientName, clientPhone, time, date, paymentMethod]);
+        `, [req.user.id, serviceId, professionalId, clientName, clientPhone, time, date]);
 
         const appointment = result.rows[0];
-        await syncAppointmentCashMovement(db, appointment.id, 'completed', 'paid', paymentMethod);
         await db.query('COMMIT');
-        await logAudit(req, 'appointment.manual_created', 'appointment', appointment.id, { serviceId, professionalId, paymentMethod });
+        await logAudit(req, 'appointment.manual_created', 'appointment', appointment.id, { serviceId, professionalId });
         res.status(201).json({ success: true, appointment });
     } catch (err) {
         if (db) await db.query('ROLLBACK').catch(() => {});

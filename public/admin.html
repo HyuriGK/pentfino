@@ -545,7 +545,7 @@
                     </section>
                     <aside class="glass waitlist-panel manual-attendance-panel" aria-labelledby="manual-attendance-title">
                         <div class="section-toolbar">
-                            <div><span class="page-eyebrow">Atendimento avulso</span><h3 id="manual-attendance-title">Registrar atendimento</h3><p>Lance atendimentos realizados fora da agenda e mantenha seu histórico em dia.</p></div>
+                            <div><span class="page-eyebrow">Atendimento avulso</span><h3 id="manual-attendance-title">Registrar atendimento</h3><p>Lance atendimentos realizados fora da agenda e confirme o pagamento ao concluir.</p></div>
                         </div>
                         <form class="waitlist-form manual-attendance-form" onsubmit="admin.registerManualAttendance(event)">
                             <input id="manual-attendance-name" type="text" placeholder="Nome do cliente" aria-label="Nome do cliente" autocomplete="name" required>
@@ -554,11 +554,6 @@
                             <select id="manual-attendance-professional" aria-label="Profissional responsável" required><option value="">Selecione o profissional</option></select>
                             <input id="manual-attendance-date" type="date" aria-label="Data do atendimento" required>
                             <input id="manual-attendance-time" type="time" aria-label="Horário do atendimento" required>
-                            <select id="manual-attendance-payment" aria-label="Forma de pagamento">
-                                <option value="cash">Dinheiro</option>
-                                <option value="pix">Pix</option>
-                                <option value="card">Cartão</option>
-                            </select>
                             <button type="submit" class="btn btn-primary" id="manual-attendance-submit">Registrar atendimento</button>
                         </form>
                         <p class="settings-feedback manual-attendance-feedback" id="manual-attendance-feedback" aria-live="polite"></p>
