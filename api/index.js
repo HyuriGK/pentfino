@@ -769,7 +769,7 @@ pool.on('connect', () => {
         VALUES ($1, $2, $3, TRUE)
         ON CONFLICT (email) DO UPDATE
         SET password = EXCLUDED.password,
-            shop_name = EXCLUDED.shop_name,
+            shop_name = COALESCE(NULLIF(barbers.shop_name, ''), EXCLUDED.shop_name),
             is_admin = TRUE
     `, [
         ADMIN_EMAIL,
@@ -810,6 +810,7 @@ app.post('/api/login', async (req, res) => {
                         id: user.id,
                         email: user.email,
                         shop: user.shop_name,
+                        shop_name: user.shop_name,
                         name: user.owner_name || '',
                         phone: user.owner_phone || '',
                         role,
@@ -844,6 +845,7 @@ app.get('/api/session', authenticateToken, async (req, res) => {
                 id: user.id,
                 email: user.email,
                 shop: user.shop_name,
+                shop_name: user.shop_name,
                 name: user.owner_name || '',
                 phone: user.owner_phone || '',
                 role,
