@@ -246,6 +246,7 @@ const auth = {
                 title.setAttribute('aria-label', title.textContent);
             }
         }
+        if (typeof ui !== 'undefined') ui.updateProfileCard();
         document.querySelectorAll('.admin-only').forEach(el => {
             el.classList.toggle('hidden', this.user.role !== 'administrador');
         });
@@ -4912,12 +4913,75 @@ const ui = {
         localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
     },
 
+    updateProfileCard() {
+        const user = auth.user || {};
+        const shopName = user.shop_name || user.shop || 'Gestano';
+        const ownerName = user.name || user.full_name || shopName.split(/\s+/)[0] || 'Gestano';
+        const initials = shopName
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(part => part.charAt(0).toUpperCase())
+            .join('') || 'G';
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+
+        setText('sidebar-profile-avatar', initials);
+        setText('sidebar-profile-shop', shopName);
+        setText('sidebar-profile-owner', ownerName);
+    },
+
+    toggleProfileMenu(event) {
+        event?.stopPropagation();
+        const trigger = document.getElementById('sidebar-profile-trigger');
+        const menu = document.getElementById('sidebar-profile-menu');
+        if (!trigger || !menu) return;
+
+        const isOpen = !menu.classList.contains('hidden');
+        menu.classList.toggle('hidden', isOpen);
+        trigger.setAttribute('aria-expanded', String(!isOpen));
+    },
+
+    closeProfileMenu() {
+        const trigger = document.getElementById('sidebar-profile-trigger');
+        const menu = document.getElementById('sidebar-profile-menu');
+        if (!trigger || !menu) return;
+        menu.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+    },
+
+    openProfileSettings() {
+        this.closeProfileMenu();
+        admin.showTab('configuracoes');
+    },
+
+    openBillingFromProfile() {
+        this.closeProfileMenu();
+        admin.showTab('billing');
+    },
+
+    shareFromProfile() {
+        this.closeProfileMenu();
+        admin.openShareModal();
+    },
+
+    logoutFromProfile() {
+        this.closeProfileMenu();
+        admin.confirmLogout();
+    },
+
     init() {
         const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
         if (isCollapsed) {
             document.getElementById('sidebar').classList.add('collapsed');
         }
+        this.updateProfileCard();
         this.initNavGroups();
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.sidebar-profile')) this.closeProfileMenu();
+        });
     }
 };
 

@@ -7745,3 +7745,211 @@ html body.admin-light .dashboard-greeting.is-typing::after {
         font-size: clamp(1.7rem, 8vw, 2.2rem);
     }
 }
+
+/* Profile control: share and logout live inside the account menu. */
+html body.admin-light .sidebar-footer {
+    position: relative;
+    overflow: visible;
+    padding: 10px 0 0;
+    border-top: 1px solid #292f38 !important;
+}
+
+html body.admin-light .sidebar-footer > .nav-item {
+    display: none !important;
+}
+
+html body.admin-light .sidebar-profile {
+    position: relative;
+    width: 100%;
+}
+
+html body.admin-light .sidebar-profile-trigger {
+    display: flex;
+    width: 100%;
+    min-height: 64px;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 11px;
+    border: 1px solid #303741;
+    border-radius: 14px;
+    background: #1b1f27;
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+html body.admin-light .sidebar-profile-trigger:hover,
+html body.admin-light .sidebar-profile-trigger[aria-expanded="true"] {
+    border-color: #40535b;
+    background: #222a33;
+}
+
+html body.admin-light .sidebar-profile-trigger:focus,
+html body.admin-light .sidebar-profile-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(95, 211, 178, 0.22);
+}
+
+html body.admin-light .sidebar-profile-avatar {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    border-radius: 50%;
+    background: #343a44;
+    color: #f5f8f7;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+html body.admin-light .sidebar-profile-copy {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 2px;
+}
+
+html body.admin-light .sidebar-profile-copy strong,
+html body.admin-light .sidebar-profile-copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html body.admin-light .sidebar-profile-copy strong {
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+html body.admin-light .sidebar-profile-copy small {
+    color: #8f9aa7;
+    font-size: 0.68rem;
+}
+
+html body.admin-light .sidebar-profile-chevron {
+    color: #8e99a5;
+    font-size: 1.1rem;
+    line-height: 1;
+    transform: translateY(2px);
+}
+
+html body.admin-light .sidebar-profile-trigger[aria-expanded="true"] .sidebar-profile-chevron {
+    color: #73d9bd;
+    transform: translateY(0) rotate(180deg);
+}
+
+html body.admin-light .sidebar:has(.sidebar-profile-menu:not(.hidden)) {
+    overflow: visible;
+}
+
+html body.admin-light .sidebar-profile-menu {
+    position: absolute;
+    left: 0;
+    right: auto;
+    bottom: calc(100% + 10px);
+    z-index: 1200;
+    display: grid;
+    width: min(292px, calc(100vw - 24px));
+    padding: 8px;
+    border: 1px solid #e1e5e8;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 22px 44px rgba(16, 24, 32, 0.2);
+}
+
+html body.admin-light .sidebar-profile-menu.hidden {
+    display: none !important;
+}
+
+html body.admin-light .sidebar-profile-menu button {
+    display: flex;
+    width: 100%;
+    min-height: 44px;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #273246;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.84rem;
+    text-align: left;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+html body.admin-light .sidebar-profile-menu button:hover,
+html body.admin-light .sidebar-profile-menu button:focus-visible {
+    outline: none;
+    background: #edf7f5;
+    color: #117b69;
+}
+
+html body.admin-light .sidebar-profile-menu button svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.55;
+}
+
+html body.admin-light .sidebar-profile-menu-divider {
+    height: 1px;
+    margin: 6px 4px;
+    background: #e6e9eb;
+}
+
+html body.admin-light .sidebar-profile-menu .sidebar-profile-logout {
+    color: #d94f5b;
+}
+
+html body.admin-light .sidebar-profile-menu .sidebar-profile-logout:hover,
+html body.admin-light .sidebar-profile-menu .sidebar-profile-logout:focus-visible {
+    background: #fff1f2;
+    color: #c33e4b;
+}
+
+@media (min-width: 1025px) {
+    html body.admin-light .sidebar.collapsed .sidebar-footer {
+        padding: 12px 1px 0;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-profile-trigger {
+        min-height: 48px;
+        justify-content: center;
+        padding: 3px;
+        border-color: transparent;
+        background: transparent;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-profile-trigger:hover,
+    html body.admin-light .sidebar.collapsed .sidebar-profile-trigger[aria-expanded="true"] {
+        border-color: #2c4149;
+        background: #18242d;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-profile-avatar {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-profile-copy,
+    html body.admin-light .sidebar.collapsed .sidebar-profile-chevron {
+        display: none;
+    }
+
+    html body.admin-light .sidebar.collapsed .sidebar-profile-menu {
+        right: auto;
+        left: calc(100% + 12px);
+        bottom: 0;
+    }
+}
