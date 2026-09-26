@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestano | Dashboard da Barbearia</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="gest-theme.css?v=20260925-commissions-table-gap">
+    <link rel="stylesheet" href="gest-theme.css?v=20260926-profile-hub">
     <link rel="icon" type="image/png" sizes="500x500" href="logoG.png?v=20260925-logoG-transparent">
     <link rel="apple-touch-icon" sizes="500x500" href="logoG.png?v=20260925-logoG-transparent">
     <link rel="manifest" href="gest.webmanifest?v=20260925-logoG-transparent">
@@ -881,6 +881,105 @@
                     </div>
                     <p class="settings-feedback" id="booking-settings-feedback" aria-live="polite"></p>
                 </section>
+            </div>
+
+            <!-- TAB PERFIL -->
+            <div id="tab-perfil" class="hidden">
+                <div class="admin-profile-page">
+                    <div class="admin-profile-heading">
+                        <div>
+                            <span class="admin-profile-eyebrow">Conta e neg&oacute;cio</span>
+                            <h2>Perfil</h2>
+                            <p>Gerencie seus dados, sua equipe e os hor&aacute;rios da sua barbearia.</p>
+                        </div>
+                        <button type="button" class="btn btn-ghost admin-profile-back" onclick="admin.showTab('home')">
+                            <span aria-hidden="true">&larr;</span> Voltar ao dashboard
+                        </button>
+                    </div>
+
+                    <section class="glass admin-profile-identity">
+                        <div class="admin-profile-avatar" id="profile-page-avatar">HY</div>
+                        <div class="admin-profile-identity-copy">
+                            <span class="admin-profile-eyebrow">Seu acesso</span>
+                            <h3 id="profile-page-owner">Hyuri</h3>
+                            <p id="profile-page-email">E-mail n&atilde;o informado</p>
+                            <strong id="profile-page-shop">Hyuri Barber</strong>
+                        </div>
+                        <div class="admin-profile-identity-mark" aria-hidden="true">Gestano</div>
+                    </section>
+
+                    <div class="admin-profile-overview-grid">
+                        <section class="glass admin-profile-overview-card">
+                            <div class="admin-profile-card-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5M9 21v-6h6v6"></path></svg>
+                            </div>
+                            <div>
+                                <span class="admin-profile-eyebrow">Meu neg&oacute;cio</span>
+                                <h3 id="profile-page-business-title">Hyuri Barber</h3>
+                                <p>Nome, identidade e p&aacute;gina de agendamento.</p>
+                            </div>
+                            <button type="button" class="admin-profile-inline-action" onclick="admin.openProfileBusiness()">Abrir ajustes <span aria-hidden="true">&rarr;</span></button>
+                        </section>
+                        <section class="glass admin-profile-overview-card">
+                            <div class="admin-profile-card-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            </div>
+                            <div>
+                                <span class="admin-profile-eyebrow">Equipe</span>
+                                <h3 id="profile-team-count">Sua equipe</h3>
+                                <p>Profissionais, servi&ccedil;os e comiss&otilde;es.</p>
+                            </div>
+                            <button type="button" class="admin-profile-inline-action" onclick="admin.openProfileTeam()">Gerenciar equipe <span aria-hidden="true">&rarr;</span></button>
+                        </section>
+                    </div>
+
+                    <section class="glass admin-profile-schedule-card">
+                        <div class="admin-profile-section-heading">
+                            <div>
+                                <span class="admin-profile-eyebrow">Funcionamento</span>
+                                <h3>Hor&aacute;rio de atendimento</h3>
+                                <p>Deixe claro para sua equipe e para os clientes quando a agenda est&aacute; aberta.</p>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="admin.focusBookingSchedule()">Editar hor&aacute;rios</button>
+                        </div>
+                        <div class="admin-profile-schedule-preview" id="profile-schedule-summary">
+                            <div class="admin-profile-schedule-loading">Carregando seus hor&aacute;rios...</div>
+                        </div>
+                    </section>
+
+                    <div class="admin-profile-section-label">CONFIGURA&Ccedil;&Otilde;ES</div>
+                    <section class="glass admin-profile-list">
+                        <button type="button" class="admin-profile-list-item" onclick="admin.openProfileBusiness()">
+                            <span class="admin-profile-list-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8h14v13M3 8l2-5h14l2 5M9 21v-5h6v5M8 11h.01M12 11h.01M16 11h.01"></path></svg></span>
+                            <span class="admin-profile-list-copy"><strong>Meu neg&oacute;cio</strong><small>Dados e configura&ccedil;&otilde;es da sua p&aacute;gina</small></span>
+                            <span class="admin-profile-list-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+                        <button type="button" class="admin-profile-list-item" onclick="admin.focusBookingSchedule()">
+                            <span class="admin-profile-list-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"></rect><path d="M8 2v4M16 2v4M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"></path></svg></span>
+                            <span class="admin-profile-list-copy"><strong>Hor&aacute;rio de atendimento</strong><small>Dias, hor&aacute;rios e pausas da agenda</small></span>
+                            <span class="admin-profile-list-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+                        <button type="button" class="admin-profile-list-item" onclick="ui.openBillingFromProfile()">
+                            <span class="admin-profile-list-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18M7 15h3"></path></svg></span>
+                            <span class="admin-profile-list-copy"><strong>Plano e faturamento</strong><small>Consulte seu plano e os pagamentos</small></span>
+                            <span class="admin-profile-list-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+                        <button type="button" class="admin-profile-list-item" onclick="ui.shareFromProfile()">
+                            <span class="admin-profile-list-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"></path></svg></span>
+                            <span class="admin-profile-list-copy"><strong>Compartilhar minha p&aacute;gina</strong><small>Envie seu link de agendamento aos clientes</small></span>
+                            <span class="admin-profile-list-arrow" aria-hidden="true">&rarr;</span>
+                        </button>
+                    </section>
+
+                    <section class="admin-profile-footer-card">
+                        <div>
+                            <span class="admin-profile-eyebrow">Tudo pronto?</span>
+                            <h3>Continue cuidando da sua agenda.</h3>
+                            <p>Volte ao dashboard para acompanhar o movimento da barbearia.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="admin.showTab('home')">Ir para o dashboard</button>
+                    </section>
+                </div>
             </div>
 
             <div id="tab-administracao" class="hidden">

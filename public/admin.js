@@ -735,6 +735,7 @@ const admin = {
             comissoes: 'Comissões',
             servicos: 'Serviços',
             configuracoes: 'Ajustes',
+            perfil: 'Perfil',
             administracao: 'Administração'
         };
         const label = loader.querySelector('[data-navigation-label]');
@@ -754,7 +755,7 @@ const admin = {
 
     activateTab(tab) {
         // Tab display logic
-        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'comissoes', 'billing', 'relatorios', 'despesas', 'administracao'];
+        const tabs = ['home', 'agenda', 'clientes', 'fidelidade', 'vendas', 'estoque', 'barbeiros', 'servicos', 'configuracoes', 'perfil', 'comissoes', 'billing', 'relatorios', 'despesas', 'administracao'];
         tabs.forEach(t => {
             const el = document.getElementById(`tab-${t}`);
             if (el) el.classList.toggle('hidden', t !== tab);
@@ -826,6 +827,10 @@ const admin = {
 
         if (tab === 'configuracoes') {
             this.loadBookingSettings();
+        }
+
+        if (tab === 'perfil') {
+            this.renderProfilePage();
         }
 
         if (tab === 'comissoes') {
@@ -3223,6 +3228,7 @@ const admin = {
             const res = await auth.apiRequest(`/api/professionals/${auth.user.id}`);
             this.professionals = await res.json();
             this.renderProfessionals();
+            if (!document.getElementById('tab-perfil')?.classList.contains('hidden')) this.renderProfilePage({ loadData: false });
             if (agenda.calendar) agenda.populateProfessionalFilter();
         } catch (err) { console.error('Erro ao carregar barbeiros'); }
     },
@@ -4082,6 +4088,7 @@ const admin = {
         }
 
         this.renderBookingSettings();
+        this.renderProfileSchedule(this.bookingSettings);
     },
 
     renderBookingSettings() {
@@ -4124,6 +4131,73 @@ const admin = {
         document.querySelectorAll('.booking-schedule-row [data-schedule-field="enabled"]').forEach(input => {
             input.onchange = () => input.closest('.booking-schedule-row')?.classList.toggle('is-closed', !input.checked);
         });
+    },
+
+    renderProfilePage({ loadData = true } = {}) {
+        const user = auth.user || {};
+        const shopName = user.shop_name || user.shop || 'Gestano';
+        const ownerName = user.name || user.full_name || shopName.split(/\s+/)[0] || 'Gestano';
+        const initials = shopName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('') || 'G';
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+
+        setText('profile-page-avatar', initials);
+        setText('profile-page-owner', ownerName);
+        setText('profile-page-email', user.email || 'E-mail não informado');
+        setText('profile-page-shop', shopName);
+        setText('profile-page-business-title', shopName);
+
+        const teamCount = Array.isArray(this.professionals) ? this.professionals.length : null;
+        setText('profile-team-count', teamCount === null ? 'Sua equipe' : `${teamCount} profissional${teamCount === 1 ? '' : 'is'}`);
+        this.renderProfileSchedule(this.bookingSettings || this.getDefaultBookingSettings());
+
+        if (loadData) {
+            if (!this.bookingSettings) this.loadBookingSettings();
+            if (!Array.isArray(this.professionals)) this.loadProfessionals();
+        }
+    },
+
+    renderProfileSchedule(settings) {
+        const container = document.getElementById('profile-schedule-summary');
+        if (!container) return;
+
+        const dayNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const schedule = settings?.weeklySchedule || {};
+        const openDays = dayNames.map((day, index) => {
+            const item = schedule[String(index)] || schedule[index];
+            if (!item || item.enabled === false) return null;
+            const start = item.start || '09:00';
+            const end = item.end || '18:00';
+            return { day, start, end };
+        }).filter(Boolean);
+
+        if (!openDays.length) {
+            container.innerHTML = '<div class="admin-profile-schedule-empty"><strong>Agenda fechada</strong><span>Ative pelo menos um dia para receber agendamentos.</span></div>';
+            return;
+        }
+
+        container.innerHTML = openDays.map(({ day, start, end }) => `
+            <div class="admin-profile-schedule-row">
+                <strong>${this.escapeHtml(day)}</strong>
+                <span>${this.escapeHtml(start)} <b>at&eacute;</b> ${this.escapeHtml(end)}</span>
+            </div>
+        `).join('');
+    },
+
+    openProfileBusiness() {
+        this.showTab('configuracoes', { skipLoading: true });
+        document.getElementById('tab-configuracoes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    openProfileTeam() {
+        this.showTab('barbeiros');
+    },
+
+    focusBookingSchedule() {
+        this.showTab('configuracoes', { skipLoading: true });
+        window.setTimeout(() => document.querySelector('#tab-configuracoes .settings-schedule-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30);
     },
 
     collectBookingSettings() {
@@ -4954,7 +5028,7 @@ const ui = {
 
     openProfileSettings() {
         this.closeProfileMenu();
-        admin.showTab('configuracoes');
+        admin.showTab('perfil');
     },
 
     openBillingFromProfile() {
