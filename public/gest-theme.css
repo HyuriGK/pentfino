@@ -5639,3 +5639,436 @@ html:has(body.landing-body) {
         transform: none !important;
     }
 }
+
+/* Final admin palette lock: keep every late legacy rule inside the reference palette. */
+.admin-light {
+    --bg-dark: #f7f6f3;
+    --bg-card: #ffffff;
+    --bg-sidebar: #101116;
+    --primary: #1aa78f;
+    --primary-hover: #138b78;
+    --accent: #178f7c;
+    --text-main: #172033;
+    --text-muted: #667085;
+    --border: #e4e2dd;
+    --border-bright: #d4d1ca;
+    --success: #1aa78f;
+    --shadow: 0 8px 24px rgba(23, 32, 51, 0.065);
+    color: #172033 !important;
+    background: #f7f6f3 !important;
+    background-image: none !important;
+}
+
+.admin-light #admin-view,
+.admin-light .dashboard-wrapper,
+.admin-light .dashboard-content {
+    background: #f7f6f3 !important;
+    background-image: none !important;
+}
+
+.admin-light .sidebar {
+    background: #101116 !important;
+    border-right-color: #252832 !important;
+    box-shadow: 8px 0 28px rgba(16, 17, 22, 0.14) !important;
+}
+
+.admin-light .sidebar-header,
+.admin-light .sidebar-footer {
+    border-color: #292c35 !important;
+    background: #101116 !important;
+}
+
+.admin-light .sidebar .logo-wordmark-expanded {
+    filter: brightness(0) invert(1);
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title,
+.admin-light .sidebar .nav-item {
+    color: #aeb4c0 !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-title:hover,
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"],
+.admin-light .sidebar .nav-item:hover {
+    color: #ffffff !important;
+    background: #1b1d24 !important;
+    border-color: #292c35 !important;
+    box-shadow: none !important;
+}
+
+.admin-light .sidebar .nav-item.active {
+    color: #ffffff !important;
+    background: #292b32 !important;
+    border-color: #30333d !important;
+    box-shadow: none !important;
+}
+
+.admin-light .sidebar .nav-item.active svg,
+.admin-light .sidebar-nav-scroll nav .nav-group-title[aria-expanded="true"] .nav-group-icon {
+    color: #4dc8b4 !important;
+}
+
+.admin-light .sidebar-nav-scroll nav .nav-group-chevron,
+.admin-light .sidebar-nav-scroll nav .nav-group-chevron::before {
+    color: #7f8795 !important;
+}
+
+.admin-light .sidebar-footer .nav-item:first-child {
+    color: #53cbb8 !important;
+}
+
+.admin-light .sidebar-footer .nav-item:last-child {
+    color: #f07a84 !important;
+}
+
+.admin-light .mobile-menu-button {
+    background: #101116 !important;
+    border-color: #292c35 !important;
+    box-shadow: 0 8px 22px rgba(16, 17, 22, 0.2) !important;
+}
+
+.admin-light .mobile-menu-button span {
+    background: #ffffff !important;
+}
+
+.admin-light .sidebar-scrim {
+    background: rgba(16, 17, 22, 0.5) !important;
+}
+
+.admin-light .glass:not(.sidebar),
+.admin-light .stat-card,
+.admin-light .professional-card,
+.admin-light .inventory-card,
+.admin-light .billing-chart-container,
+.admin-light .admin-user-form,
+.admin-light .dashboard-insight-card,
+.admin-light .waitlist-panel,
+.admin-light .cash-register-panel,
+.admin-light .report-card,
+.admin-light .loyalty-panel,
+.admin-light .admin-module-card,
+.admin-light .settings-section,
+.admin-light .agenda-summary-card,
+.admin-light .agenda-calendar,
+.admin-light .queue-main-panel,
+.admin-light .queue-side-panel {
+    color: #172033 !important;
+    background: #ffffff !important;
+    border-color: #e4e2dd !important;
+    box-shadow: 0 6px 20px rgba(23, 32, 51, 0.055) !important;
+}
+
+.admin-light .glass:not(.sidebar):hover,
+.admin-light .stat-card:hover,
+.admin-light .professional-card:hover,
+.admin-light .inventory-card:hover,
+.admin-light .admin-module-card:hover {
+    border-color: #cfcbc4 !important;
+    box-shadow: 0 10px 28px rgba(23, 32, 51, 0.085) !important;
+}
+
+.admin-light .dashboard-title,
+.admin-light .list-header h2,
+.admin-light .queue-header h2,
+.admin-light .page-header h2,
+.admin-light .section-toolbar h3,
+.admin-light .modal-title,
+.admin-light .stat-value,
+.admin-light .inventory-card-title,
+.admin-light .prof-card-info h3 {
+    color: #172033 !important;
+}
+
+.admin-light #current-date,
+.admin-light .page-eyebrow,
+.admin-light .admin-panel-kicker,
+.admin-light .admin-form-eyebrow,
+.admin-light .stat-label,
+.admin-light .dashboard-date-line,
+.admin-light .dashboard-stat-caption,
+.admin-light .section-toolbar p {
+    color: #667085 !important;
+}
+
+.admin-light .stat-card::before,
+.admin-light .admin-security-dot {
+    background: #1aa78f !important;
+}
+
+.admin-light .admin-security-dot {
+    box-shadow: 0 0 0 4px rgba(26, 167, 143, 0.13) !important;
+}
+
+.admin-light .booking-style-preview i,
+.admin-light .booking-style-preview b,
+.admin-light .booking-style-preview em {
+    background: #1aa78f !important;
+}
+
+.admin-light .dashboard-chart span {
+    background: linear-gradient(180deg, #1aa78f, rgba(26, 167, 143, 0.18)) !important;
+}
+
+.admin-light .dashboard-insight-icon,
+.admin-light .admin-module-icon,
+.admin-light .settings-icon,
+.admin-light .report-icon {
+    color: #148b77 !important;
+    background: #eaf6f3 !important;
+    border-color: #c9e4de !important;
+}
+
+.admin-light .dashboard-mini-metrics div,
+.admin-light .report-breakdown-row,
+.admin-light .cash-summary-item,
+.admin-light .settings-row,
+.admin-light .permission-option,
+.admin-light .account-status-control {
+    color: #273246 !important;
+    background: #faf9f7 !important;
+    border-color: #e7e4df !important;
+}
+
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.admin-light select,
+.admin-light textarea,
+.admin-light .glass-select {
+    color: #172033 !important;
+    background: #ffffff !important;
+    border-color: #ddd9d2 !important;
+    box-shadow: none !important;
+    color-scheme: light !important;
+}
+
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):hover,
+.admin-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+.admin-light select:hover,
+.admin-light select:focus,
+.admin-light textarea:hover,
+.admin-light textarea:focus {
+    background: #ffffff !important;
+    border-color: #c8c4bd !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.admin-light input::placeholder,
+.admin-light textarea::placeholder {
+    color: #98a2b3 !important;
+}
+
+.admin-light select option {
+    color: #172033 !important;
+    background: #ffffff !important;
+}
+
+.admin-light .queue-search:focus-within {
+    background: #ffffff !important;
+    border-color: #c8c4bd !important;
+    box-shadow: none !important;
+    transform: none;
+}
+
+.admin-light .btn-primary,
+.admin-light .btn-confirm-appointment,
+.admin-light .action-btns .btn-primary,
+.admin-light .waitlist-form .btn-primary,
+.admin-light .whatsapp-confirm-action {
+    color: #ffffff !important;
+    background: #1aa78f !important;
+    border-color: #1aa78f !important;
+    box-shadow: 0 8px 18px rgba(26, 167, 143, 0.2) !important;
+}
+
+.admin-light .btn-primary:hover,
+.admin-light .btn-confirm-appointment:hover,
+.admin-light .action-btns .btn-primary:hover,
+.admin-light .waitlist-form .btn-primary:hover,
+.admin-light .whatsapp-confirm-action:hover {
+    background: #138b78 !important;
+    border-color: #138b78 !important;
+}
+
+.admin-light .btn-ghost,
+.admin-light .btn-outline,
+.admin-light .filter-btn,
+.admin-light .period-filter-btn {
+    color: #273246 !important;
+    background: #ffffff !important;
+    border-color: #ddd9d2 !important;
+    box-shadow: 0 2px 7px rgba(23, 32, 51, 0.045) !important;
+}
+
+.admin-light .btn-ghost:hover,
+.admin-light .btn-outline:hover,
+.admin-light .filter-btn:hover,
+.admin-light .period-filter-btn:hover,
+.admin-light .filter-btn.active,
+.admin-light .period-filter-btn.active {
+    color: #117b69 !important;
+    background: #edf7f5 !important;
+    border-color: #b9ddd6 !important;
+}
+
+.admin-light .data-table-container,
+.admin-light .table-responsive,
+.admin-light .sales-history-container,
+.admin-light #clients-table-shell {
+    background: #ffffff !important;
+    border-color: #e4e2dd !important;
+    box-shadow: 0 5px 18px rgba(23, 32, 51, 0.05) !important;
+}
+
+.admin-light .data-table,
+.admin-light .data-table tbody,
+.admin-light .data-table tr,
+.admin-light .data-table td {
+    color: #273246 !important;
+    background-color: #ffffff !important;
+    border-color: #ebe8e3 !important;
+}
+
+.admin-light .data-table thead,
+.admin-light .data-table th {
+    color: #596477 !important;
+    background: #f5f4f1 !important;
+    border-color: #e4e2dd !important;
+}
+
+.admin-light .data-table tbody tr:hover td {
+    background: #faf9f7 !important;
+}
+
+.admin-light .appointment-item,
+.admin-light .waitlist-item,
+.admin-light .booking-block-item,
+.admin-light .dashboard-professional-row {
+    background: #ffffff !important;
+    border-color: #e4e2dd !important;
+    box-shadow: none !important;
+}
+
+.admin-light .badge,
+.admin-light .svc-tag,
+.admin-light .qty-badge,
+.admin-light .client-paid-badge,
+.admin-light .loyalty-points-pill,
+.admin-light .appointment-status-chip.status-confirmed,
+.admin-light .appointment-status-chip.status-completed,
+.admin-light .marketing-lead-status.contacted,
+.admin-light .admin-security-badge {
+    color: #117b69 !important;
+    background: #e8f6f3 !important;
+    border-color: #b9ddd6 !important;
+}
+
+.admin-light .client-return-badge,
+.admin-light .status-new,
+.admin-light .marketing-lead-status.new {
+    color: #148b77 !important;
+    background: #edf7f5 !important;
+    border-color: #c9e4de !important;
+}
+
+.admin-light a,
+.admin-light .text-link,
+.admin-light .client-name-link,
+.admin-light .dashboard-professional-row strong {
+    color: #148b77;
+}
+
+.admin-light .agenda-calendar {
+    --fc-page-bg-color: #ffffff;
+    --fc-neutral-bg-color: #f5f4f1;
+    --fc-border-color: #e4e2dd;
+    --fc-button-bg-color: #1aa78f;
+    --fc-button-border-color: #1aa78f;
+    --fc-button-hover-bg-color: #138b78;
+    --fc-button-hover-border-color: #138b78;
+    --fc-button-active-bg-color: #117b69;
+    --fc-button-active-border-color: #117b69;
+    color: #172033 !important;
+    background: #ffffff !important;
+}
+
+.admin-light .fc .fc-col-header-cell,
+.admin-light .fc .fc-daygrid-day,
+.admin-light .fc .fc-scrollgrid-section-body table {
+    background: #ffffff !important;
+}
+
+.admin-light .fc .fc-day-today {
+    background: #edf7f5 !important;
+}
+
+.admin-light .modal-overlay {
+    background: rgba(16, 17, 22, 0.5) !important;
+    backdrop-filter: blur(8px);
+}
+
+.admin-light .modal-content,
+.admin-light .expense-modal-content,
+.admin-light .sale-modal-content,
+.admin-light .professional-modal-content,
+.admin-light .inventory-modal-content,
+.admin-light .client-details-content {
+    color: #172033 !important;
+    background: #ffffff !important;
+    border-color: #e4e2dd !important;
+    box-shadow: 0 24px 70px rgba(16, 17, 22, 0.2) !important;
+}
+
+.admin-light .modal-header,
+.admin-light .modal-footer,
+.admin-light .expense-modal-footer,
+.admin-light .sale-modal-footer {
+    border-color: #e4e2dd !important;
+}
+
+.admin-light .navigation-loader-mark::before {
+    border-top-color: #1aa78f !important;
+    border-right-color: rgba(26, 167, 143, 0.64) !important;
+}
+
+.admin-light #modal-inventory .inventory-modal-content > .btn-full {
+    box-shadow: 0 9px 20px rgba(26, 167, 143, 0.2) !important;
+}
+
+.admin-light .auth-visual-side {
+    background: #101116 !important;
+    border-right-color: #252832 !important;
+}
+
+.admin-light .auth-visual-overlay {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) !important;
+}
+
+.admin-light .auth-visual-side .logo-wordmark-auth {
+    filter: brightness(0) invert(1);
+}
+
+.admin-light .auth-visual-side .auth-hero-text {
+    color: #ffffff !important;
+}
+
+.admin-light .auth-visual-side .auth-eyebrow {
+    color: #53cbb8 !important;
+}
+
+.admin-light .auth-visual-side .auth-subtext {
+    color: #aeb4c0 !important;
+}
+
+.admin-light .auth-form-side {
+    background: #f7f6f3 !important;
+}
+
+.admin-light .auth-card-new {
+    color: #172033 !important;
+    background: #ffffff !important;
+    border-color: #e4e2dd !important;
+    box-shadow: 0 18px 48px rgba(23, 32, 51, 0.09) !important;
+}

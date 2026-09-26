@@ -1263,7 +1263,7 @@ const admin = {
                     </div>
                 </td>
                 <td><strong style="color:var(--primary); text-decoration: underline;">${this.escapeHtml(c.name)}</strong></td>
-                <td><span class="svc-tag" style="background: #f1faf4; border: 1px solid var(--border-bright);">${c.rate}%</span></td>
+                <td><span class="svc-tag" style="background: #edf7f5; border: 1px solid var(--border-bright);">${c.rate}%</span></td>
                 <td style="font-weight: 600;">R$ ${c.generated.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--danger); font-weight: 600;">R$ ${c.shopShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                 <td style="color: var(--success); font-weight: 700;">R$ ${c.toProfessional.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -1971,7 +1971,7 @@ const admin = {
             };
             const paymentLabels = { paid: 'Pago', pending: 'Não pago' };
             historyContainer.innerHTML = history.length > 0 ? history.map(h => `
-                <tr style="background: #f7fcf9">
+                <tr style="background: #faf9f7">
                     <td style="padding: 15px;">${this.formatAppointmentDate(h.appointment_date)} ${String(h.appointment_time || '').slice(0, 5)}</td>
                     <td style="padding: 15px;">${h.service_name}</td>
                     <td style="padding: 15px; color: var(--primary); font-weight: 600;">${h.professional_name || 'Geral'}</td>
@@ -2405,10 +2405,10 @@ const admin = {
                 </td>
                 <td style="font-weight: 500;">${s.client_name || '<span style="color: var(--text-muted); font-style: italic;">Consumidor</span>'}</td>
                 <td><strong style="color: var(--text-main);">${s.item_name}</strong></td>
-                <td><span class="qty-badge" style="background: #f1faf4; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);">${s.quantity}</span></td>
+                <td><span class="qty-badge" style="background: #f3f4f2; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);">${s.quantity}</span></td>
                 <td>
                     ${s.professional_name 
-                        ? `<span class="svc-tag" style="background: #e6f8ed; color: var(--success); border: 1px solid #bce5ca;">${s.professional_name}</span>`
+                        ? `<span class="svc-tag" style="background: #e8f6f3; color: var(--success); border: 1px solid #b9ddd6;">${s.professional_name}</span>`
                         : '<span style="color: var(--text-muted)">-</span>'
                     }
                 </td>
@@ -2748,8 +2748,8 @@ const admin = {
         if (!ctx) return;
 
         const styles = getComputedStyle(document.body);
-        const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#6b7f73';
-        const chartGrid = styles.getPropertyValue('--border').trim() || 'rgba(38, 184, 120, 0.12)';
+        const chartMuted = styles.getPropertyValue('--text-muted').trim() || '#667085';
+        const chartGrid = styles.getPropertyValue('--border').trim() || 'rgba(23, 32, 51, 0.1)';
         const labels = data.map((_, index) => String(index + 1).padStart(2, '0'));
         const typeLabels = { all: 'Todos', services: 'Serviços', sales: 'Vendas' };
         const formatCurrency = value => `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
@@ -2830,11 +2830,11 @@ const admin = {
                 datasets: [{
                     label: `${typeLabels[type] || 'Todos'} — ${monthName}`,
                     data,
-                    backgroundColor: 'rgba(38, 184, 120, 0.72)',
-                    borderColor: '#1ca568',
+                    backgroundColor: 'rgba(26, 167, 143, 0.76)',
+                    borderColor: '#148b77',
                     borderWidth: 1,
                     borderRadius: 4,
-                    hoverBackgroundColor: '#26b878',
+                    hoverBackgroundColor: '#1aa78f',
                     barPercentage: 0.82,
                     categoryPercentage: 0.82
                 }]
@@ -4756,10 +4756,10 @@ const agenda = {
                 start: this.toCalendarDateTime(startDate),
                 end: this.toCalendarDateTime(endDate),
                 backgroundColor: a.status === 'completed'
-                    ? 'rgba(28, 165, 104, 0.14)'
-                    : (a.status === 'canceled' || a.status === 'no_show' ? 'rgba(217, 77, 91, 0.14)' : 'rgba(38, 184, 120, 0.14)'),
+                    ? 'rgba(26, 167, 143, 0.14)'
+                    : (a.status === 'canceled' || a.status === 'no_show' ? 'rgba(217, 77, 91, 0.14)' : 'rgba(26, 167, 143, 0.14)'),
                 borderColor: a.status === 'completed' ? 'var(--success)' : (a.status === 'canceled' || a.status === 'no_show' ? 'var(--danger)' : 'var(--primary)'),
-                textColor: a.status === 'completed' ? '#13794c' : (a.status === 'canceled' || a.status === 'no_show' ? '#b83c48' : 'var(--text-main)'),
+                textColor: a.status === 'completed' ? '#117b69' : (a.status === 'canceled' || a.status === 'no_show' ? '#b83c48' : 'var(--text-main)'),
                 classNames: [`event-${a.status}`],
                 extendedProps: {
                     service: a.service_name,
