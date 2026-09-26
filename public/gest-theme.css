@@ -4402,3 +4402,49 @@ html body.booking-body .booking-date-option:not(.selected):focus-visible:not(:di
         stroke-width: 1.85;
     }
 }
+
+/* Client actions: use the WhatsApp brand mark and keep both actions inline. */
+.admin-light #clients-table-shell .client-actions {
+    display: flex !important;
+    align-items: center;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+}
+
+.admin-light #clients-table-shell .client-whatsapp-btn {
+    display: grid !important;
+    place-items: center;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    color: #168653 !important;
+    background: #effaf4 !important;
+    border: 1px solid #b9dfc6 !important;
+    border-radius: 12px;
+}
+
+.admin-light #clients-table-shell .client-whatsapp-btn:hover {
+    color: #ffffff !important;
+    background: #20a96e !important;
+    border-color: #20a96e !important;
+}
+
+.admin-light #clients-table-shell .client-whatsapp-btn svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.admin-light #clients-table-shell .client-delete-btn {
+    flex: 0 0 44px;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    font-size: 1.25rem;
+}
